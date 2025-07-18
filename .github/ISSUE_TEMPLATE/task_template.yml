@@ -1,0 +1,77 @@
+name: Individual Task Tracker
+description: Create a Task/Issue for tracking todos and planning your workload.
+title: "Task: [Phase] - [Feature Name]"
+body:
+  - type: dropdown
+    attributes:
+      label: "Priority"
+      multiple: false
+      options:
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: "Estimated Time: "
+      placeholder: "2 hours"
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: "Week: "
+      placeholder: "Week X"
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: "Category: "
+      multiple: false
+      options:
+        - Frontend
+        - Backend
+        - Database
+        - Testing
+    validations:
+        required: true
+  - type: textarea
+    attributes:
+      label: "Description"
+      placeholder: "Clear description of what needs to be implemented"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "Acceptance Criteria"
+      placeholder : |
+                  - [ ] Specific, measurable criteria
+                  - [ ] That define when the task is complete
+                  - [ ] Include testing requirements
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "Implementation Notes"
+      placeholder : |
+                  - Technical approach or architecture decisions
+                  - Dependencies on other tasks
+                  - Useful resources or documentation links
+                    
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "Definition of Done"
+      placeholder : |
+                - [ ] Code written and working locally
+                - [ ] Self-reviewed for quality and best practices
+                - [ ] Tests written (if applicable)
+                - [ ] Documentation updated
+                - [ ] Feature deployed and tested
+                - [ ] Ready for optional peer review
+
+    validations:
+      required: true
+
+
