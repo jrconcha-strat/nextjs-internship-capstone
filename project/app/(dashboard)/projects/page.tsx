@@ -3,7 +3,7 @@ import { DashboardLayout } from "@/components/dashboard-layout"
 
 export default function ProjectsPage() {
   return (
-    <DashboardLayout>
+    //<DashboardLayout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -108,6 +108,6 @@ export default function ProjectsPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    //</DashboardLayout>
   )
 }
