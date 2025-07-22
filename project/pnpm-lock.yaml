@@ -14,6 +14,9 @@ importers:
       '@clerk/nextjs':
         specifier: ^6.25.4
         version: 6.25.4(next@15.4.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@clerk/types':
+        specifier: ^4.68.0
+        version: 4.68.0
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
