@@ -1,0 +1,53 @@
+name: Individual Task Tracker
+description: Create a Task/Issue for tracking todos and planning your workload.
+title: X.X <Name of the Task>
+body:
+  - type: textarea
+    attributes:
+      label: Task Summary
+      value: |
+        ## Task: [Phase] - [Feature Name]
+
+        **Priority**: High/Medium/Low
+        **Estimated Time**: X hours
+        **Week**: Week X
+        **Category**: Frontend/Backend/Database/Testing
+        
+  - type: textarea
+    attributes:
+      label: "Description"
+      placeholder: "Clear description of what needs to be implemented"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "Acceptance Criteria"
+      placeholder : |
+                  - [ ] Specific, measurable criteria
+                  - [ ] That define when the task is complete
+                  - [ ] Include testing requirements
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "Implementation Notes"
+      placeholder : |
+                  - Technical approach or architecture decisions
+                  - Dependencies on other tasks
+                  - Useful resources or documentation links
+                    
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "Definition of Done"
+      placeholder : |
+                - [ ] Code written and working locally
+                - [ ] Self-reviewed for quality and best practices
+                - [ ] Tests written (if applicable)
+                - [ ] Documentation updated
+                - [ ] Feature deployed and tested
+                - [ ] Ready for optional peer review
+
+    validations:
+      required: true

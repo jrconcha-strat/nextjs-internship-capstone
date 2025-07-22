@@ -1,0 +1,38 @@
+name: Weekly Sprint Template
+description: A template for the weekly planning issue.
+title: "Week X Planning - [Date Range]"
+body:
+  - type: textarea
+    attributes:
+      label: "Goals for this week"
+      placeholder : |
+                - [ ] Main objective 1
+                - [ ] Main objective 2
+                - [ ] Main objective 3
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "Tasks Planned"
+      placeholder : |
+                - [ ] Task 1 (Priority: High, Est: 4h)
+                - [ ] Task 2 (Priority: Medium, Est: 6h)
+                - [ ] Task 3 (Priority: Low, Est: 2h)
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "Blockers/Questions"
+      placeholder : |
+                - Any technical questions or blockers
+                - Areas where you might need help
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "Learning Goals"
+      placeholder : |
+                - New technologies or concepts to learn this week
+                - Skills to practice or improve
+    validations:
+      required: true
