@@ -42,3 +42,12 @@ export const projects = "TODO: Implement projects table schema"
 export const lists = "TODO: Implement lists table schema"
 export const tasks = "TODO: Implement tasks table schema"
 export const comments = "TODO: Implement comments table schema"
+
+
+import { integer, pgTable, varchar } from "drizzle-orm/pg-core";
+
+
+export const usersTable = pgTable("users", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  email: varchar({ length: 255 }).notNull().unique(),
+});
