@@ -11,7 +11,7 @@ body:
         **Priority**: High/Medium/Low
         **Estimated Time**: X hours
         **Week**: Week X
-        **Category**: Frontend/Backend/Database/Testing
+        **Category**: Frontend/Backend/Database/Testing/Setup/Auth/Deployment/Documentation 
         
   - type: textarea
     attributes:
