@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
@@ -16,8 +16,10 @@ import {
   Calendar,
   Bell,
   Search,
+  Loader2Icon,
 } from "lucide-react";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useUser } from "@clerk/nextjs";
+import { redirect } from "next/navigation";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home, current: true },
@@ -33,7 +35,59 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { isSignedIn } = useUser();
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [count, setCount] = useState(3);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Wait for clerk to get whether user is signed in or not.
+  useEffect(() => {
+    if (isSignedIn !== undefined) {
+      setIsLoaded(true);
+    }
+  }, [isSignedIn]);
+
+  // Handle redirect countdown
+  useEffect(() => {
+    if (isLoaded && isSignedIn === false) {
+      const interval = setInterval(() => {
+        setCount((prev) => prev - 1);
+      }, 1000);
+
+      const timeout = setTimeout(() => {
+        redirect("/sign-in");
+      }, 3000);
+
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
+    }
+  }, [isLoaded, isSignedIn]);
+
+  // Just display loading screen while waiting for clerk.
+  if (!isLoaded) {
+    return (
+      <div className="w-full h-[100vh] flex justify-center items-center gap-x-2">
+        {" "}
+        <Loader2Icon size={24} className="animate-spin"></Loader2Icon> <p className="text-2xl"> Loading </p>
+      </div>
+    );
+  }
+
+  if (isLoaded && isSignedIn == false) {
+    return (
+      <div className="w-full h-[100vh] flex flex-col justify-center items-center gap-y-3">
+        {" "}
+        <p className="font-bold text-2xl">
+          {`You must be signed in to view this page.`}
+        </p>
+        <p>
+          {`Redirecting in ${count}`}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-platinum-900 dark:bg-outer_space-600">
