@@ -1,4 +1,4 @@
-import ProfileSettings from "@/components/settings/ProfileSettings"
+import ProfileSettings from "@/components/settings/profile-settings"
 import { User, Bell, Shield, Palette } from "lucide-react"
 
 export default function SettingsPage() {
