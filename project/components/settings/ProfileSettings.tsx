@@ -38,6 +38,10 @@ const ProfileSettings: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isAlreadyEditing, setIsAlreadyEditing] = useState(false);
 
+  useEffect(() => {
+    if (user && user.primaryEmailAddress)
+      setEmail(user.primaryEmailAddress.emailAddress);
+  }, [user]);
   if (!isLoaded) {
     return <ProfileSettingsSkeleton></ProfileSettingsSkeleton>;
   }
@@ -67,7 +71,7 @@ const ProfileSettings: FC = () => {
             <input
               type="email"
               placeholder="john@example.com"
-              value="email"
+              value={email}
               disabled={isLoading}
               onChange={() => {}}
               className="w-full px-3 py-2 border border-french_gray-300 dark:border-payne's_gray-400 rounded-lg bg-white dark:bg-outer_space-400 text-outer_space-500 dark:text-platinum-500 focus:outline-hidden focus:ring-2 focus:ring-blue_munsell-500"
