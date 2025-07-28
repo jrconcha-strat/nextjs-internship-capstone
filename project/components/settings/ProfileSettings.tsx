@@ -43,7 +43,7 @@ const ProfileSettings: FC = () => {
       setEmail(user.primaryEmailAddress.emailAddress);
   }, [user]);
   if (!isLoaded) {
-    return <ProfileSettingsSkeleton></ProfileSettingsSkeleton>;
+    return <ProfileSettingsSkeleton/>;
   }
 
   return (
@@ -62,7 +62,7 @@ const ProfileSettings: FC = () => {
         </h3>
 
         <div className="space-y-6">
-          <ProfileDetailsSection></ProfileDetailsSection>
+          <ProfileDetailsSection/>
 
           <div>
             <label className="block text-sm font-medium text-outer_space-500 dark:text-platinum-500 mb-2">

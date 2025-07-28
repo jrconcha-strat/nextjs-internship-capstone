@@ -178,10 +178,8 @@ export default function DashboardLayout({
               <button className="p-2 rounded-lg hover:bg-platinum-500 dark:hover:bg-payne's_gray-400">
                 <Bell size={20} />
               </button>
-
               <ThemeToggle />
-
-              <UserButton></UserButton>
+              <UserButton/>
             </div>
           </div>
         </div>

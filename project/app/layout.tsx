@@ -23,7 +23,7 @@ export default function RootLayout({
     <ClerkProvider>
     <html lang="en" /*className="dark"*/ suppressHydrationWarning>
       <body className={inter.className}>
-        <Toaster position="top-center"></Toaster>
+        <Toaster position="top-center"/>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
