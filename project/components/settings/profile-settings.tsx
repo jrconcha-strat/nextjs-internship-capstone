@@ -105,26 +105,16 @@ const ProfileDetailsSection: FC<{ user: UserResource }> = ({ user }) => {
     setLastName(e.target.value);
   };
 
-  const setDefault = (user: UserResource) => {
-    if (user.firstName && user.lastName) {
-      setFirstName(user.firstName);
-      setLastName(user.lastName);
-    }
-  };
-
+  // Ensure that state stays updated
   useEffect(() => {
-    if (user) {
-      setDefault(user);
-      console.log(user);
-    }
+    setFirstName(user.firstName ?? "");
+    setLastName(user.lastName ?? "");
   }, [user]);
 
   const handleCancel = () => {
     setIsUpdating(false);
-    if (user && user.firstName && user.lastName) {
-      setFirstName(user.firstName);
-      setLastName(user.lastName);
-    }
+    setFirstName(user.firstName ?? "");
+    setLastName(user.lastName ?? "");
   };
 
   // Update the user with the new data
