@@ -2,132 +2,96 @@
 import { useUser } from "@clerk/nextjs";
 import { type UserResource } from "@clerk/types";
 import { Loader2Icon } from "lucide-react";
-import {
-  FC,
-  useState,
-  useEffect,
-  useContext,
-  createContext,
-  ChangeEvent,
-  Dispatch,
-  SetStateAction,
-} from "react";
+import { FC, useState, useEffect, ChangeEvent } from "react";
 import { toast } from "sonner";
 import Image from "next/image";
 import ProfileSettingsSkeleton from "./profile-settings-skeleton";
 import { FirstNameField, LastNameField } from "./name-fields";
 
-interface ProfileContextType {
-  user: UserResource | null;
-  email: string;
-  setIsAlreadyEditing: Dispatch<SetStateAction<boolean>>;
-  isAlreadyEditing: boolean;
-  isLoading: boolean;
-}
-
-const ProfileContext = createContext<ProfileContextType>({
-  user: null,
-  email: "",
-  setIsAlreadyEditing: () => {},
-  isAlreadyEditing: false,
-  isLoading: false,
-});
-
 const ProfileSettings: FC = () => {
   // Retrieve Current User Data.
   const { isLoaded, user } = useUser();
   const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isAlreadyEditing, setIsAlreadyEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Track Cancel and Save Changes Button for Profile Settings Component
 
   useEffect(() => {
     if (user && user.primaryEmailAddress)
       setEmail(user.primaryEmailAddress.emailAddress);
   }, [user]);
-  if (!isLoaded) {
-    return <ProfileSettingsSkeleton/>;
+
+  if (!isLoaded || !user) {
+    return <ProfileSettingsSkeleton />;
   }
 
   return (
-    <ProfileContext.Provider
-      value={{
-        user,
-        email,
-        setIsAlreadyEditing,
-        isAlreadyEditing,
-        isLoading,
-      }}
-    >
-      <div className="lg:col-span-2 bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 p-6">
-        <h3 className="text-lg font-semibold text-outer_space-500 dark:text-platinum-500 mb-6">
-          Profile Settings
-        </h3>
+    <div className="lg:col-span-2 bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 p-6">
+      <h3 className="text-lg font-semibold text-outer_space-500 dark:text-platinum-500 mb-6">
+        Profile Settings
+      </h3>
 
-        <div className="space-y-6">
-          <ProfileDetailsSection/>
+      <div className="space-y-6">
+        <ProfileDetailsSection user={user} />
 
-          <div>
-            <label className="block text-sm font-medium text-outer_space-500 dark:text-platinum-500 mb-2">
-              Email Address
-            </label>
-            <input
-              type="email"
-              placeholder="john@example.com"
-              value={email}
-              disabled={isLoading}
-              onChange={() => {}}
-              className="w-full px-3 py-2 border border-french_gray-300 dark:border-payne's_gray-400 rounded-lg bg-white dark:bg-outer_space-400 text-outer_space-500 dark:text-platinum-500 focus:outline-hidden focus:ring-2 focus:ring-blue_munsell-500"
-            />
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-outer_space-500 dark:text-platinum-500 mb-2">
+            Email Address
+          </label>
+          <input
+            type="email"
+            placeholder="john@example.com"
+            value={email}
+            disabled={isLoading}
+            onChange={() => {}}
+            className="w-full px-3 py-2 border border-french_gray-300 dark:border-payne's_gray-400 rounded-lg bg-white dark:bg-outer_space-400 text-outer_space-500 dark:text-platinum-500 focus:outline-hidden focus:ring-2 focus:ring-blue_munsell-500"
+          />
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-outer_space-500 dark:text-platinum-500 mb-2">
-              Role
-            </label>
-            <select className="w-full px-3 py-2 border border-french_gray-300 dark:border-payne's_gray-400 rounded-lg bg-white dark:bg-outer_space-400 text-outer_space-500 dark:text-platinum-500 focus:outline-hidden focus:ring-2 focus:ring-blue_munsell-500">
-              <option>Project Manager</option>
-              <option>Developer</option>
-              <option>Designer</option>
-              <option>QA Engineer</option>
-            </select>
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-outer_space-500 dark:text-platinum-500 mb-2">
+            Role
+          </label>
+          <select className="w-full px-3 py-2 border border-french_gray-300 dark:border-payne's_gray-400 rounded-lg bg-white dark:bg-outer_space-400 text-outer_space-500 dark:text-platinum-500 focus:outline-hidden focus:ring-2 focus:ring-blue_munsell-500">
+            <option>Project Manager</option>
+            <option>Developer</option>
+            <option>Designer</option>
+            <option>QA Engineer</option>
+          </select>
+        </div>
 
-          <div className="flex justify-end gap-x-3 pt-4">
-            <button
-              disabled={isLoading}
-              onClick={() => {}}
-              className="px-4 py-2 text-payne's_gray-500 dark:text-french_gray-400 hover:bg-platinum-500 dark:hover:bg-payne's_gray-400 rounded-lg transition-colors"
-            >
-              {isLoading ? (
-                <div className="flex">
-                  <Loader2Icon /> <p>Loading...</p>{" "}
-                </div>
-              ) : (
-                "Cancel"
-              )}
-            </button>
-            <button
-              disabled={isLoading}
-              onClick={() => {}}
-              className="px-4 py-2 bg-blue_munsell-500 text-white rounded-lg hover:bg-blue_munsell-600 transition-colors"
-            >
-              {isLoading ? (
-                <div className="flex">
-                  <Loader2Icon /> <p>Loading...</p>{" "}
-                </div>
-              ) : (
-                "Save Changes"
-              )}
-            </button>
-          </div>
+        <div className="flex justify-end gap-x-3 pt-4">
+          <button
+            disabled={isLoading}
+            onClick={() => {}}
+            className="px-4 py-2 text-payne's_gray-500 dark:text-french_gray-400 hover:bg-platinum-500 dark:hover:bg-payne's_gray-400 rounded-lg transition-colors"
+          >
+            {isLoading ? (
+              <div className="flex">
+                <Loader2Icon /> <p>Loading...</p>{" "}
+              </div>
+            ) : (
+              "Cancel"
+            )}
+          </button>
+          <button
+            disabled={isLoading}
+            onClick={() => {}}
+            className="px-4 py-2 bg-blue_munsell-500 text-white rounded-lg hover:bg-blue_munsell-600 transition-colors"
+          >
+            {isLoading ? (
+              <div className="flex">
+                <Loader2Icon /> <p>Loading...</p>{" "}
+              </div>
+            ) : (
+              "Save Changes"
+            )}
+          </button>
         </div>
       </div>
-    </ProfileContext.Provider>
+    </div>
   );
 };
 
-const ProfileDetailsSection: FC = () => {
-  const { user } = useContext(ProfileContext);
+const ProfileDetailsSection: FC<{ user: UserResource }> = ({ user }) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -222,7 +186,7 @@ const ProfileDetailsSection: FC = () => {
               </p>
             </div>
           </div>
-
+          {/* Show Buttons for updating the name fields */}
           {isUpdating ? (
             <div className="flex gap-2 justify-end">
               <button
@@ -261,6 +225,7 @@ const ProfileDetailsSection: FC = () => {
             </div>
           )}
         </div>
+        {/* Show Name fields if user clicked update button. */}
         <div
           className={`transition-all duration-300 ${
             isUpdating
@@ -283,9 +248,5 @@ const ProfileDetailsSection: FC = () => {
     </div>
   );
 };
-
-
-
-
 
 export default ProfileSettings;
