@@ -12,7 +12,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Implementation Tasks Banner */}
-      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+      <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
         <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-2">
           ⚙️ Settings Implementation Tasks
         </h3>

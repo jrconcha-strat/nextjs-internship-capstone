@@ -39,6 +39,15 @@ export default function DashboardLayout({
   const [isLoaded, setIsLoaded] = useState(false);
   const [count, setCount] = useState(3);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [navItems, setNavItems] = useState(navigation);
+
+  const updateActiveNavigation = (navName: string) => {
+    const updated = navItems.map((item) => ({
+      ...item,
+      current: item.name === navName,
+    }));
+    setNavItems(updated);
+  };
 
   // Wait for clerk to get whether user is signed in or not.
   useEffect(() => {
@@ -70,7 +79,8 @@ export default function DashboardLayout({
     return (
       <div className="w-full h-[100vh] flex justify-center items-center gap-x-2">
         {" "}
-        <Loader2Icon size={24} className="animate-spin"></Loader2Icon> <p className="text-2xl"> Loading </p>
+        <Loader2Icon size={24} className="animate-spin"></Loader2Icon>{" "}
+        <p className="text-2xl"> Loading </p>
       </div>
     );
   }
@@ -82,9 +92,7 @@ export default function DashboardLayout({
         <p className="font-bold text-2xl">
           {`You must be signed in to view this page.`}
         </p>
-        <p>
-          {`Redirecting in ${count}`}
-        </p>
+        <p>{`Redirecting in ${count}`}</p>
       </div>
     );
   }
@@ -123,8 +131,11 @@ export default function DashboardLayout({
           </div>
 
           <ul className="space-y-1">
-            {navigation.map((item) => (
-              <li key={item.name}>
+            {navItems.map((item) => (
+              <li
+                onClick={() => updateActiveNavigation(item.name)}
+                key={item.name}
+              >
                 <Link
                   href={item.href}
                   className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
@@ -183,7 +194,20 @@ export default function DashboardLayout({
 
         {/* Page content */}
         <main className="py-8 px-4 sm:px-6 lg:px-8">
-          <Suspense>{children}</Suspense>
+          <Suspense
+            fallback={
+              <div className="w-full h-[100vh] flex justify-center items-center gap-x-2">
+                {" "}
+                <Loader2Icon
+                  size={24}
+                  className="animate-spin"
+                ></Loader2Icon>{" "}
+                <p className="text-2xl"> Loading </p>
+              </div>
+            }
+          >
+            {children}
+          </Suspense>
         </main>
       </div>
     </div>
