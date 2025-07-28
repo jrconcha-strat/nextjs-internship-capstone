@@ -17,9 +17,10 @@ import {
   Bell,
   Search,
   Loader2Icon,
+  Router,
 } from "lucide-react";
 import { UserButton, useUser } from "@clerk/nextjs";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home, current: true },
@@ -35,11 +36,11 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isSignedIn } = useUser();
-  const [isLoaded, setIsLoaded] = useState(false);
+  const { isLoaded, isSignedIn } = useUser();
   const [count, setCount] = useState(3);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [navItems, setNavItems] = useState(navigation);
+  const router = useRouter()
 
   const updateActiveNavigation = (navName: string) => {
     const updated = navItems.map((item) => ({
@@ -49,13 +50,6 @@ export default function DashboardLayout({
     setNavItems(updated);
   };
 
-  // Wait for clerk to get whether user is signed in or not.
-  useEffect(() => {
-    if (isSignedIn !== undefined) {
-      setIsLoaded(true);
-    }
-  }, [isSignedIn]);
-
   // Handle redirect countdown
   useEffect(() => {
     if (isLoaded && isSignedIn === false) {
@@ -64,7 +58,7 @@ export default function DashboardLayout({
       }, 1000);
 
       const timeout = setTimeout(() => {
-        redirect("/sign-in");
+        router.push("/sign-in");
       }, 3000);
 
       return () => {
@@ -72,7 +66,7 @@ export default function DashboardLayout({
         clearTimeout(timeout);
       };
     }
-  }, [isLoaded, isSignedIn]);
+  }, [isLoaded, isSignedIn, router]);
 
   // Just display loading screen while waiting for clerk.
   if (!isLoaded) {
