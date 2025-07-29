@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import LoadingUI from "@/components/ui/loading-ui";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home, current: true },
@@ -70,11 +71,7 @@ export default function DashboardLayout({
   // Just display loading screen while waiting for clerk.
   if (!isLoaded) {
     return (
-      <div className="w-full h-[100vh] flex justify-center items-center gap-x-2">
-        {" "}
-        <Loader2Icon size={24} className="animate-spin"></Loader2Icon>{" "}
-        <p className="text-2xl"> Loading </p>
-      </div>
+      <LoadingUI/>
     );
   }
 
