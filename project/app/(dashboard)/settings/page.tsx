@@ -17,7 +17,6 @@ export default function SettingsPage() {
           ⚙️ Settings Implementation Tasks
         </h3>
         <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
-          <li>• Task 2.4: Implement user session management</li>
           <li>• Task 6.4: Implement project member management and permissions</li>
         </ul>
       </div>

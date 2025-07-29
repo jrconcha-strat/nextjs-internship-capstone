@@ -17,7 +17,6 @@ import {
   Bell,
   Search,
   Loader2Icon,
-  Router,
 } from "lucide-react";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
@@ -40,7 +39,7 @@ export default function DashboardLayout({
   const [count, setCount] = useState(3);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [navItems, setNavItems] = useState(navigation);
-  const router = useRouter()
+  const router = useRouter();
 
   const updateActiveNavigation = (navName: string) => {
     const updated = navItems.map((item) => ({
@@ -118,12 +117,6 @@ export default function DashboardLayout({
         </div>
 
         <nav className="mt-6 px-3">
-          <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-            <p className="text-xs text-yellow-800 dark:text-yellow-200">
-              📋 <strong>Task 2.6:</strong> Create protected dashboard layout
-            </p>
-          </div>
-
           <ul className="space-y-1">
             {navItems.map((item) => (
               <li
@@ -179,7 +172,7 @@ export default function DashboardLayout({
                 <Bell size={20} />
               </button>
               <ThemeToggle />
-              <UserButton/>
+              <UserButton />
             </div>
           </div>
         </div>
