@@ -2,9 +2,9 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-// TODO: Task 2.1 - Set up Clerk authentication service
-// import { ClerkProvider } from "@clerk/nextjs"
+import { ClerkProvider } from "@clerk/nextjs"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "sonner"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -20,13 +20,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    // TODO: Task 2.1 - Wrap with ClerkProvider once Clerk is set up
-    // <ClerkProvider>
-    <html lang="en" suppressHydrationWarning>
+    <ClerkProvider>
+    <html lang="en" /*className="dark"*/ suppressHydrationWarning>
       <body className={inter.className}>
+        <Toaster position="top-center"/>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
-    // </ClerkProvider>
+    </ClerkProvider>
   )
 }

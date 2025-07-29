@@ -1,11 +1,26 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, Suspense } from "react"
-import Link from "next/link"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Home, FolderOpen, Users, Settings, Menu, X, BarChart3, Calendar, Bell, Search } from "lucide-react"
+import { useState, Suspense, useEffect } from "react";
+import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
+import {
+  Home,
+  FolderOpen,
+  Users,
+  Settings,
+  Menu,
+  X,
+  BarChart3,
+  Calendar,
+  Bell,
+  Search,
+  Loader2Icon,
+} from "lucide-react";
+import { UserButton, useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import LoadingUI from "@/components/ui/loading-ui";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home, current: true },
@@ -14,20 +29,72 @@ const navigation = [
   { name: "Analytics", href: "/analytics", icon: BarChart3, current: false },
   { name: "Calendar", href: "/calendar", icon: Calendar, current: false },
   { name: "Settings", href: "/settings", icon: Settings, current: false },
-]
+];
 
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { isLoaded, isSignedIn } = useUser();
+  const [count, setCount] = useState(3);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [navItems, setNavItems] = useState(navigation);
+  const router = useRouter();
+
+  const updateActiveNavigation = (navName: string) => {
+    const updated = navItems.map((item) => ({
+      ...item,
+      current: item.name === navName,
+    }));
+    setNavItems(updated);
+  };
+
+  // Handle redirect countdown
+  useEffect(() => {
+    if (isLoaded && isSignedIn === false) {
+      const interval = setInterval(() => {
+        setCount((prev) => prev - 1);
+      }, 1000);
+
+      const timeout = setTimeout(() => {
+        router.push("/sign-in");
+      }, 3000);
+
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
+    }
+  }, [isLoaded, isSignedIn, router]);
+
+  // Just display loading screen while waiting for clerk.
+  if (!isLoaded) {
+    return (
+      <LoadingUI/>
+    );
+  }
+
+  if (isLoaded && isSignedIn == false) {
+    return (
+      <div className="w-full h-[100vh] flex flex-col justify-center items-center gap-y-3">
+        {" "}
+        <p className="font-bold text-2xl">
+          {`You must be signed in to view this page.`}
+        </p>
+        <p>{`Redirecting in ${count}`}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-platinum-900 dark:bg-outer_space-600">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div
+          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
       )}
 
       {/* Sidebar */}
@@ -47,15 +114,12 @@ export default function DashboardLayout({
         </div>
 
         <nav className="mt-6 px-3">
-          <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-            <p className="text-xs text-yellow-800 dark:text-yellow-200">
-              📋 <strong>Task 2.6:</strong> Create protected dashboard layout
-            </p>
-          </div>
-
           <ul className="space-y-1">
-            {navigation.map((item) => (
-              <li key={item.name}>
+            {navItems.map((item) => (
+              <li
+                onClick={() => updateActiveNavigation(item.name)}
+                key={item.name}
+              >
                 <Link
                   href={item.href}
                   className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
@@ -104,21 +168,30 @@ export default function DashboardLayout({
               <button className="p-2 rounded-lg hover:bg-platinum-500 dark:hover:bg-payne's_gray-400">
                 <Bell size={20} />
               </button>
-
               <ThemeToggle />
-
-              <div className="w-8 h-8 bg-blue_munsell-500 rounded-full flex items-center justify-center text-white font-semibold">
-                U
-              </div>
+              <UserButton />
             </div>
           </div>
         </div>
 
         {/* Page content */}
         <main className="py-8 px-4 sm:px-6 lg:px-8">
-          <Suspense>{children}</Suspense>
+          <Suspense
+            fallback={
+              <div className="w-full h-[100vh] flex justify-center items-center gap-x-2">
+                {" "}
+                <Loader2Icon
+                  size={24}
+                  className="animate-spin"
+                ></Loader2Icon>{" "}
+                <p className="text-2xl"> Loading </p>
+              </div>
+            }
+          >
+            {children}
+          </Suspense>
         </main>
       </div>
     </div>
-  )
+  );
 }

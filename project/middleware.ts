@@ -1,38 +1,41 @@
-// TODO: Task 2.2 - Configure authentication middleware for route protection
-// import { authMiddleware } from "@clerk/nextjs"
+import {
+  clerkMiddleware,
+  createRouteMatcher,
+} from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
-// Placeholder middleware - currently allows all routes for development
-// TODO: Replace with actual Clerk authMiddleware when authentication is implemented
-export default function middleware() {
-  // TODO: Implement actual authentication middleware
-  // For now, allow all routes so interns can navigate and see the mock pages
-  console.log("TODO: Implement Clerk authentication middleware")
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/webhooks(.*)",
+]);
 
-  // Return undefined to allow all requests through
-  return undefined
-}
+const isAuthPage = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
+
+export default clerkMiddleware(async (auth, req) => {
+  const { userId } = await auth();
+
+  if (!isPublicRoute(req)) {
+    await auth.protect();
+  }
+
+  const url = req.nextUrl.clone();
+
+  // If user is signed in and trying to visit /sign-in/* or /sign-up/*
+  if (userId && isAuthPage(req)) {
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
+  return NextResponse.next();
+});
 
 export const config = {
-  // TODO: Update matcher when implementing actual authentication
-  // For now, don't match any routes to allow free navigation
-  matcher: [],
-}
-
-/*
-TODO: Task 2.2 Implementation Notes for Interns:
-- Install and configure Clerk
-- Set up authMiddleware to protect routes
-- Configure public routes: ["/", "/sign-in", "/sign-up"]
-- Protect all dashboard routes: ["/dashboard", "/projects"]
-- Add proper redirects for unauthenticated users
-
-Example implementation when ready:
-export default authMiddleware({
-  publicRoutes: ["/", "/sign-in", "/sign-up"],
-  ignoredRoutes: [],
-})
-
-export const config = {
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
-}
-*/
+  matcher: [
+    // Skip Next.js internals and all static files, unless found in search params
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    // Always run for API routes
+    "/(api|trpc)(.*)",
+  ],
+};
