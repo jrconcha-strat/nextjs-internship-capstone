@@ -51,12 +51,15 @@
       
 
   # On Project Creation
-    - Only one team may be assigned to a project.
+    - At the least one team may be assigned to a project, with the option for more.
     - A project cannot be created without an assigned team.
     - On project creation inquire:
       - Option 1: Create a new team for this project?
         - Creator of the Project is the project manager.
       - Option 2: Assign an existing team for this project.
+  
+  # On Team Creation
+    - A team shall consist of only One PM
   
   # On Team Deletion
     - A team cannot be deleted/disbanded if it is still assigned to a project. Re-assign the project to another team first.
@@ -64,7 +67,7 @@
 
   Primary Relations:
     1. Users <-> Teams    | Many to Many 
-    2. Teams -> Projects  | One to Many
+    2. Teams <-> Projects | Many to Many
     3. Projects -> Lists  | One to Many 
     4. Lists -> Tasks     | One to Many 
     5. Tasks -> Comments  | One to Many
@@ -78,8 +81,6 @@
     2. (tasks) assigneeId	Must be a member of the team for the assigned task
     3. (comments) authorId	Must be a member of the team assigned to the project
 */
-
-
 
 /*
 TODO: Task 3.1 - Design database schema for users, projects, lists, and tasks
@@ -117,7 +118,6 @@ export const users = pgTable('users', {
 
 // ... other tables
 */
-
 
 import {
   pgTable,
@@ -177,7 +177,7 @@ export const projects = pgTable("projects", {
 export const lists = pgTable("lists", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
   name: varchar("name").notNull(),
-  projectId: integer("projectId").references(() => projects.id).notNull(),
+  projectId: integer("projectId").notNull(),
   position: integer("position").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -189,7 +189,7 @@ export const tasks = pgTable("tasks", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
   title: varchar("title").notNull(),
   description: text("description"),
-  listId: integer("listId").references(() => lists.id).notNull(),
+  listId: integer("listId").notNull(),
   priority: priorityEnum("priority").default("unselected").notNull(),
   labels: text("labels").array(),
   dueDate: timestamp("dueDate"),
@@ -203,8 +203,10 @@ export const tasks = pgTable("tasks", {
 export const comments = pgTable("comments", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
   content: text("content"),
-  taskId: integer("taskId").references(() => tasks.id).notNull(),
-  authorId: integer("authorId").references(() => users.id).notNull(),
+  taskId: integer("taskId")
+    .references(() => tasks.id)
+    .notNull(),
+  authorId: integer("authorId").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   isArchived: boolean("isArchived").default(false).notNull(),
@@ -212,8 +214,8 @@ export const comments = pgTable("comments", {
 });
 
 // Junction Table modeling the many to many relationship between teams and users. Utilize indexing composite primary key indexing strategy.
-export const team_members = pgTable(
-  "team_members",
+export const users_to_teams = pgTable(
+  "users_to_teams",
   {
     team_id: integer("team_id")
       .references(() => teams.id)
@@ -221,10 +223,7 @@ export const team_members = pgTable(
     user_id: integer("user_id")
       .references(() => users.id)
       .notNull(),
-    role: integer("role")
-      .references(() => roles.id)
-      .notNull()
-      .default(1), // "No Role Yet" default
+    role: integer("role").notNull().default(1), // "No Role Yet" default
     isCreator: boolean("isCreator").notNull().default(false),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -235,8 +234,8 @@ export const team_members = pgTable(
 );
 
 // Junction Table modeling the many to many relationship between tasks and users. Utilize indexing composite primary key indexing strategy.
-export const task_assignees = pgTable(
-  "task_assignees",
+export const users_to_tasks = pgTable(
+  "users_to_tasks",
   {
     task_id: integer("task_id")
       .references(() => tasks.id)
@@ -251,4 +250,17 @@ export const task_assignees = pgTable(
     archivedAt: timestamp("archived_at"),
   },
   (table) => [primaryKey({ columns: [table.task_id, table.user_id] })],
+);
+
+export const teams_to_projects = pgTable(
+  "teams_to_projects",
+  {
+    team_id: integer("team_id")
+      .references(() => teams.id)
+      .notNull(),
+    project_id: integer("project_id")
+      .references(() => projects.id)
+      .notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.team_id, table.project_id] })],
 );
