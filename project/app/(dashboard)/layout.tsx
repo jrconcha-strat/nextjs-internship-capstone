@@ -103,7 +103,7 @@ export default function DashboardLayout({
       >
         <div className="flex items-center justify-between h-16 px-6 border-b border-french_gray-300 dark:border-payne's_gray-400">
           <Link href="/" className="text-2xl font-bold text-blue_munsell-500">
-            ProjectFlow
+            Remotive
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
