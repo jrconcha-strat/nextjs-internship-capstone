@@ -1,6 +1,3 @@
-// TypeScript type definitions
-// Task 1.3: Set up project structure and folder organization
-
 import { users } from "@/lib/db/schema";
 export type UserInsert = typeof users.$inferInsert;
 export type UserSelect = typeof users.$inferSelect;

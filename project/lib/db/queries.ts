@@ -1,4 +1,5 @@
 /*
+// TODO: Task 3.5 - Implement database connection and query utilities
 export const queries = {
   projects: {
     getAll: async () => { ... },
