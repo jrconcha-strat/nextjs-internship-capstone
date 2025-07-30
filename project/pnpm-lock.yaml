@@ -20,6 +20,9 @@ importers:
       '@neondatabase/serverless':
         specifier: ^1.0.1
         version: 1.0.1
+      '@types/node':
+        specifier: ^24.0.15
+        version: 24.0.15
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -53,6 +56,9 @@ importers:
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.3.1
+      tailwindcss:
+        specifier: ^4.1.11
+        version: 4.1.11
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@4.1.11)
@@ -66,9 +72,6 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4.1.11
         version: 4.1.11
-      '@types/node':
-        specifier: ^24.0.15
-        version: 24.0.15
       '@types/react':
         specifier: ^19.1.8
         version: 19.1.8
@@ -102,9 +105,6 @@ importers:
       prettier:
         specifier: 3.6.2
         version: 3.6.2
-      tailwindcss:
-        specifier: ^4.1.11
-        version: 4.1.11
       tsx:
         specifier: ^4.20.3
         version: 4.20.3
