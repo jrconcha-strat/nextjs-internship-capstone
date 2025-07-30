@@ -1,4 +1,18 @@
 import { pgEnum } from "drizzle-orm/pg-core";
+export const priorityTuple = [
+  "unselected", // Default
+  "low",
+  "medium",
+  "high",
+] as const; // This makes it a tuple, which is required to be passed to priorityEnum.
+
+export const statusTuple = [
+  "Completed",
+  "On-hold",
+  "In Progress",
+  "Planning", // Default
+  "Review",
+] as const;
 
 export const rolesEnum = pgEnum("role_name", [
   "No Role Yet", // Default
@@ -7,16 +21,6 @@ export const rolesEnum = pgEnum("role_name", [
   "QA Engineer",
   "Designer",
 ]);
-export const priorityEnum = pgEnum("priority", [
-  "unselected", // Default
-  "low",
-  "medium",
-  "high",
-]);
-export const statusEnum = pgEnum("status", [
-  "Completed",
-  "On-hold",
-  "In Progress",
-  "Planning", // Default
-  "Review",
-]);
+
+export const priorityEnum = pgEnum("priority", priorityTuple);
+export const statusEnum = pgEnum("status", statusTuple);

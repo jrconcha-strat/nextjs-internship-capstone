@@ -1,50 +1,21 @@
-import { users } from "@/lib/db/schema";
-export type UserInsert = typeof users.$inferInsert;
-export type UserSelect = typeof users.$inferSelect;
+import * as schema from "@/lib/db/schema";
 
-export interface Project {
-  id: string;
-  name: string;
-  description?: string;
-  ownerId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  dueDate?: Date;
-  lists: List[];
-}
+// Type Safety
+export type UserInsert = typeof schema.users.$inferInsert;
+export type UserSelect = typeof schema.users.$inferSelect;
 
-export interface List {
-  id: string;
-  name: string;
-  projectId: string;
-  position: number;
-  createdAt: Date;
-  updatedAt: Date;
-  tasks: Task[];
-}
+export type ProjectInsert = typeof schema.projects.$inferInsert;
+export type ProjectSelect = typeof schema.projects.$inferSelect;
 
-export interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  listId: string;
-  assigneeId?: string;
-  priority: "low" | "medium" | "high";
-  dueDate?: Date;
-  position: number;
-  createdAt: Date;
-  updatedAt: Date;
-  comments: Comment[];
-}
+export type ListInsert = typeof schema.lists.$inferInsert;
+export type ListSelect = typeof schema.lists.$inferSelect;
 
-export interface Comment {
-  id: string;
-  content: string;
-  taskId: string;
-  authorId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type TaskInsert = typeof schema.tasks.$inferInsert;
+export type TaskSelect = typeof schema.tasks.$inferSelect;
+
+export type CommentInsert = typeof schema.comments.$inferInsert;
+export type CommentSelect = typeof schema.comments.$inferSelect;
+
 
 // Note for interns: These types should match your database schema
 // Update as needed when implementing the actual database schema
