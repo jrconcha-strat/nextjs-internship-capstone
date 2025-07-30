@@ -128,7 +128,7 @@ import {
   text,
   primaryKey,
 } from "drizzle-orm/pg-core";
-import { priorityEnum, rolesEnum, statusEnum } from "./db_utils";
+import { priorityEnum, rolesEnum, statusEnum } from "./enums";
 
 export const users = pgTable("users", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
