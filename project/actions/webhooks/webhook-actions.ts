@@ -1,7 +1,7 @@
 "use server";
 import { users } from "@/lib/db/schema";
 import { DeletedObjectJSON, UserJSON } from "@clerk/backend";
-import { db } from "@/lib/db";
+import { db } from "@/lib/db/index";
 import { eq, and } from "drizzle-orm";
 import { UserInsert } from "@/types";
 import { getUserPrimaryEmailAddress } from "./utils";

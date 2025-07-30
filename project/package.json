@@ -29,7 +29,8 @@
     "db:pull": "drizzle-kit pull --config=drizzle.config.ts",
     "db:push": "drizzle-kit push --config=drizzle.config.ts",
     "db:studio": "drizzle-kit studio --port 3001 --verbose --config=drizzle.config.ts",
-    "db:up": "drizzle-kit up --config=drizzle.config.ts"
+    "db:up": "drizzle-kit up --config=drizzle.config.ts",
+    "db:seed": "tsx ./lib/db/seed.ts"
   },
   "dependencies": {
     "@clerk/backend": "^2.6.0",
@@ -59,6 +60,7 @@
     "@types/react-dom": "^19.1.6",
     "autoprefixer": "^10.4.21",
     "drizzle-kit": "^0.31.4",
+    "drizzle-seed": "^0.3.1",
     "eslint": "^9.31.0",
     "eslint-config-next": "15.4.2",
     "eslint-config-prettier": "^10.1.8",
