@@ -1,0 +1,1 @@
+ALTER TABLE "lists" ADD CONSTRAINT "lists_projectId_projects_id_fk" FOREIGN KEY ("projectId") REFERENCES "public"."projects"("id") ON DELETE no action ON UPDATE no action;

@@ -137,7 +137,7 @@ export const projects = pgTable("projects", {
 export const lists = pgTable("lists", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
   name: varchar("name").notNull(),
-  projectId: integer("projectId").notNull(),
+  projectId: integer("projectId").references(()=> projects.id).notNull(),
   position: integer("position").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -183,7 +183,7 @@ export const users_to_teams = pgTable(
     user_id: integer("user_id")
       .references(() => users.id)
       .notNull(),
-    role: integer("role").notNull().default(1), // "No Role Yet" default
+    role: integer("role").references(() => roles.id).notNull().default(1), // "No Role Yet" default
     isCreator: boolean("isCreator").notNull().default(false),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
