@@ -56,7 +56,7 @@ export async function createUser(eventData: UserJSON) {
       return {
         success: false,
         message: `Webhook Action: Unsuccessful insertion into the users table of user with clerk id: ${JSON.stringify(newUser.clerkId)}`,
-        error: `Error: response.rowCount return 0 rows modified. Check database connection.`,
+        error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
       };
     }
   } catch (e) {
@@ -136,7 +136,7 @@ export async function deleteUser(eventData: DeletedObjectJSON) {
       return {
         success: false,
         message: `Webhook Action: Unsuccessful archival in users table of user with clerk id:. ${JSON.stringify(result.clerkId)}`,
-        error: `Error: response.rowCount return 0 rows modified. Check database connection.`,
+        error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
       };
     }
   } catch (e) {
@@ -225,7 +225,7 @@ export async function updateUser(eventData: UserJSON) {
       return {
         success: false,
         message: `Webhook Action: Unsuccessful updating into the users table of user with clerk id: ${JSON.stringify(updatedUser.clerkId)}`,
-        error: `Error: response.rowCount return 0 rows modified. Check database connection.`,
+        error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
       };
     }
   } catch (e) {

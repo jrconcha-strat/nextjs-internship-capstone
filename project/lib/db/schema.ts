@@ -127,9 +127,6 @@ export const projects = pgTable("projects", {
   ownerId: integer("ownerId")
     .references(() => users.id)
     .notNull(),
-  teamId: integer("teamId")
-    .references(() => teams.id)
-    .notNull(),
   dueDate: timestamp("dueDate"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
