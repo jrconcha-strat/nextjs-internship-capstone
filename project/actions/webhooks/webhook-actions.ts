@@ -1,10 +1,10 @@
 "use server";
 import { users } from "@/lib/db/schema";
 import { DeletedObjectJSON, UserJSON } from "@clerk/backend";
-import { db } from "@/lib/db/index";
+import { db } from "@/lib/db/db-index";
 import { eq, and, isNotNull } from "drizzle-orm";
 import { UserInsert } from "@/types";
-import { getUserPrimaryEmailAddress } from "./utils";
+import { getUserPrimaryEmailAddress } from "./webhook-utils";
 
 export async function createUser(eventData: UserJSON) {
   try {

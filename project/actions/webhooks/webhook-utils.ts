@@ -1,5 +1,5 @@
 import { UserJSON } from "@clerk/backend";
-import { PrimaryEmailResult } from "./types";
+import { PrimaryEmailResult } from "./webhook-types";
 
 export function getUserPrimaryEmailAddress(
   eventData: UserJSON,

@@ -40,7 +40,7 @@ export const userSchema = "TODO: Implement user validation schema"
 export const listSchema = "TODO: Implement list validation schema"
 export const commentSchema = "TODO: Implement comment validation schema"
 
-import { priorityTuple, statusTuple } from "@/lib/db/enums";
+import { priorityTuple, statusTuple } from "@/lib/db/db-enums";
 import * as z from "zod";
 
 // Runtime Safety, Validation

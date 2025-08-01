@@ -1,5 +1,5 @@
 import { reset, seed } from "drizzle-seed";
-import { db } from "./index";
+import { db } from "./db-index";
 import * as schema from "./schema";
 import { sql } from "drizzle-orm";
 
