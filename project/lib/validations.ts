@@ -51,7 +51,6 @@ export const userZodInsert = z.object({
   image_url: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
-  isArchived: z.boolean(),
   archivedAt: z.date().nullable(),
 });
 
@@ -66,7 +65,6 @@ export const projectZodInsert = z.object({
   ownerId: z.number(),
   createdAt: z.date(),
   updatedAt: z.date(),
-  isArchived: z.boolean(),
   archivedAt: z.date().nullable(),
   dueDate: z.date().nullable(),
 });
@@ -79,7 +77,6 @@ export const listZodInsert = z.object({
   name: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
-  isArchived: z.boolean(),
   archivedAt: z.date().nullable(),
   projectId: z.number(),
   position: z.number(),
@@ -99,7 +96,6 @@ export const taskZodInsert = z.object({
   position: z.number(),
   createdAt: z.date(),
   updatedAt: z.date(),
-  isArchived: z.boolean(),
   archivedAt: z.date().nullable(),
 });
 
@@ -110,7 +106,6 @@ export const taskZodSelect = taskZodInsert.extend({
 export const commentZodInsert = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
-  isArchived: z.boolean(),
   archivedAt: z.date().nullable(),
   id: z.number(),
   content: z.string().nullable(),

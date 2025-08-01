@@ -1,11 +1,11 @@
 /*
 ## Notes ##
   - Many to Many Relations necessitates the use of a junction table for best practices.
-  - Logging feature is necessary.
+  - Logging feature may be necessary.
 
   # On the Concept of Deletion
     - Hard Deletion is restricted to preserve historical accuracy. Instead, employ soft deleiton via isArchived to flag deleted objects.
-    - This requires writing logic at the app level to archive relations / child objects, because postgresql only supports cascading of hard deletion and not this logic at the db level.
+    - This requires writing logic at the app level (functions) / db level (triggers) to archive relations / child objects, because postgresql only supports cascading of hard deletion and not this logic at the db level.
     - What can be soft-deleted or archived through the UI? (e.g there is a link or button to delete this object)
         - Users
         - Teams
@@ -76,6 +76,7 @@
   Indexes:
     1. Partial Indexes on:
   
+
   Enforce via Triggers to enforce the following:
     1. (projects) ownerId	Must be a member of the team assigned to the project
     2. (tasks) assigneeId	Must be a member of the team for the assigned task
@@ -101,7 +102,6 @@ export const users = pgTable("users", {
   image_url: varchar("image_url").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  isArchived: boolean("isArchived").default(false).notNull(),
   archivedAt: timestamp("archivedAt"),
 });
 
@@ -110,7 +110,6 @@ export const teams = pgTable("teams", {
   teamName: varchar("teamName").notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  isArchived: boolean("isArchived").default(false).notNull(),
   archivedAt: timestamp("archivedAt"),
 });
 
@@ -130,18 +129,18 @@ export const projects = pgTable("projects", {
   dueDate: timestamp("dueDate"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  isArchived: boolean("isArchived").default(false).notNull(),
   archivedAt: timestamp("archivedAt"),
 });
 
 export const lists = pgTable("lists", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
   name: varchar("name").notNull(),
-  projectId: integer("projectId").references(()=> projects.id).notNull(),
+  projectId: integer("projectId")
+    .references(() => projects.id)
+    .notNull(),
   position: integer("position").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  isArchived: boolean("isArchived").default(false).notNull(),
   archivedAt: timestamp("archivedAt"),
 });
 
@@ -156,7 +155,6 @@ export const tasks = pgTable("tasks", {
   position: integer("position").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  isArchived: boolean("isArchived").default(false).notNull(),
   archivedAt: timestamp("archivedAt"),
 });
 
@@ -169,7 +167,6 @@ export const comments = pgTable("comments", {
   authorId: integer("authorId").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  isArchived: boolean("isArchived").default(false).notNull(),
   archivedAt: timestamp("archivedAt"),
 });
 
@@ -183,11 +180,13 @@ export const users_to_teams = pgTable(
     user_id: integer("user_id")
       .references(() => users.id)
       .notNull(),
-    role: integer("role").references(() => roles.id).notNull().default(1), // "No Role Yet" default
+    role: integer("role")
+      .references(() => roles.id)
+      .notNull()
+      .default(1), // "No Role Yet" default
     isCreator: boolean("isCreator").notNull().default(false),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-    isArchived: boolean("isArchived").notNull().default(false),
     archivedAt: timestamp("archived_at"),
   },
   (table) => [primaryKey({ columns: [table.team_id, table.user_id] })],
@@ -206,7 +205,6 @@ export const users_to_tasks = pgTable(
     isTaskOwner: boolean("isTaskOwner").notNull().default(false),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-    isArchived: boolean("isArchived").notNull().default(false),
     archivedAt: timestamp("archived_at"),
   },
   (table) => [primaryKey({ columns: [table.task_id, table.user_id] })],
@@ -221,6 +219,9 @@ export const teams_to_projects = pgTable(
     project_id: integer("project_id")
       .references(() => projects.id)
       .notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    archivedAt: timestamp("archived_at"),
   },
   (table) => [primaryKey({ columns: [table.team_id, table.project_id] })],
 );

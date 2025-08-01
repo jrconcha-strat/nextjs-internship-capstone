@@ -2,7 +2,7 @@
 import { users } from "@/lib/db/schema";
 import { DeletedObjectJSON, UserJSON } from "@clerk/backend";
 import { db } from "@/lib/db/index";
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNotNull } from "drizzle-orm";
 import { UserInsert } from "@/types";
 import { getUserPrimaryEmailAddress } from "./utils";
 
@@ -40,7 +40,6 @@ export async function createUser(eventData: UserJSON) {
       image_url: eventData.image_url,
       createdAt: new Date(eventData.created_at), // Convert to UNIX timestamp (milliseconds) to a Date object
       updatedAt: new Date(eventData.updated_at),
-      isArchived: false,
       archivedAt: null,
     };
     const response = await db.insert(users).values(newUser);
@@ -101,7 +100,7 @@ export async function deleteUser(eventData: DeletedObjectJSON) {
       .from(users)
       .limit(1)
       .where(
-        and(eq(users.clerkId, userClerkIdToDelete), eq(users.isArchived, true)),
+        and(eq(users.clerkId, userClerkIdToDelete), isNotNull(users.archivedAt)),
       );
     if (archivedUser) {
       return {
@@ -114,7 +113,7 @@ export async function deleteUser(eventData: DeletedObjectJSON) {
     // Set soft-deletion fields
     const response = await db
       .update(users)
-      .set({ isArchived: eventData.deleted, archivedAt: new Date() })
+      .set({ archivedAt: new Date() })
       .where(eq(users.clerkId, userClerkIdToDelete));
 
     // Check if deletion is successful or not. Find user using deletedUserClerkID and verify if isArchived flag is set to true.
@@ -123,7 +122,7 @@ export async function deleteUser(eventData: DeletedObjectJSON) {
       .from(users)
       .limit(1)
       .where(
-        and(eq(users.clerkId, userClerkIdToDelete), eq(users.isArchived, true)),
+        and(eq(users.clerkId, userClerkIdToDelete), isNotNull(users.archivedAt)),
       );
 
     if (response.rowCount === 1) {
@@ -204,7 +203,6 @@ export async function updateUser(eventData: UserJSON) {
       image_url: existingUser.image_url,
       createdAt: existingUser.createdAt, // Convert to UNIX timestamp (milliseconds) to a Date object
       updatedAt: existingUser.updatedAt,
-      isArchived: existingUser.isArchived,
       archivedAt: existingUser.archivedAt,
       ...changed,
     };
