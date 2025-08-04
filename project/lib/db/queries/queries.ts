@@ -7,6 +7,10 @@ import {
   deleteObject,
   updateObject,
 } from "./query_utils";
+import { db } from "../db-index";
+import { users } from "../schema";
+import { eq, and, isNotNull } from "drizzle-orm";
+import * as schema from "../schema";
 
 // Note: CRUD queries expect ZOD validated data.
 
@@ -19,6 +23,167 @@ export const queries = {
       id: number,
     ): Promise<types.QueryResponse<types.UserSelect>> => {
       return getObjectById<types.UserSelect>(id, "users");
+    },
+    getByClerkId: async (
+      clerkId: string,
+    ): Promise<types.QueryResponse<types.UserSelect>> => {
+      try {
+        const [user] = await db
+          .select()
+          .from(schema.users)
+          .limit(1)
+          .where(eq(schema.users.clerkId, clerkId));
+        if (user) {
+          return {
+            success: true,
+            message: `User retrieved using clerkId: ${clerkId}.`,
+            data: user,
+          };
+        }
+        throw new Error(`User does not exist.`);
+      } catch (e) {
+        return {
+          success: false,
+          message: `Unable to retrieve user using clerkId: ${clerkId}.`,
+          error: e,
+        };
+      }
+    },
+    checkUserArchiveStatus: async (
+      id: number | string,
+    ): Promise<types.QueryResponse<types.UserSelect>> => {
+      let archivedUser;
+      try {
+        if (typeof id === "number") {
+          [archivedUser] = await db
+            .select()
+            .from(users)
+            .limit(1)
+            .where(and(eq(users.id, id), isNotNull(users.archivedAt)));
+        } else {
+          [archivedUser] = await db
+            .select()
+            .from(users)
+            .limit(1)
+            .where(and(eq(users.clerkId, id), isNotNull(users.archivedAt)));
+        }
+
+        if (archivedUser) {
+          return {
+            success: true,
+            message: `User is currently archived.`,
+            data: archivedUser,
+          };
+        }
+        throw new Error(`User does not exist.`);
+      } catch (e) {
+        return {
+          success: false,
+          message: `Unable to check user archival status.`,
+          error: e,
+        };
+      }
+    },
+    createUser: async (
+      data: types.UserInsert,
+    ): Promise<types.QueryResponse<types.UserInsert>> => {
+      try {
+        const response = await db.insert(users).values(data);
+        if (response.rowCount === 1) {
+          return {
+            success: true,
+            message: `Successful insertion into the users table of user with clerk id: ${JSON.stringify(data.clerkId)}`,
+            data: data,
+          };
+        } else {
+          return {
+            success: false,
+            message: `Unsuccessful insertion into the users table of user with clerk id: ${JSON.stringify(data.clerkId)}`,
+            error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
+          };
+        }
+      } catch (e) {
+        return {
+          success: false,
+          message: `Unsuccessful insertion into the users table.`,
+          error: `Errors: ${e}`,
+        };
+      }
+    },
+    updateUser: async (
+      userClerkIdToBeUpdated: string,
+      data: types.UserInsert,
+    ): Promise<types.QueryResponse<types.UserInsert>> => {
+      try {
+        const response = await db
+          .update(users)
+          .set(data)
+          .where(eq(users.clerkId, userClerkIdToBeUpdated));
+
+        // Check if updating is successful or not
+        if (response.rowCount === 1) {
+          return {
+            success: true,
+            message: `Successful updating into the users table of user with clerk id: ${JSON.stringify(data.clerkId)}`,
+            data: data,
+          };
+        } else {
+          return {
+            success: false,
+            message: `Unsuccessful updating into the users table of user with clerk id: ${JSON.stringify(data.clerkId)}`,
+            error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
+          };
+        }
+      } catch (e) {
+        return {
+          success: false,
+          message: `Unsuccessful updating of user in users table.`,
+          error: `Errors: ${e}`,
+        };
+      }
+    },
+    deleteUser: async (
+      userClerkIdToBeDeleted: string,
+    ): Promise<types.QueryResponse<types.UserSelect>> => {
+      try {
+        // Set soft-deletion fields
+        const response = await db
+          .update(users)
+          .set({ archivedAt: new Date() })
+          .where(eq(users.clerkId, userClerkIdToBeDeleted));
+
+        // Check if deletion is successful or not. Find user using deletedUserClerkID and verify if isArchived flag is set to true.
+        const [result] = await db
+          .select()
+          .from(users)
+          .limit(1)
+          .where(
+            and(
+              eq(users.clerkId, userClerkIdToBeDeleted),
+              isNotNull(users.archivedAt),
+            ),
+          );
+
+        if (response.rowCount === 1) {
+          return {
+            success: true,
+            message: `Successful archival in users table of user with clerk id: ${JSON.stringify(result.clerkId)}`,
+            data: result,
+          };
+        } else {
+          return {
+            success: false,
+            message: `Unsuccessful archival in users table of user with clerk id:. ${JSON.stringify(result.clerkId)}`,
+            error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
+          };
+        }
+      } catch (e) {
+        return {
+          success: false,
+          message: `Webhook Action: Unsuccessful archival of user in users table.`,
+          error: `Errors: ${e}`,
+        };
+      }
     },
   },
   projects: {
