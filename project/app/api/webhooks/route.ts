@@ -1,3 +1,4 @@
+import { createUser, deleteUser, updateUser } from "@/actions/webhooks/webhook-actions";
 import { verifyWebhook } from "@clerk/nextjs/webhooks";
 import { NextRequest } from "next/server";
 
@@ -14,12 +15,25 @@ export async function POST(req: NextRequest) {
 
     // ------ Log ------ //
 
-    if (eventType == "user.created") {
-      // Logic for inserting the user fields here for the db.
-    } else if (eventType == "user.updated") {
-      // Logic for updating the user fields here for the db.
-    } else if (eventType == "user.deleted") {
-      // Logic for archiving the user here for the db.
+    // Execute appropriate action depending on the event type of payload.
+    switch (event.type) {
+      case "user.created": {
+        const result = await createUser(event.data);
+        console.log(result) // Logging. Remove this in Production.
+        break;
+      }
+      case "user.deleted": {
+        const result = await deleteUser(event.data);
+        console.log(result) // Logging. Remove this in Production.
+        break;
+      }
+      case "user.updated": {
+        const result = await updateUser(event.data);
+        console.log(result) // Logging. Remove this in Production.
+        break;
+      }
+      default:
+        console.log(`Event Type Not Handled: ${event.type}`)
     }
 
     return new Response("Webhook received", { status: 200 });

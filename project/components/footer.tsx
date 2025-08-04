@@ -6,7 +6,7 @@ export function Footer() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-2xl font-bold text-blue_munsell-400 mb-4">TaskFlow</h3>
+            <h3 className="text-2xl font-bold text-blue_munsell-400 mb-4">Remotive</h3>
             <p className="text-french_gray-400">
               The modern project management platform that helps teams collaborate and deliver results.
             </p>
@@ -77,7 +77,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-payne's_gray-400 mt-8 pt-8 text-center">
-          <p className="text-french_gray-400">© 2024 TaskFlow. All rights reserved.</p>
+          <p className="text-french_gray-400">© 2025 Remotive. All rights reserved.</p>
         </div>
       </div>
     </footer>
