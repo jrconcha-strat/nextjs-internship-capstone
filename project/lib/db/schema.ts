@@ -150,7 +150,6 @@ export const tasks = pgTable("tasks", {
   description: text("description"),
   listId: integer("listId").notNull(),
   priority: priorityEnum("priority").default("unselected").notNull(),
-  labels: text("labels").array(),
   dueDate: timestamp("dueDate"),
   position: integer("position").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -168,6 +167,17 @@ export const comments = pgTable("comments", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   archivedAt: timestamp("archivedAt"),
+});
+
+export const task_labels = pgTable("task_labels", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
+  taskId: integer("taskId").references(() => tasks.id).notNull(),
+  name: varchar("name").notNull(),
+  category: varchar("category").notNull(),
+  color: varchar("color").notNull(),
+  isDefault: boolean("is_default").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Junction Table modeling the many to many relationship between teams and users. Utilize indexing composite primary key indexing strategy.

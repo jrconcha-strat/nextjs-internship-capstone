@@ -140,7 +140,6 @@ export const taskSchema = z.object({
     .nullable(),
   listId: z.int().min(1, errorTemplates.idMinError),
   priority: z.enum(priorityTuple),
-  labels: z.array(z.string()).nullable(),
   dueDate: z.date().min(today, errorTemplates.dueDateMinError).nullable(),
   position: z.int().min(0, errorTemplates.positionMinError),
   createdAt: z.date().max(new Date()),
