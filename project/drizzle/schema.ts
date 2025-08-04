@@ -36,22 +36,6 @@ export const tasks = pgTable("tasks", {
 	archivedAt: timestamp({ mode: 'string' }),
 });
 
-export const comments = pgTable("comments", {
-	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "comments_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
-	content: text(),
-	taskId: integer().notNull(),
-	authorId: integer().notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
-	archivedAt: timestamp({ mode: 'string' }),
-}, (table) => [
-	foreignKey({
-			columns: [table.taskId],
-			foreignColumns: [tasks.id],
-			name: "comments_taskId_tasks_id_fk"
-		}),
-]);
-
 export const lists = pgTable("lists", {
 	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "lists_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
 	name: varchar().notNull(),
@@ -101,6 +85,28 @@ export const roles = pgTable("roles", {
 	roleName: roleName("role_name").default('No Role Yet').notNull(),
 }, (table) => [
 	unique("roles_role_name_unique").on(table.roleName),
+]);
+
+export const comments = pgTable("comments", {
+	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "comments_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	content: text(),
+	taskId: integer().notNull(),
+	authorId: integer().notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
+	archivedAt: timestamp({ mode: 'string' }),
+	parentCommentId: integer(),
+}, (table) => [
+	foreignKey({
+			columns: [table.taskId],
+			foreignColumns: [tasks.id],
+			name: "comments_taskId_tasks_id_fk"
+		}),
+	foreignKey({
+			columns: [table.parentCommentId],
+			foreignColumns: [table.id],
+			name: "comments_self_reference_id"
+		}),
 ]);
 
 export const users = pgTable("users", {

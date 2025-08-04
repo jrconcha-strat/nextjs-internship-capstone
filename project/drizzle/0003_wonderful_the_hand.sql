@@ -1,0 +1,2 @@
+ALTER TABLE "comments" ADD COLUMN "parentCommentId" integer;--> statement-breakpoint
+ALTER TABLE "comments" ADD CONSTRAINT "comments_self_reference_id" FOREIGN KEY ("parentCommentId") REFERENCES "public"."comments"("id") ON DELETE no action ON UPDATE no action;

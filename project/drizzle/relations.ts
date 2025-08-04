@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { tasks, taskLabels, comments, projects, lists, users, teams, teamsToProjects, usersToTasks, usersToTeams, roles } from "./schema";
+import { tasks, taskLabels, projects, lists, users, comments, teams, teamsToProjects, usersToTasks, usersToTeams, roles } from "./schema";
 
 export const taskLabelsRelations = relations(taskLabels, ({one}) => ({
 	task: one(tasks, {
@@ -12,13 +12,6 @@ export const tasksRelations = relations(tasks, ({many}) => ({
 	taskLabels: many(taskLabels),
 	comments: many(comments),
 	usersToTasks: many(usersToTasks),
-}));
-
-export const commentsRelations = relations(comments, ({one}) => ({
-	task: one(tasks, {
-		fields: [comments.taskId],
-		references: [tasks.id]
-	}),
 }));
 
 export const listsRelations = relations(lists, ({one}) => ({
@@ -41,6 +34,21 @@ export const usersRelations = relations(users, ({many}) => ({
 	projects: many(projects),
 	usersToTasks: many(usersToTasks),
 	usersToTeams: many(usersToTeams),
+}));
+
+export const commentsRelations = relations(comments, ({one, many}) => ({
+	task: one(tasks, {
+		fields: [comments.taskId],
+		references: [tasks.id]
+	}),
+	comment: one(comments, {
+		fields: [comments.parentCommentId],
+		references: [comments.id],
+		relationName: "comments_parentCommentId_comments_id"
+	}),
+	comments: many(comments, {
+		relationName: "comments_parentCommentId_comments_id"
+	}),
 }));
 
 export const teamsToProjectsRelations = relations(teamsToProjects, ({one}) => ({

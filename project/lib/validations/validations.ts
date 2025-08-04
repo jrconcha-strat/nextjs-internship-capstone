@@ -162,6 +162,7 @@ export const commentSchema = z.object({
   id: z.int().min(1, errorTemplates.idMinError),
   content: z.string().min(15, errorTemplates.contentMinError).nullable(), // https://ux.stackexchange.com/questions/98672/what-is-the-ideal-maximum-of-the-length-of-a-comment-or-reply
   taskId: z.int().min(1, errorTemplates.idMinError),
+  parentCommentId: z.int().min(1, errorTemplates.idMinError),
   authorId: z.int().min(1, errorTemplates.idMinError),
   createdAt: z.date().max(new Date()),
   updatedAt: z.date().max(new Date()),

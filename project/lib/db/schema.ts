@@ -91,6 +91,7 @@ import {
   boolean,
   text,
   primaryKey,
+  foreignKey,
 } from "drizzle-orm/pg-core";
 import { priorityEnum, rolesEnum, statusEnum } from "./db-enums";
 
@@ -157,21 +158,36 @@ export const tasks = pgTable("tasks", {
   archivedAt: timestamp("archivedAt"),
 });
 
-export const comments = pgTable("comments", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
-  content: text("content"),
-  taskId: integer("taskId")
-    .references(() => tasks.id)
-    .notNull(),
-  authorId: integer("authorId").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  archivedAt: timestamp("archivedAt"),
-});
+export const comments = pgTable(
+  "comments",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
+    content: text("content"),
+    taskId: integer("taskId")
+      .references(() => tasks.id)
+      .notNull(),
+    authorId: integer("authorId").notNull(),
+    parentCommentId: integer("parentCommentId"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    archivedAt: timestamp("archivedAt"),
+  },
+  // https://stackoverflow.com/questions/78329576/how-to-declare-self-referencing-foreign-key-with-drizzle-orm
+  // https://orm.drizzle.team/docs/indexes-constraints#foreign-key
+  (table) => [
+    foreignKey({
+      columns: [table.parentCommentId],
+      foreignColumns: [table.id],
+      name: "comments_self_reference_id",
+    }),
+  ],
+);
 
 export const task_labels = pgTable("task_labels", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
-  taskId: integer("taskId").references(() => tasks.id).notNull(),
+  taskId: integer("taskId")
+    .references(() => tasks.id)
+    .notNull(),
   name: varchar("name").notNull(),
   category: varchar("category").notNull(),
   color: varchar("color").notNull(),
