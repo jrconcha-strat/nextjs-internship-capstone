@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1753929608866,
-      "tag": "0000_odd_garia",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1753949242354,
-      "tag": "0001_moaning_spirit",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1754271045133,
-      "tag": "0002_concerned_bushwacker",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1754272218592,
-      "tag": "0003_wonderful_the_hand",
+      "when": 1754273271895,
+      "tag": "0000_famous_shotgun",
       "breakpoints": true
     }
   ]

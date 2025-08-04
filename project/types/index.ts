@@ -1,5 +1,14 @@
 import * as schema from "@/lib/db/schema";
 
+// Query Types
+export type QueryResponse<T> =
+  | { success: true; message: string; data: T }
+  | { success: false; message: string; error: unknown };
+
+// Type Narrowing for create query utilities.
+export type ObjectInsert = UserInsert | ProjectInsert | ListInsert | TaskInsert | CommentInsert;
+export type ObjectSelect = UserSelect | ProjectSelect | ListSelect | TaskSelect | CommentSelect;
+
 // Type Safety
 export type UserInsert = typeof schema.users.$inferInsert;
 export type UserSelect = typeof schema.users.$inferSelect;
@@ -15,7 +24,6 @@ export type TaskSelect = typeof schema.tasks.$inferSelect;
 
 export type CommentInsert = typeof schema.comments.$inferInsert;
 export type CommentSelect = typeof schema.comments.$inferSelect;
-
 
 // Note for interns: These types should match your database schema
 // Update as needed when implementing the actual database schema

@@ -79,7 +79,7 @@
 
   Enforce via Triggers to enforce the following:
     1. (projects) ownerId	Must be a member of the team assigned to the project
-    2. (tasks) assigneeId	Must be a member of the team for the assigned task
+    2. (users_to_tasks) user_id Must be a member of the team for the assigned task
     3. (comments) authorId	Must be a member of the team assigned to the project
 */
 

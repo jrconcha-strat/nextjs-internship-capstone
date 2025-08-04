@@ -28,6 +28,7 @@ async function main() {
   // Generate dummy data
   // https://orm.drizzle.team/docs/seed-functions#valuesfromarray
   // https://orm.drizzle.team/docs/seed-overview#refinements
+
   await seed(db, {
     users: schema.users,
     projects: schema.projects,

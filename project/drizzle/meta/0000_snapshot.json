@@ -1,5 +1,5 @@
 {
-  "id": "8654c41e-3e4f-4909-abb5-7a0a2ef76214",
+  "id": "deee508e-adb3-4460-9a45-de55b1390d35",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -43,6 +43,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "parentCommentId": {
+          "name": "parentCommentId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -56,13 +62,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        },
-        "isArchived": {
-          "name": "isArchived",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
         },
         "archivedAt": {
           "name": "archivedAt",
@@ -79,6 +78,19 @@
           "tableTo": "tasks",
           "columnsFrom": [
             "taskId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "comments_self_reference_id": {
+          "name": "comments_self_reference_id",
+          "tableFrom": "comments",
+          "tableTo": "comments",
+          "columnsFrom": [
+            "parentCommentId"
           ],
           "columnsTo": [
             "id"
@@ -146,13 +158,6 @@
           "notNull": true,
           "default": "now()"
         },
-        "isArchived": {
-          "name": "isArchived",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
         "archivedAt": {
           "name": "archivedAt",
           "type": "timestamp",
@@ -161,7 +166,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "lists_projectId_projects_id_fk": {
+          "name": "lists_projectId_projects_id_fk",
+          "tableFrom": "lists",
+          "tableTo": "projects",
+          "columnsFrom": [
+            "projectId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -234,13 +253,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        },
-        "isArchived": {
-          "name": "isArchived",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
         },
         "archivedAt": {
           "name": "archivedAt",
@@ -317,6 +329,95 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.task_labels": {
+      "name": "task_labels",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "task_labels_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "taskId": {
+          "name": "taskId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "color": {
+          "name": "color",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_default": {
+          "name": "is_default",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "task_labels_taskId_tasks_id_fk": {
+          "name": "task_labels_taskId_tasks_id_fk",
+          "tableFrom": "task_labels",
+          "tableTo": "tasks",
+          "columnsFrom": [
+            "taskId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.tasks": {
       "name": "tasks",
       "schema": "",
@@ -364,12 +465,6 @@
           "notNull": true,
           "default": "'unselected'"
         },
-        "labels": {
-          "name": "labels",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": false
-        },
         "dueDate": {
           "name": "dueDate",
           "type": "timestamp",
@@ -395,13 +490,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        },
-        "isArchived": {
-          "name": "isArchived",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
         },
         "archivedAt": {
           "name": "archivedAt",
@@ -459,13 +547,6 @@
           "notNull": true,
           "default": "now()"
         },
-        "isArchived": {
-          "name": "isArchived",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
         "archivedAt": {
           "name": "archivedAt",
           "type": "timestamp",
@@ -504,6 +585,26 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "archived_at": {
+          "name": "archived_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -608,13 +709,6 @@
           "notNull": true,
           "default": "now()"
         },
-        "isArchived": {
-          "name": "isArchived",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
         "archivedAt": {
           "name": "archivedAt",
           "type": "timestamp",
@@ -681,13 +775,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        },
-        "isArchived": {
-          "name": "isArchived",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
         },
         "archived_at": {
           "name": "archived_at",
@@ -783,13 +870,6 @@
           "notNull": true,
           "default": "now()"
         },
-        "isArchived": {
-          "name": "isArchived",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
         "archived_at": {
           "name": "archived_at",
           "type": "timestamp",
@@ -818,6 +898,19 @@
           "tableTo": "users",
           "columnsFrom": [
             "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "users_to_teams_role_roles_id_fk": {
+          "name": "users_to_teams_role_roles_id_fk",
+          "tableFrom": "users_to_teams",
+          "tableTo": "roles",
+          "columnsFrom": [
+            "role"
           ],
           "columnsTo": [
             "id"

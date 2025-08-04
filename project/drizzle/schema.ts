@@ -1,27 +1,10 @@
-import { pgTable, foreignKey, integer, varchar, boolean, timestamp, text, unique, primaryKey, pgEnum } from "drizzle-orm/pg-core"
+import { pgTable, integer, varchar, text, timestamp, foreignKey, unique, boolean, primaryKey, pgEnum } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const priority = pgEnum("priority", ['unselected', 'low', 'medium', 'high'])
 export const roleName = pgEnum("role_name", ['No Role Yet', 'Project Manager', 'Developer', 'QA Engineer', 'Designer'])
 export const status = pgEnum("status", ['Completed', 'On-hold', 'In Progress', 'Planning', 'Review'])
 
-
-export const taskLabels = pgTable("task_labels", {
-	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "task_labels_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
-	taskId: integer().notNull(),
-	name: varchar().notNull(),
-	category: varchar().notNull(),
-	color: varchar().notNull(),
-	isDefault: boolean("is_default").default(false).notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
-}, (table) => [
-	foreignKey({
-			columns: [table.taskId],
-			foreignColumns: [tasks.id],
-			name: "task_labels_taskId_tasks_id_fk"
-		}),
-]);
 
 export const tasks = pgTable("tasks", {
 	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "tasks_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
@@ -36,19 +19,25 @@ export const tasks = pgTable("tasks", {
 	archivedAt: timestamp({ mode: 'string' }),
 });
 
-export const lists = pgTable("lists", {
-	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "lists_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
-	name: varchar().notNull(),
-	projectId: integer().notNull(),
-	position: integer().notNull(),
+export const comments = pgTable("comments", {
+	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "comments_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	content: text(),
+	taskId: integer().notNull(),
+	authorId: integer().notNull(),
+	parentCommentId: integer(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
 	archivedAt: timestamp({ mode: 'string' }),
 }, (table) => [
 	foreignKey({
-			columns: [table.projectId],
-			foreignColumns: [projects.id],
-			name: "lists_projectId_projects_id_fk"
+			columns: [table.taskId],
+			foreignColumns: [tasks.id],
+			name: "comments_taskId_tasks_id_fk"
+		}),
+	foreignKey({
+			columns: [table.parentCommentId],
+			foreignColumns: [table.id],
+			name: "comments_self_reference_id"
 		}),
 ]);
 
@@ -70,42 +59,19 @@ export const projects = pgTable("projects", {
 		}),
 ]);
 
-export const teams = pgTable("teams", {
-	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "teams_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
-	teamName: varchar().notNull(),
+export const lists = pgTable("lists", {
+	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "lists_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	name: varchar().notNull(),
+	projectId: integer().notNull(),
+	position: integer().notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
 	archivedAt: timestamp({ mode: 'string' }),
 }, (table) => [
-	unique("teams_teamName_unique").on(table.teamName),
-]);
-
-export const roles = pgTable("roles", {
-	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "roles_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
-	roleName: roleName("role_name").default('No Role Yet').notNull(),
-}, (table) => [
-	unique("roles_role_name_unique").on(table.roleName),
-]);
-
-export const comments = pgTable("comments", {
-	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "comments_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
-	content: text(),
-	taskId: integer().notNull(),
-	authorId: integer().notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
-	archivedAt: timestamp({ mode: 'string' }),
-	parentCommentId: integer(),
-}, (table) => [
 	foreignKey({
-			columns: [table.taskId],
-			foreignColumns: [tasks.id],
-			name: "comments_taskId_tasks_id_fk"
-		}),
-	foreignKey({
-			columns: [table.parentCommentId],
-			foreignColumns: [table.id],
-			name: "comments_self_reference_id"
+			columns: [table.projectId],
+			foreignColumns: [projects.id],
+			name: "lists_projectId_projects_id_fk"
 		}),
 ]);
 
@@ -121,6 +87,40 @@ export const users = pgTable("users", {
 }, (table) => [
 	unique("users_clerk_id_unique").on(table.clerkId),
 	unique("users_email_unique").on(table.email),
+]);
+
+export const taskLabels = pgTable("task_labels", {
+	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "task_labels_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	taskId: integer().notNull(),
+	name: varchar().notNull(),
+	category: varchar().notNull(),
+	color: varchar().notNull(),
+	isDefault: boolean("is_default").default(false).notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.taskId],
+			foreignColumns: [tasks.id],
+			name: "task_labels_taskId_tasks_id_fk"
+		}),
+]);
+
+export const teams = pgTable("teams", {
+	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "teams_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	teamName: varchar().notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
+	archivedAt: timestamp({ mode: 'string' }),
+}, (table) => [
+	unique("teams_teamName_unique").on(table.teamName),
+]);
+
+export const roles = pgTable("roles", {
+	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "roles_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	roleName: roleName("role_name").default('No Role Yet').notNull(),
+}, (table) => [
+	unique("roles_role_name_unique").on(table.roleName),
 ]);
 
 export const teamsToProjects = pgTable("teams_to_projects", {
