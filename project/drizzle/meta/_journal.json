@@ -8,6 +8,13 @@
       "when": 1754273271895,
       "tag": "0000_famous_shotgun",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1754284182482,
+      "tag": "0001_rapid_stark_industries",
+      "breakpoints": true
     }
   ]
 }

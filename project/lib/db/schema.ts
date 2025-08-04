@@ -108,7 +108,7 @@ export const users = pgTable("users", {
 
 export const teams = pgTable("teams", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
-  teamName: varchar("teamName").notNull().unique(),
+  teamName: varchar("teamName").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   archivedAt: timestamp("archivedAt"),
