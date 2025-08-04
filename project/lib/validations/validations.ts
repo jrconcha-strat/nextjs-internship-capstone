@@ -13,9 +13,46 @@ export const userSchema = z.object({
     .min(1, errorTemplates.nameMinError)
     .max(100, errorTemplates.nameMaxError),
   image_url: z.string().startsWith("https://img.clerk.com/"),
-  createdAt: z.date().max(new Date()), // Allow only past or current dates.
-  updatedAt: z.date().max(new Date()),
-  archivedAt: z.date().max(new Date()).nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  archivedAt: z.date().nullable(),
+})
+  .superRefine((data, ctx) => {
+  const now = new Date();
+  const nowTime = now.getTime();
+
+  if (data.createdAt.getTime() > nowTime) {
+    ctx.addIssue({
+      path: ["createdAt"],
+      code: "too_big",
+      maximum: nowTime,
+      inclusive: true,
+      origin: "date",
+      message: "createdAt cannot be in the future.",
+    });
+  }
+
+  if (data.updatedAt.getTime() > nowTime) {
+    ctx.addIssue({
+      path: ["updatedAt"],
+      code: "too_big",
+      maximum: nowTime,
+      inclusive: true,
+      origin: "date",
+      message: "updatedAt cannot be in the future.",
+    });
+  }
+
+  if (data.archivedAt && data.archivedAt.getTime() > nowTime) {
+    ctx.addIssue({
+      path: ["archivedAt"],
+      code: "too_big",
+      maximum: nowTime,
+      inclusive: true,
+      origin: "date",
+      message: "archivedAt cannot be in the future.",
+    });
+  }
 });
 
 // This validates the user object that will be inserted into the database.
@@ -47,9 +84,46 @@ export const projectSchema = z.object({
   status: z.enum(statusTuple),
   ownerId: z.int().min(1, errorTemplates.idMinError),
   dueDate: z.date().min(today, errorTemplates.dueDateMinError).nullable(), // Allow only Today or Future dates
-  createdAt: z.date().max(new Date()),
-  updatedAt: z.date().max(new Date()),
-  archivedAt: z.date().max(new Date()).nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  archivedAt: z.date().nullable(),
+})
+  .superRefine((data, ctx) => {
+  const now = new Date();
+  const nowTime = now.getTime();
+
+  if (data.createdAt.getTime() > nowTime) {
+    ctx.addIssue({
+      path: ["createdAt"],
+      code: "too_big",
+      maximum: nowTime,
+      inclusive: true,
+      origin: "date",
+      message: "createdAt cannot be in the future.",
+    });
+  }
+
+  if (data.updatedAt.getTime() > nowTime) {
+    ctx.addIssue({
+      path: ["updatedAt"],
+      code: "too_big",
+      maximum: nowTime,
+      inclusive: true,
+      origin: "date",
+      message: "updatedAt cannot be in the future.",
+    });
+  }
+
+  if (data.archivedAt && data.archivedAt.getTime() > nowTime) {
+    ctx.addIssue({
+      path: ["archivedAt"],
+      code: "too_big",
+      maximum: nowTime,
+      inclusive: true,
+      origin: "date",
+      message: "archivedAt cannot be in the future.",
+    });
+  }
 });
 
 export const projectSchemaDB = projectSchema.omit({
@@ -72,9 +146,46 @@ export const listSchema = z.object({
     .max(100, errorTemplates.nameMaxError),
   projectId: z.int().min(1, errorTemplates.idMinError),
   position: z.int().min(0, errorTemplates.positionMinError),
-  createdAt: z.date().max(new Date()),
-  updatedAt: z.date().max(new Date()),
-  archivedAt: z.date().max(new Date()).nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  archivedAt: z.date().nullable(),
+})
+  .superRefine((data, ctx) => {
+  const now = new Date();
+  const nowTime = now.getTime();
+
+  if (data.createdAt.getTime() > nowTime) {
+    ctx.addIssue({
+      path: ["createdAt"],
+      code: "too_big",
+      maximum: nowTime,
+      inclusive: true,
+      origin: "date",
+      message: "createdAt cannot be in the future.",
+    });
+  }
+
+  if (data.updatedAt.getTime() > nowTime) {
+    ctx.addIssue({
+      path: ["updatedAt"],
+      code: "too_big",
+      maximum: nowTime,
+      inclusive: true,
+      origin: "date",
+      message: "updatedAt cannot be in the future.",
+    });
+  }
+
+  if (data.archivedAt && data.archivedAt.getTime() > nowTime) {
+    ctx.addIssue({
+      path: ["archivedAt"],
+      code: "too_big",
+      maximum: nowTime,
+      inclusive: true,
+      origin: "date",
+      message: "archivedAt cannot be in the future.",
+    });
+  }
 });
 
 export const listSchemaDB = listSchema.omit({
@@ -104,9 +215,46 @@ export const taskSchema = z.object({
   priority: z.enum(priorityTuple),
   dueDate: z.date().min(today, errorTemplates.dueDateMinError).nullable(),
   position: z.int().min(0, errorTemplates.positionMinError),
-  createdAt: z.date().max(new Date()),
-  updatedAt: z.date().max(new Date()),
-  archivedAt: z.date().max(new Date()).nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  archivedAt: z.date().nullable(),
+})
+  .superRefine((data, ctx) => {
+  const now = new Date();
+  const nowTime = now.getTime();
+
+  if (data.createdAt.getTime() > nowTime) {
+    ctx.addIssue({
+      path: ["createdAt"],
+      code: "too_big",
+      maximum: nowTime,
+      inclusive: true,
+      origin: "date",
+      message: "createdAt cannot be in the future.",
+    });
+  }
+
+  if (data.updatedAt.getTime() > nowTime) {
+    ctx.addIssue({
+      path: ["updatedAt"],
+      code: "too_big",
+      maximum: nowTime,
+      inclusive: true,
+      origin: "date",
+      message: "updatedAt cannot be in the future.",
+    });
+  }
+
+  if (data.archivedAt && data.archivedAt.getTime() > nowTime) {
+    ctx.addIssue({
+      path: ["archivedAt"],
+      code: "too_big",
+      maximum: nowTime,
+      inclusive: true,
+      origin: "date",
+      message: "archivedAt cannot be in the future.",
+    });
+  }
 });
 
 export const taskSchemaDB = taskSchema.omit({
