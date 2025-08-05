@@ -1,7 +1,20 @@
+import { getTeamsForUser } from "@/actions/teams/teams-actions";
+import { getUserId } from "@/actions/users/user-actions";
 import CreateTeamButton from "@/components/teams/create-team-button";
+import TeamsGrid from "@/components/teams/teams-grid";
 import { Mail, MoreHorizontal } from "lucide-react";
 
-export default function TeamPage() {
+export default async function TeamPage() {
+  const getUserIdResult = await getUserId();
+  if (!getUserIdResult.success) {
+    throw new Error(getUserIdResult.message);
+  }
+
+  const teamsForUserResponse = await getTeamsForUser(getUserIdResult.data.id);
+  if (!teamsForUserResponse.success) {
+    throw new Error(teamsForUserResponse.message);
+  }
+
   return (
     <div className="space-y-6">
       {/* Teams Heading */}
@@ -16,7 +29,24 @@ export default function TeamPage() {
           </p>
         </div>
         {/* Team Buttons */}
-        <CreateTeamButton/>
+        <CreateTeamButton />
+      </div>
+
+      {/* Display Teams */}
+      <div>
+        <p className="text-xl font-bold mb-4 text-dark-grey-400">
+          {" "}
+          Your Teams{" "}
+        </p>
+        {teamsForUserResponse.data ? (
+          <TeamsGrid teamsData={teamsForUserResponse.data} />
+        ) : (
+          <div className="w-full flex-col items-center text-center">
+            {" "}
+            <p className="text-sm text-dark-grey-400"> You are not in any teams right now.</p>
+            <p className="text-sm text-dark-grey-400"> Create or get invited to one!</p>
+          </div>
+        )}
       </div>
 
       {/* Implementation Tasks Banner */}

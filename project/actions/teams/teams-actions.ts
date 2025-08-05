@@ -1,7 +1,52 @@
 "use server";
 
 import { queries } from "@/lib/db/queries/queries";
-import { CreateTeamResponse } from "./teams-types";
+import {
+  GetTeamsResponse,
+  CreateTeamResponse,
+  GetUsersForTeamResponse,
+} from "./teams-types";
+import { revalidatePath } from "next/cache";
+
+export async function getUsersForTeam(
+  team_id: number,
+): Promise<GetUsersForTeamResponse> {
+  const teamId = team_id;
+  try {
+    const response = await queries.teams.getAllTeamMembers(teamId);
+    if (!response.success) {
+      return response;
+    }
+
+    return {
+      success: true,
+      message: `Successfully retrieved team members for ${teamId}`,
+      data: response.data,
+    };
+  } catch (e) {
+    return {
+      success: false,
+      message: `Unable to retrieve members for ${teamId}`,
+      error: e,
+    };
+  }
+}
+
+export async function getTeamsForUser(
+  user_id: number,
+): Promise<GetTeamsResponse> {
+  const userId = user_id;
+
+  // Retrieve teams of user.
+  const response = await queries.teams.getTeamsForUser(userId);
+
+  if (!response.success) {
+    return { ...response };
+  }
+
+  // Return success response
+  return { ...response };
+}
 
 export async function createTeam(
   teamName: string,
@@ -41,6 +86,8 @@ export async function createTeam(
       error: addUsertoTeamResponse.error,
     };
   }
+
+  revalidatePath("/teams");
 
   // Return success response
   return {

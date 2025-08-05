@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 export function areStringArraysEqual(
   a: string[] | null,
-  b: string[] | null
+  b: string[] | null,
 ): boolean {
   if (a === null && b === null) return true;
   if (a === null || b === null) return false;
@@ -15,6 +15,13 @@ export function areStringArraysEqual(
   return a.every((val, index) => val === b[index]);
 }
 
+export function formatDate(date: Date | string): string {
+  return new Date(date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
 
 // Perform shallow comparison. Does not handle nested comparisons like for objects or arrays.
 // To be used within update query utilities to identify changed fields to be updated.
