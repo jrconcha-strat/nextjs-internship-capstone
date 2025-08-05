@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import * as types from "../../../types/index";
 import { queries } from "./queries";
 
-type QueryKeys = keyof typeof queries;
+type QueryKeys = Exclude<keyof typeof queries, "teams">
 
 // Used to map the query key to their tables
 const tableMap = {

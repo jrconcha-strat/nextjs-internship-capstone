@@ -25,5 +25,11 @@ export type TaskSelect = typeof schema.tasks.$inferSelect;
 export type CommentInsert = typeof schema.comments.$inferInsert;
 export type CommentSelect = typeof schema.comments.$inferSelect;
 
+export type TeamsInsert = typeof schema.teams.$inferInsert
+export type TeamsSelect = typeof schema.teams.$inferSelect
+
+export type UsersToTeamsInsert = typeof schema.users_to_teams.$inferInsert
+export type UsersToTeamsSelect = typeof schema.users_to_teams.$inferSelect
+
 // Note for interns: These types should match your database schema
 // Update as needed when implementing the actual database schema

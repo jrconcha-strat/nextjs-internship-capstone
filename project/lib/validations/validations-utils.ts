@@ -9,7 +9,9 @@ export const errorTemplates = {
   emailFormatError: { error: "Email format invalid." },
   descriptionMaxError: { error: "Description has exceeded maximum character length (200)." },
   dueDateMinError : {error: "Cannot set a due date for the past."},
-  titleMaxError : {error: "Title has exceed maximum character length (50)."},
+  titleMaxError : {error: "Title has exceeded maximum character length (50)."},
   titleMinError : {error: "Title cannot be empty."},
   contentMinError: {error: "Comment must have at least 15 characters."},
+  teamNameMinError: {error: "Team name cannot be empty."},
+  teamNameMaxError: {error: "Team name has exceed maximum character length (50)."}
 };

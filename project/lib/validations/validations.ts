@@ -1,4 +1,4 @@
-import { priorityTuple, statusTuple } from "@/lib/db/db-enums";
+import { priorityTuple, rolesTuple, statusTuple } from "@/lib/db/db-enums";
 import { errorTemplates, today } from "./validations-utils";
 import * as z from "zod";
 
@@ -331,4 +331,108 @@ export const commentSchemaForm = commentSchema.omit({
   archivedAt: true,
 });
 
+export const teamSchema = z.object({
+  id: z.int().min(1, errorTemplates.idMinError),
+  teamName: z
+    .string()
+    .trim()
+    .min(1, errorTemplates.teamNameMinError)
+    .max(50, errorTemplates.teamNameMaxError),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+    archivedAt: z.date().nullable(),
+  })
+  .superRefine((data, ctx) => {
+    const now = new Date();
+    const nowTime = now.getTime();
 
+    if (data.createdAt.getTime() > nowTime) {
+      ctx.addIssue({
+        path: ["createdAt"],
+        code: "too_big",
+        maximum: nowTime,
+        inclusive: true,
+        origin: "date",
+        message: "createdAt cannot be in the future.",
+      });
+    }
+
+    if (data.updatedAt.getTime() > nowTime) {
+      ctx.addIssue({
+        path: ["updatedAt"],
+        code: "too_big",
+        maximum: nowTime,
+        inclusive: true,
+        origin: "date",
+        message: "updatedAt cannot be in the future.",
+      });
+    }
+
+    if (data.archivedAt && data.archivedAt.getTime() > nowTime) {
+      ctx.addIssue({
+        path: ["archivedAt"],
+        code: "too_big",
+        maximum: nowTime,
+        inclusive: true,
+        origin: "date",
+        message: "archivedAt cannot be in the future.",
+      });
+    }
+  });
+export const teamSchemaDB = teamSchema.omit({
+  id: true,
+});
+
+export const teamSchemaForm = teamSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  archivedAt: true,
+});
+
+export const usersToTeamsSchema = z.object({
+  team_id: z.int().min(1, errorTemplates.idMinError),
+  user_id: z.int().min(1, errorTemplates.idMinError),
+  role: z.enum(rolesTuple),
+  isCreator: z.boolean(),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+    archivedAt: z.date().nullable(),
+  })
+  .superRefine((data, ctx) => {
+    const now = new Date();
+    const nowTime = now.getTime();
+
+    if (data.createdAt.getTime() > nowTime) {
+      ctx.addIssue({
+        path: ["createdAt"],
+        code: "too_big",
+        maximum: nowTime,
+        inclusive: true,
+        origin: "date",
+        message: "createdAt cannot be in the future.",
+      });
+    }
+
+    if (data.updatedAt.getTime() > nowTime) {
+      ctx.addIssue({
+        path: ["updatedAt"],
+        code: "too_big",
+        maximum: nowTime,
+        inclusive: true,
+        origin: "date",
+        message: "updatedAt cannot be in the future.",
+      });
+    }
+
+    if (data.archivedAt && data.archivedAt.getTime() > nowTime) {
+      ctx.addIssue({
+        path: ["archivedAt"],
+        code: "too_big",
+        maximum: nowTime,
+        inclusive: true,
+        origin: "date",
+        message: "archivedAt cannot be in the future.",
+      });
+    }
+  });

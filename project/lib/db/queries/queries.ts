@@ -11,6 +11,7 @@ import { db } from "../db-index";
 import { users } from "../schema";
 import { eq, and, isNotNull } from "drizzle-orm";
 import * as schema from "../schema";
+import { teams } from "./teams-queries";
 
 // Note: CRUD queries expect ZOD validated data.
 
@@ -389,4 +390,5 @@ export const queries = {
       return deleteObject<types.CommentSelect>(id, "comments");
     },
   },
+  teams: teams,
 };
