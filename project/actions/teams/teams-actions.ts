@@ -1,17 +1,12 @@
 "use server";
 
 import { queries } from "@/lib/db/queries/queries";
-import { TeamsSelect } from "../types/index";
+import { CreateTeamResponse } from "./teams-types";
 
-type TeamsServerActionResult =
-  | { success: false; message: string; error: unknown }
-  | { success: true; message: string; data: TeamsSelect };
-
-export async function createTeamServerAction(
+export async function createTeam(
   teamName: string,
   currentUserClerkId: string,
-): Promise<TeamsServerActionResult> {
-
+): Promise<CreateTeamResponse> {
   // Get current user by Clerk ID
   const getByClerkIdResponse =
     await queries.users.getByClerkId(currentUserClerkId);
@@ -47,6 +42,7 @@ export async function createTeamServerAction(
     };
   }
 
+  // Return success response
   return {
     success: true,
     message:

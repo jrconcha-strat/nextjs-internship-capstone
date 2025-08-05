@@ -6,7 +6,7 @@ import { teamSchemaForm } from "@/lib/validations/validations";
 import z from "zod";
 import { Loader2Icon, XIcon } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
-import { createTeamServerAction } from "@/actions/teams-actions";
+import { createTeam } from "@/actions/teams/teams-actions";
 import { toast } from "sonner";
 
 type TeamModalProps = {
@@ -78,7 +78,7 @@ const CreateTeamModal: FC<TeamModalProps> = ({
   const onSubmit = async (values: z.infer<typeof teamSchemaForm>) => {
     setIsLoading(true);
 
-    const response = await createTeamServerAction(values.teamName, user.id);
+    const response = await createTeam(values.teamName, user.id);
 
     toast.success("Success", { description: response.message });
     setIsLoading(false);
