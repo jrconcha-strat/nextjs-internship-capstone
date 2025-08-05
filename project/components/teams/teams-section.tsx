@@ -9,12 +9,40 @@ type TeamsProps = {
 };
 const TeamsSection: FC<TeamsProps> = ({ teamsData }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterOption, setFilterOption] = useState("Ascending (A-Z)");
 
   const filteredTeams = useMemo(() => {
-    return teamsData.filter((team) =>
+    // Filter by search term
+    let filtered = teamsData.filter((team) =>
       team.teamName.toLowerCase().includes(searchTerm.toLowerCase()),
     );
-  }, [searchTerm, teamsData]);
+
+    // Sort based on filterOption
+    switch (filterOption) {
+      case "Ascending (A-Z)":
+        filtered = filtered.sort((a, b) =>
+          a.teamName.localeCompare(b.teamName),
+        );
+        break;
+      case "Descending (Z-A)":
+        filtered = filtered.sort((a, b) =>
+          b.teamName.localeCompare(a.teamName),
+        );
+        break;
+      case "Newest First":
+        filtered = filtered.sort(
+          (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+        );
+        break;
+      case "Oldest First":
+        filtered = filtered.sort(
+          (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+        );
+        break;
+    }
+
+    return filtered;
+  }, [searchTerm, filterOption, teamsData]);
 
   return (
     <div>
@@ -24,6 +52,8 @@ const TeamsSection: FC<TeamsProps> = ({ teamsData }) => {
         <TeamsSearchFilter
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
+          filterOption={filterOption}
+          setFilterOption={setFilterOption}
         />
       </div>
 
