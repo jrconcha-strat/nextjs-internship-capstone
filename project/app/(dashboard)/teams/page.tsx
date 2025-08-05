@@ -1,7 +1,7 @@
 import { getTeamsForUser } from "@/actions/teams/teams-actions";
 import { getUserId } from "@/actions/users/user-actions";
 import CreateTeamButton from "@/components/teams/create-team-button";
-import TeamsGrid from "@/components/teams/teams-grid";
+import TeamsSection from "@/components/teams/teams-section";
 import { Mail, MoreHorizontal } from "lucide-react";
 
 export default async function TeamPage() {
@@ -33,21 +33,7 @@ export default async function TeamPage() {
       </div>
 
       {/* Display Teams */}
-      <div>
-        <p className="text-xl font-bold mb-4 text-dark-grey-400">
-          {" "}
-          Your Teams{" "}
-        </p>
-        {teamsForUserResponse.data ? (
-          <TeamsGrid teamsData={teamsForUserResponse.data} />
-        ) : (
-          <div className="w-full flex-col items-center text-center">
-            {" "}
-            <p className="text-sm text-dark-grey-400"> You are not in any teams right now.</p>
-            <p className="text-sm text-dark-grey-400"> Create or get invited to one!</p>
-          </div>
-        )}
-      </div>
+      <TeamsSection teamsData={teamsForUserResponse.data} />
 
       {/* Implementation Tasks Banner */}
       <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
