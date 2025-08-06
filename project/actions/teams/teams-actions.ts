@@ -6,8 +6,22 @@ import {
   CreateTeamResponse,
   GetUsersForTeamResponse,
   DeleteTeamResponse,
+  CheckTeamNameUniquenessResponse,
 } from "./teams-types";
 import { revalidatePath } from "next/cache";
+
+export async function checkTeamNameUnique(
+  teamName: string,
+): Promise<CheckTeamNameUniquenessResponse> {
+  // call utility function to check teamname uniqueness.
+  const nameIsUniqueResponse =
+    await queries.teams.checkTeamNameUnique(teamName);
+
+  // Ternary to narrow the response type.
+  return nameIsUniqueResponse.success
+    ? nameIsUniqueResponse
+    : nameIsUniqueResponse;
+}
 
 export async function deleteTeam(team_id: number): Promise<DeleteTeamResponse> {
   const response = await queries.teams.deleteTeam(team_id);
@@ -66,6 +80,7 @@ export async function createTeam(
   // Get current user by Clerk ID
   const getByClerkIdResponse =
     await queries.users.getByClerkId(currentUserClerkId);
+
   if (!getByClerkIdResponse.success) {
     return {
       success: false,

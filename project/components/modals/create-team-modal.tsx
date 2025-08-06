@@ -6,7 +6,7 @@ import { teamSchemaForm } from "@/lib/validations/validations";
 import z from "zod";
 import { Loader2Icon, XIcon } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
-import { createTeam } from "@/actions/teams/teams-actions";
+import { checkTeamNameUnique, createTeam } from "@/actions/teams/teams-actions";
 import { toast } from "sonner";
 
 type TeamModalProps = {
@@ -64,6 +64,7 @@ const CreateTeamModal: FC<TeamModalProps> = ({
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<z.infer<typeof teamSchemaForm>>({
     resolver: zodResolver(teamSchemaForm),
@@ -77,6 +78,18 @@ const CreateTeamModal: FC<TeamModalProps> = ({
   // Will only run if there is no zod validation errors.
   const onSubmit = async (values: z.infer<typeof teamSchemaForm>) => {
     setIsLoading(true);
+
+    // Check if Team name is unique among active teams.
+    const result = await checkTeamNameUnique(values.teamName);
+    // Unable to check for uniqueness | Team name is not unique
+    if (!result.success || (result.success && !result.data)) {
+      setError("teamName", {
+        type: "manual",
+        message: result.message,
+      });
+      setIsLoading(false);
+      return;
+    }
 
     const response = await createTeam(values.teamName, user.id);
 

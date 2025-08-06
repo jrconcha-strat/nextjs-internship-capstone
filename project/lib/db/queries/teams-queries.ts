@@ -120,7 +120,12 @@ export const teams = {
           schema.users_to_teams,
           eq(schema.users_to_teams.team_id, schema.teams.id),
         )
-        .where(and(eq(schema.users_to_teams.user_id, userId), isNull(schema.teams.archivedAt)));
+        .where(
+          and(
+            eq(schema.users_to_teams.user_id, userId),
+            isNull(schema.teams.archivedAt),
+          ),
+        );
 
       // Extract the active teams of the user
       const teams = result.map((row) => row.teams);
@@ -260,6 +265,41 @@ export const teams = {
       return {
         success: false,
         message: `Unable to retrieve team's members.`,
+        error: e,
+      };
+    }
+  },
+  checkTeamNameUnique: async (
+    team_name: string,
+  ): Promise<types.QueryResponse<boolean>> => {
+    try {
+      // Check if the team name is unique amongst active teams
+      const result = await db
+        .select()
+        .from(schema.teams)
+        .where(
+          and(
+            eq(schema.teams.teamName, team_name),
+            isNull(schema.teams.archivedAt),
+          ),
+        );
+
+      // Return appropriate response based on the result length
+      const isUnique = result.length === 0;
+      const message = isUnique
+        ? "There exists no active team with this name. You are free to use this name."
+        : "There exists an active team with this name. Please choose another name.";
+
+      return {
+        success: true,
+        message,
+        data: isUnique,
+      };
+    } catch (e) {
+      // Attempt to check uniqueness fails.
+      return {
+        success: false,
+        message: "Unable to check if team name is unique.",
         error: e,
       };
     }
