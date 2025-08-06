@@ -2,7 +2,13 @@
 
 import { queries } from "@/lib/db/queries/queries";
 import { auth } from "@clerk/nextjs/server";
-import { GetUserIdResponse } from "./user-types";
+import { GetAllUsersResponse, GetUserIdResponse } from "./user-types";
+
+export async function getAllUsers(): Promise<GetAllUsersResponse> {
+  const response = await queries.users.getAll();
+
+  return response.success ? response : response;
+}
 
 export async function getUserId(): Promise<GetUserIdResponse> {
   try {

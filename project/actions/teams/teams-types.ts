@@ -19,3 +19,7 @@ export type DeleteTeamResponse =
 export type CheckTeamNameUniquenessResponse =
   | { success: false; message: string; error: unknown }
   | { success: true; message: string; data: boolean };
+
+export type AddUsersToTeamResponse =
+  | { success: false; message: string; error: unknown }
+  | { success: true; message: string; data: boolean };

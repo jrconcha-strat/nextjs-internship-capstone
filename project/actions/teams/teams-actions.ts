@@ -7,6 +7,7 @@ import {
   GetUsersForTeamResponse,
   DeleteTeamResponse,
   CheckTeamNameUniquenessResponse,
+  AddUsersToTeamResponse,
 } from "./teams-types";
 import { revalidatePath } from "next/cache";
 
@@ -27,6 +28,23 @@ export async function deleteTeam(team_id: number): Promise<DeleteTeamResponse> {
 
   // Ternary to narrow the response type.
   return deleteTeamResponse.success ? deleteTeamResponse : deleteTeamResponse;
+}
+
+export async function addUsersToTeam(users_ids: number[], team_id: number): Promise<AddUsersToTeamResponse> {
+  for (const user_id of users_ids) {
+    // Add current user to team
+    const addUsertoTeamResponse = await queries.teams.addUserToTeam(user_id, team_id, false);
+    if (!addUsertoTeamResponse.success) {
+      return addUsertoTeamResponse;
+    }
+  }
+  revalidatePath("/teams");
+  // Return success response
+  return {
+    success: true,
+    message: "Successfully added users as members.",
+    data: true,
+  };
 }
 
 export async function getUsersForTeam(team_id: number): Promise<GetUsersForTeamResponse> {

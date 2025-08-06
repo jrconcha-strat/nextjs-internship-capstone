@@ -1,40 +1,22 @@
 "use client";
-import { FC, useEffect, useState } from "react";
+import { FC } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getUsersForTeam } from "@/actions/teams/teams-actions";
 import { UserSelect } from "@/types";
 
 type TeamMembersAvatarsProps = {
-  teamId: number;
+  teamMembers: UserSelect[];
 };
 
-const TeamMembersAvatars: FC<TeamMembersAvatarsProps> = ({ teamId }) => {
-  const [users, setUsers] = useState<UserSelect[]>([]);
-  const [loading, setLoading] = useState(true);
-
+const TeamMembersAvatars: FC<TeamMembersAvatarsProps> = ({ teamMembers }) => {
   const MAX_VISIBLE = 5;
+  const visibleUsers = teamMembers.slice(0, MAX_VISIBLE);
+  const remaining = teamMembers.length - MAX_VISIBLE;
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const response = await getUsersForTeam(teamId);
-      if (response.success) {
-        setUsers(response.data);
-      } else {
-        console.error(response.message);
-      }
-      setLoading(false);
-    };
-
-    fetchUsers();
-  }, [teamId]);
-
-  const visibleUsers = users.slice(0, MAX_VISIBLE);
-  const remaining = users.length - MAX_VISIBLE;
-
-  if (loading) {
+  // If teamMembers array is empty or undefined, show loading placeholders
+  if (!teamMembers || teamMembers.length === 0) {
     return (
       <div className="flex -space-x-2">
-        {Array.from({ length: MAX_VISIBLE - 2 }).map((_, index) => (
+        {Array.from({ length: MAX_VISIBLE }).map((_, index) => (
           <div
             key={index}
             className="h-8 w-8 rounded-full bg-white-smoke-100 ring-2 ring-white-smoke-200 animate-pulse"
@@ -45,9 +27,9 @@ const TeamMembersAvatars: FC<TeamMembersAvatarsProps> = ({ teamId }) => {
   }
 
   return (
-    <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2">
+    <div className="flex -space-x-2">
       {visibleUsers.map((user, index) => (
-        <Avatar key={index}>
+        <Avatar key={index} className="h-8 w-8">
           <AvatarImage
             src={user.image_url}
             alt="User"
@@ -60,7 +42,10 @@ const TeamMembersAvatars: FC<TeamMembersAvatarsProps> = ({ teamId }) => {
         </Avatar>
       ))}
       {remaining > 0 && (
-        <Avatar className="bg-muted text-xs font-medium text-muted-foreground">
+        <Avatar
+          className="bg-muted text-xs font-medium text-muted-foreground"
+          style={{ width: "32px", height: "32px" }}
+        >
           <AvatarFallback>+{remaining}</AvatarFallback>
         </Avatar>
       )}
