@@ -2,7 +2,6 @@
 import { FC, useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getUsersForTeam } from "@/actions/teams/teams-actions";
-import { UserIcon } from "lucide-react";
 import { UserSelect } from "@/types";
 
 type TeamMembersAvatarsProps = {
