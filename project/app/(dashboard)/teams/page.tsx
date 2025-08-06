@@ -3,6 +3,7 @@ import { getUserId } from "@/actions/users/user-actions";
 import CreateTeamButton from "@/components/teams/create-team-button";
 import TeamsSection from "@/components/teams/teams-section";
 import { Mail, MoreHorizontal } from "lucide-react";
+import { toast } from "sonner";
 
 export default async function TeamPage() {
   const getUserIdResult = await getUserId();
@@ -12,7 +13,9 @@ export default async function TeamPage() {
 
   const teamsForUserResponse = await getTeamsForUser(getUserIdResult.data.id);
   if (!teamsForUserResponse.success) {
-    throw new Error(teamsForUserResponse.message);
+    toast.error("Unable to get your teams", {
+      description: `${teamsForUserResponse.message}. Please refresh the page.`,
+    });
   }
 
   return (
@@ -33,7 +36,18 @@ export default async function TeamPage() {
       </div>
 
       {/* Display Teams */}
-      <TeamsSection teamsData={teamsForUserResponse.data} />
+      <p className="text-xl font-bold mb-4 text-dark-grey-400">Your Teams</p>
+      {teamsForUserResponse.success && teamsForUserResponse.data ? (
+        <TeamsSection teamsData={teamsForUserResponse.data} />
+      ) : (
+        <div className="text-center text-sm text-dark-grey-400 mb-4">
+          {teamsForUserResponse.success === false ? (
+            <p>Unable to load your teams. Please refresh the page.</p>
+          ) : (
+            <p>Loading your teams...</p>
+          )}
+        </div>
+      )}
 
       {/* Implementation Tasks Banner */}
       <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">

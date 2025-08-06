@@ -46,7 +46,6 @@ const TeamsSection: FC<TeamsProps> = ({ teamsData }) => {
 
   return (
     <div>
-      <p className="text-xl font-bold mb-4 text-dark-grey-400"> Your Teams </p>
       {/* Search and Filter */}
       <div className="mb-4">
         <TeamsSearchFilter
