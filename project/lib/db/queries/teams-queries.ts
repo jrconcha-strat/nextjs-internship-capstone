@@ -1,7 +1,7 @@
 import * as types from "../../../types/index";
 import { db } from "../db-index";
 import * as schema from "../schema";
-import { eq } from "drizzle-orm";
+import { eq, isNull, and } from "drizzle-orm";
 
 export const teams = {
   getById: async (
@@ -112,7 +112,7 @@ export const teams = {
     userId: number,
   ): Promise<types.QueryResponse<types.TeamsSelect[]>> => {
     try {
-      // SQL that retrieves the user's teams with their usertoTeamEntries using their id.
+      // SQL that retrieves the user's teams with their usertoTeamEntries using their id, while filtering out archived teams.
       const result = await db
         .select()
         .from(schema.teams)
@@ -120,9 +120,9 @@ export const teams = {
           schema.users_to_teams,
           eq(schema.users_to_teams.team_id, schema.teams.id),
         )
-        .where(eq(schema.users_to_teams.user_id, userId));
+        .where(and(eq(schema.users_to_teams.user_id, userId), isNull(schema.teams.archivedAt)));
 
-      // Extract the teams of the user
+      // Extract the active teams of the user
       const teams = result.map((row) => row.teams);
 
       if (teams) {
