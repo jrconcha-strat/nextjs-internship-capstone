@@ -12,3 +12,7 @@ export type GetTeamsResponse =
 export type CreateTeamResponse =
   | { success: false; message: string; error: unknown }
   | { success: true; message: string; data: TeamsInsert }
+
+export type DeleteTeamResponse =
+  | { success: false; message: string; error: unknown }
+  | { success: true; message: string; data: TeamsSelect }

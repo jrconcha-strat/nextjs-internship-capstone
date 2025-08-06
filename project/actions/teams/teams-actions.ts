@@ -5,8 +5,19 @@ import {
   GetTeamsResponse,
   CreateTeamResponse,
   GetUsersForTeamResponse,
+  DeleteTeamResponse,
 } from "./teams-types";
 import { revalidatePath } from "next/cache";
+
+export async function deleteTeam(team_id: number): Promise<DeleteTeamResponse> {
+  const response = await queries.teams.deleteTeam(team_id);
+  if (!response.success) {
+    return response;
+  }
+
+  revalidatePath("/teams");
+  return response;
+}
 
 export async function getUsersForTeam(
   team_id: number,

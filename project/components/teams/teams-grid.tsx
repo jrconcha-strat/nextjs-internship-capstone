@@ -1,9 +1,9 @@
 import { FC } from "react";
 import { Button } from "../ui/button";
-import { SettingsIcon } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { TeamsSelect } from "../../types/index";
 import TeamMembersAvatars from "./team-members-avatars";
+import TeamsOptions from "./teams-options";
 
 type TeamsGridProps = {
   teamsData: TeamsSelect[];
@@ -35,9 +35,7 @@ const TeamsGrid: FC<TeamsGridProps> = ({ teamsData }) => {
             <Button className="bg-emerald-500 text-white hover:bg-emerald-300">
               View
             </Button>
-            <Button variant="ghost" size="icon">
-              <SettingsIcon />
-            </Button>
+            <TeamsOptions team_id={team.id} />
           </div>
         </div>
       ))}

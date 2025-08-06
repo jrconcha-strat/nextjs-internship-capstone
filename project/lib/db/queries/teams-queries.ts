@@ -4,6 +4,110 @@ import * as schema from "../schema";
 import { eq } from "drizzle-orm";
 
 export const teams = {
+  getById: async (
+    teamId: number,
+  ): Promise<types.QueryResponse<types.TeamsSelect>> => {
+    try {
+      const [team] = await db
+        .select()
+        .from(schema.teams)
+        .limit(1)
+        .where(eq(schema.teams.id, teamId));
+
+      // Check if team exists.
+      if (team) {
+        return {
+          success: true,
+          message: `Team retrieved using id: ${teamId}.`,
+          data: team,
+        };
+      }
+      throw new Error(`Team does not exist.`);
+    } catch (e) {
+      return {
+        success: false,
+        message: `Unable to retrieve team using id: ${teamId}.`,
+        error: e,
+      };
+    }
+  },
+  deleteTeam: async (
+    teamId: number,
+  ): Promise<types.QueryResponse<types.TeamsSelect>> => {
+    try {
+      // Check if the team exists
+      const response = await teams.getById(teamId);
+
+      if (response.success === false) {
+        // Failed to retrieve, throw error.
+        throw new Error(response.message);
+      }
+
+      // Retrieve the data of the team to be deleted
+      const existingTeamData = response.data;
+
+      // Soft delete the team
+      const result = await db
+        .update(schema.teams)
+        .set({ archivedAt: new Date() })
+        .where(eq(schema.teams.id, teamId));
+
+      // Check if team was successfully archived
+      if (result.rowCount === 0) {
+        throw new Error(`No team found with id: ${teamId}`);
+      }
+
+      // Retrieve all the team's userToTeamsEntries
+      const usersToTeamsEntries = await db
+        .select()
+        .from(schema.users_to_teams)
+        .where(eq(schema.users_to_teams.team_id, existingTeamData.id));
+
+      // Cascade Soft-deletion logic for usersToTeams entries
+      await Promise.all(
+        usersToTeamsEntries.map(async (entry) => {
+          try {
+            const cascadeResult = await db
+              .update(schema.users_to_teams)
+              .set({ archivedAt: new Date() })
+              .where(eq(schema.users_to_teams.team_id, entry.team_id));
+
+            if (cascadeResult.rowCount === 0) {
+              throw new Error(
+                `No soft deletion performed for team_id: ${entry.team_id}`,
+              );
+            }
+            return cascadeResult;
+          } catch (error) {
+            throw new Error(
+              `Error cascading soft deletion for team_id: ${entry.team_id}: ${error}`,
+            );
+          }
+        }),
+      );
+
+      // Check if soft-deletion is successful.
+      if (result.rowCount === 1) {
+        return {
+          success: true,
+          message: `Archived object of type team successfully.`,
+          data: existingTeamData,
+        };
+      } else {
+        return {
+          success: false,
+          message: `Unable to Archive object of type team.`,
+          error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
+        };
+      }
+    } catch (e) {
+      return {
+        success: false,
+        message: `Unable to Archive object of type team.`,
+        error: e,
+      };
+    }
+  },
   getTeamsForUser: async (
     userId: number,
   ): Promise<types.QueryResponse<types.TeamsSelect[]>> => {
