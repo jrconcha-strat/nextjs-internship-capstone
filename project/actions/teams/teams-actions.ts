@@ -10,32 +10,26 @@ import {
 } from "./teams-types";
 import { revalidatePath } from "next/cache";
 
-export async function checkTeamNameUnique(
-  teamName: string,
-): Promise<CheckTeamNameUniquenessResponse> {
+export async function checkTeamNameUnique(teamName: string): Promise<CheckTeamNameUniquenessResponse> {
   // call utility function to check teamname uniqueness.
-  const nameIsUniqueResponse =
-    await queries.teams.checkTeamNameUnique(teamName);
+  const nameIsUniqueResponse = await queries.teams.checkTeamNameUnique(teamName);
 
   // Ternary to narrow the response type.
-  return nameIsUniqueResponse.success
-    ? nameIsUniqueResponse
-    : nameIsUniqueResponse;
+  return nameIsUniqueResponse.success ? nameIsUniqueResponse : nameIsUniqueResponse;
 }
 
 export async function deleteTeam(team_id: number): Promise<DeleteTeamResponse> {
-  const response = await queries.teams.deleteTeam(team_id);
-  if (!response.success) {
-    return response;
-  }
+  // call utility function to delete team.
+  const deleteTeamResponse = await queries.teams.deleteTeam(team_id);
 
+  // Revalidation to purge stale data from teams page.
   revalidatePath("/teams");
-  return response;
+
+  // Ternary to narrow the response type.
+  return deleteTeamResponse.success ? deleteTeamResponse : deleteTeamResponse;
 }
 
-export async function getUsersForTeam(
-  team_id: number,
-): Promise<GetUsersForTeamResponse> {
+export async function getUsersForTeam(team_id: number): Promise<GetUsersForTeamResponse> {
   const teamId = team_id;
   try {
     const response = await queries.teams.getAllTeamMembers(teamId);
@@ -57,9 +51,7 @@ export async function getUsersForTeam(
   }
 }
 
-export async function getTeamsForUser(
-  user_id: number,
-): Promise<GetTeamsResponse> {
+export async function getTeamsForUser(user_id: number): Promise<GetTeamsResponse> {
   const userId = user_id;
 
   // Retrieve teams of user.
@@ -73,13 +65,9 @@ export async function getTeamsForUser(
   return { ...response };
 }
 
-export async function createTeam(
-  teamName: string,
-  currentUserClerkId: string,
-): Promise<CreateTeamResponse> {
+export async function createTeam(teamName: string, currentUserClerkId: string): Promise<CreateTeamResponse> {
   // Get current user by Clerk ID
-  const getByClerkIdResponse =
-    await queries.users.getByClerkId(currentUserClerkId);
+  const getByClerkIdResponse = await queries.users.getByClerkId(currentUserClerkId);
 
   if (!getByClerkIdResponse.success) {
     return {
@@ -118,8 +106,7 @@ export async function createTeam(
   // Return success response
   return {
     success: true,
-    message:
-      "Team Creation: Team creation successful and added current user as member.",
+    message: "Team Creation: Team creation successful and added current user as member.",
     data: teamCreationResponse.data,
   };
 }

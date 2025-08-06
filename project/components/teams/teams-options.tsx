@@ -23,10 +23,11 @@ const TeamsOptions: FC<TeamsOptionsProps> = ({ team_id }) => {
 
     const response = await deleteTeam(team_id);
     if (!response.success) {
-      toast.error("Unable to delete team", { description: response.message });
+      toast.error("Error", { description: response.message });
+      setIsLoading(false);
       return;
     }
-    toast.success("Team deleted", { description: response.message });
+    toast.success("Success", { description: response.message });
     setIsLoading(false);
   }
 

@@ -4,15 +4,9 @@ import * as schema from "../schema";
 import { eq, isNull, and } from "drizzle-orm";
 
 export const teams = {
-  getById: async (
-    teamId: number,
-  ): Promise<types.QueryResponse<types.TeamsSelect>> => {
+  getById: async (teamId: number): Promise<types.QueryResponse<types.TeamsSelect>> => {
     try {
-      const [team] = await db
-        .select()
-        .from(schema.teams)
-        .limit(1)
-        .where(eq(schema.teams.id, teamId));
+      const [team] = await db.select().from(schema.teams).limit(1).where(eq(schema.teams.id, teamId));
 
       // Check if team exists.
       if (team) {
@@ -31,13 +25,10 @@ export const teams = {
       };
     }
   },
-  deleteTeam: async (
-    teamId: number,
-  ): Promise<types.QueryResponse<types.TeamsSelect>> => {
+  deleteTeam: async (teamId: number): Promise<types.QueryResponse<types.TeamsSelect>> => {
     try {
       // Check if the team exists
       const response = await teams.getById(teamId);
-
       if (response.success === false) {
         // Failed to retrieve, throw error.
         throw new Error(response.message);
@@ -46,86 +37,71 @@ export const teams = {
       // Retrieve the data of the team to be deleted
       const existingTeamData = response.data;
 
-      // Soft delete the team
-      const result = await db
-        .update(schema.teams)
-        .set({ archivedAt: new Date() })
-        .where(eq(schema.teams.id, teamId));
+      // Start a transaction
+      await db.transaction(async (tx) => {
+        try {
+          // Soft delete the team
+          const result = await tx
+            .update(schema.teams)
+            .set({ archivedAt: new Date() })
+            .where(eq(schema.teams.id, teamId));
 
-      // Check if team was successfully archived
-      if (result.rowCount === 0) {
-        throw new Error(`No team found with id: ${teamId}`);
-      }
-
-      // Retrieve all the team's userToTeamsEntries
-      const usersToTeamsEntries = await db
-        .select()
-        .from(schema.users_to_teams)
-        .where(eq(schema.users_to_teams.team_id, existingTeamData.id));
-
-      // Cascade Soft-deletion logic for usersToTeams entries
-      await Promise.all(
-        usersToTeamsEntries.map(async (entry) => {
-          try {
-            const cascadeResult = await db
-              .update(schema.users_to_teams)
-              .set({ archivedAt: new Date() })
-              .where(eq(schema.users_to_teams.team_id, entry.team_id));
-
-            if (cascadeResult.rowCount === 0) {
-              throw new Error(
-                `No soft deletion performed for team_id: ${entry.team_id}`,
-              );
-            }
-            return cascadeResult;
-          } catch (error) {
-            throw new Error(
-              `Error cascading soft deletion for team_id: ${entry.team_id}: ${error}`,
-            );
+          // Check if team was successfully archived
+          if (result.rowCount === 0) {
+            throw new Error(`No team found with id: ${teamId}`);
           }
-        }),
-      );
 
-      // Check if soft-deletion is successful.
-      if (result.rowCount === 1) {
-        return {
-          success: true,
-          message: `Archived object of type team successfully.`,
-          data: existingTeamData,
-        };
-      } else {
-        return {
-          success: false,
-          message: `Unable to Archive object of type team.`,
-          error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
-        };
-      }
+          // Retrieve all the team's userToTeamsEntries
+          const usersToTeamsEntries = await tx
+            .select()
+            .from(schema.users_to_teams)
+            .where(eq(schema.users_to_teams.team_id, existingTeamData.id));
+
+          // Cascade Soft-deletion logic for usersToTeams entries
+          await Promise.all(
+            usersToTeamsEntries.map(async (entry) => {
+              const cascadeResult = await tx
+                .update(schema.users_to_teams)
+                .set({ archivedAt: new Date() })
+                .where(eq(schema.users_to_teams.team_id, entry.team_id));
+
+              if (cascadeResult.rowCount === 0) {
+                throw new Error(`No soft deletion performed for team_id: ${entry.team_id}. No rows updated.`);
+              }
+              return cascadeResult;
+            }),
+          );
+
+          // Commit the transaction automatically at this point in the code if no errors
+        } catch (error) {
+          // If any error occurs, the transaction will automatically roll back
+          throw new Error(`Cascading Soft-deletion Transaction failed for team_id ${teamId}. ${error}`);
+        }
+      });
+      
+      // If the transaction completes successfully
+      return {
+        success: true,
+        message: `Successfully deleted team ${existingTeamData.teamName}.`,
+        data: existingTeamData,
+      };
     } catch (e) {
+      console.log(e)
       return {
         success: false,
-        message: `Unable to Archive object of type team.`,
+        message: `Unable to delete team with id: ${teamId}.`,
         error: e,
       };
     }
   },
-  getTeamsForUser: async (
-    userId: number,
-  ): Promise<types.QueryResponse<types.TeamsSelect[]>> => {
+  getTeamsForUser: async (userId: number): Promise<types.QueryResponse<types.TeamsSelect[]>> => {
     try {
       // SQL that retrieves the user's teams with their usertoTeamEntries using their id, while filtering out archived teams.
       const result = await db
         .select()
         .from(schema.teams)
-        .innerJoin(
-          schema.users_to_teams,
-          eq(schema.users_to_teams.team_id, schema.teams.id),
-        )
-        .where(
-          and(
-            eq(schema.users_to_teams.user_id, userId),
-            isNull(schema.teams.archivedAt),
-          ),
-        );
+        .innerJoin(schema.users_to_teams, eq(schema.users_to_teams.team_id, schema.teams.id))
+        .where(and(eq(schema.users_to_teams.user_id, userId), isNull(schema.teams.archivedAt)));
 
       // Extract the active teams of the user
       const teams = result.map((row) => row.teams);
@@ -151,9 +127,7 @@ export const teams = {
       };
     }
   },
-  createTeam: async (
-    teamName: string,
-  ): Promise<types.QueryResponse<types.TeamsSelect>> => {
+  createTeam: async (teamName: string): Promise<types.QueryResponse<types.TeamsSelect>> => {
     try {
       // Construct the team object to be inserted
       const teamObject: types.TeamsInsert = {
@@ -163,10 +137,7 @@ export const teams = {
         archivedAt: null,
       };
 
-      const [response] = await db
-        .insert(schema.teams)
-        .values(teamObject)
-        .returning();
+      const [response] = await db.insert(schema.teams).values(teamObject).returning();
 
       if (response) {
         return {
@@ -206,9 +177,7 @@ export const teams = {
         isCreator: isCreator,
       };
 
-      const response = await db
-        .insert(schema.users_to_teams)
-        .values(usersToTeamsObject);
+      const response = await db.insert(schema.users_to_teams).values(usersToTeamsObject);
       if (response.rowCount === 1) {
         return {
           success: true,
@@ -231,18 +200,13 @@ export const teams = {
     }
   },
 
-  getAllTeamMembers: async (
-    team_id: number,
-  ): Promise<types.QueryResponse<types.UserSelect[]>> => {
+  getAllTeamMembers: async (team_id: number): Promise<types.QueryResponse<types.UserSelect[]>> => {
     try {
       // SQL that retrieves all the members of a team.
       const result = await db
         .select()
         .from(schema.users)
-        .innerJoin(
-          schema.users_to_teams,
-          eq(schema.users_to_teams.user_id, schema.users.id),
-        )
+        .innerJoin(schema.users_to_teams, eq(schema.users_to_teams.user_id, schema.users.id))
         .where(eq(schema.users_to_teams.team_id, team_id));
 
       // Extract the users of the teams
@@ -269,20 +233,13 @@ export const teams = {
       };
     }
   },
-  checkTeamNameUnique: async (
-    team_name: string,
-  ): Promise<types.QueryResponse<boolean>> => {
+  checkTeamNameUnique: async (team_name: string): Promise<types.QueryResponse<boolean>> => {
     try {
       // Check if the team name is unique amongst active teams
       const result = await db
         .select()
         .from(schema.teams)
-        .where(
-          and(
-            eq(schema.teams.teamName, team_name),
-            isNull(schema.teams.archivedAt),
-          ),
-        );
+        .where(and(eq(schema.teams.teamName, team_name), isNull(schema.teams.archivedAt)));
 
       // Return appropriate response based on the result length
       const isUnique = result.length === 0;
