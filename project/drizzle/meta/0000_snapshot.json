@@ -1,5 +1,5 @@
 {
-  "id": "deee508e-adb3-4460-9a45-de55b1390d35",
+  "id": "d85c8cb8-60f6-48ce-96e7-726ce82562bb",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -557,15 +557,7 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "teams_teamName_unique": {
-          "name": "teams_teamName_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "teamName"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -934,7 +926,40 @@
       "isRLSEnabled": false
     }
   },
-  "enums": {},
+  "enums": {
+    "public.priority": {
+      "name": "priority",
+      "schema": "public",
+      "values": [
+        "unselected",
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "public.role_name": {
+      "name": "role_name",
+      "schema": "public",
+      "values": [
+        "No Role Yet",
+        "Project Manager",
+        "Developer",
+        "QA Engineer",
+        "Designer"
+      ]
+    },
+    "public.status": {
+      "name": "status",
+      "schema": "public",
+      "values": [
+        "Completed",
+        "On-hold",
+        "In Progress",
+        "Planning",
+        "Review"
+      ]
+    }
+  },
   "schemas": {},
   "sequences": {},
   "roles": {},

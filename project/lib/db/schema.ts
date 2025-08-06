@@ -94,6 +94,7 @@ import {
   foreignKey,
 } from "drizzle-orm/pg-core";
 import { priorityEnum, rolesEnum, statusEnum } from "./db-enums";
+export { priorityEnum, rolesEnum, statusEnum } from "./db-enums";
 
 export const users = pgTable("users", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),

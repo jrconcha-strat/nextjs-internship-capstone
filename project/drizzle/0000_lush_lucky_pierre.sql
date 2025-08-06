@@ -1,3 +1,6 @@
+CREATE TYPE "public"."priority" AS ENUM('unselected', 'low', 'medium', 'high');--> statement-breakpoint
+CREATE TYPE "public"."role_name" AS ENUM('No Role Yet', 'Project Manager', 'Developer', 'QA Engineer', 'Designer');--> statement-breakpoint
+CREATE TYPE "public"."status" AS ENUM('Completed', 'On-hold', 'In Progress', 'Planning', 'Review');--> statement-breakpoint
 CREATE TABLE "comments" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "comments_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"content" text,
@@ -66,8 +69,7 @@ CREATE TABLE "teams" (
 	"teamName" varchar NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
-	"archivedAt" timestamp,
-	CONSTRAINT "teams_teamName_unique" UNIQUE("teamName")
+	"archivedAt" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "teams_to_projects" (

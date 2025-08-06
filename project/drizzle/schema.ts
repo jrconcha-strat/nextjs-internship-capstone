@@ -112,9 +112,7 @@ export const teams = pgTable("teams", {
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
 	archivedAt: timestamp({ mode: 'string' }),
-}, (table) => [
-	unique("teams_teamName_unique").on(table.teamName),
-]);
+});
 
 export const roles = pgTable("roles", {
 	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "roles_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),

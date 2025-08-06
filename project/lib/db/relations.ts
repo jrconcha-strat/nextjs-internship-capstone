@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { tasks, comments, users, projects, lists, taskLabels, teams, teamsToProjects, usersToTasks, usersToTeams, roles } from "./schema";
+import { tasks, comments, users, projects, lists, taskLabels, teams, teamsToProjects, usersToTasks, usersToTeams, roles } from "../../drizzle/schema";
 
 export const commentsRelations = relations(comments, ({one, many}) => ({
 	task: one(tasks, {

@@ -1,1 +1,0 @@
-ALTER TABLE "teams" DROP CONSTRAINT "teams_teamName_unique";

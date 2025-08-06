@@ -31,7 +31,8 @@
     "db:studio": "drizzle-kit studio --port 3001 --verbose --config=drizzle.config.ts",
     "db:up": "drizzle-kit up --config=drizzle.config.ts",
     "db:seed": "tsx ./lib/db/seed.ts",
-    "test:file": "tsx ./test/query-test.ts"
+    "test:file": "tsx ./test/query-test.ts",
+    "docker-start": "docker start 64257180a11c2521e7454372ac19adfb83ff923fbda58d1a2ddc5b0f11cf995d"
   },
   "dependencies": {
     "@clerk/backend": "^2.6.0",
@@ -51,6 +52,7 @@
     "lucide-react": "^0.525.0",
     "next": "15.4.2",
     "next-themes": "^0.4.6",
+    "pg": "^8.16.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.62.0",
@@ -64,6 +66,7 @@
     "@eslint/eslintrc": "^3.3.1",
     "@next/eslint-plugin-next": "^15.4.2",
     "@tailwindcss/postcss": "^4.1.11",
+    "@types/pg": "^8.15.5",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "autoprefixer": "^10.4.21",
