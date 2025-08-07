@@ -1,7 +1,7 @@
 import * as types from "../../../types/index";
 import { db } from "../db-index";
 import * as schema from "../schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getBaseFields } from "./query_utils";
 
 export const teams = {
@@ -212,6 +212,36 @@ export const teams = {
         return {
           success: false,
           message: `Unable to add user ${userId} to team ${teamId}`,
+          error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
+        };
+      }
+    } catch (e) {
+      return {
+        success: false,
+        message: `Unable to add user ${userId} to team ${teamId}`,
+        error: e,
+      };
+    }
+  },
+  removeUserFromTeam: async (
+    userId: number,
+    teamId: number,
+  ): Promise<types.QueryResponse<types.UsersToTeamsSelect>> => {
+    try {
+      const [response] = await db
+        .delete(schema.users_to_teams)
+        .where(and(eq(schema.users_to_teams.user_id, userId), eq(schema.users_to_teams.team_id, teamId)))
+        .returning();
+      if (response) {
+        return {
+          success: true,
+          message: `Successfully removed user ${userId} from team ${teamId}.`,
+          data: response,
+        };
+      } else {
+        return {
+          success: false,
+          message: `Unable to remove user ${userId} from team ${teamId}`,
           error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
         };
       }

@@ -1,12 +1,12 @@
 "use client";
 import { XIcon } from "lucide-react";
-import { FC, useEffect, useRef } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { TeamsSelect, UserSelect } from "@/types";
 import { formatDate } from "@/lib/utils";
-import AddUsersTeam from "../teams/add-users-team";
 import { Separator } from "../ui/separator";
 
 import TeamName from "../teams/team-name";
+import ManageMembersTeam from "../teams/manage-members-team";
 
 type ViewTeamModalProps = {
   teamData: TeamsSelect;
@@ -18,11 +18,22 @@ type ViewTeamModalProps = {
 const ViewTeamModal: FC<ViewTeamModalProps> = ({ teamData, teamMembers, isModalOpen, setIsModalOpen }) => {
   // Any outside clicks will close the modal.
   const modalRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null); // Reference for dropdown menu items to stop propagation
+  const [isDropDownOpen, setIsDropDownOpen] = useState(false);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      // If the clicked element is not a child of modal, close modal.
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        setIsModalOpen(!isModalOpen);
+      const isClickInsideModal = modalRef.current && modalRef.current.contains(event.target as Node);
+      const isClickInsideDropdownMenu = dropdownRef.current && dropdownRef.current.contains(event.target as Node);
+
+      // If the dropdown is open and the click is outside of the dropdown menu, close the dropdown
+      if (isDropDownOpen && !isClickInsideDropdownMenu) {
+        setIsDropDownOpen(false); // Close dropdown
+      }
+
+      // If the dropdown is not open and the click is outside of both modal and dropdown, close the modal
+      else if (!isDropDownOpen && !isClickInsideModal && !isClickInsideDropdownMenu) {
+        setIsModalOpen(false); // Close modal
       }
     }
 
@@ -30,11 +41,10 @@ const ViewTeamModal: FC<ViewTeamModalProps> = ({ teamData, teamMembers, isModalO
       document.addEventListener("mousedown", handleClickOutside);
     }
 
-    // Cleanup function
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isModalOpen, setIsModalOpen]);
+  }, [isDropDownOpen, isModalOpen, setIsModalOpen]);
 
   // Disable scrolling when modal is open.
   useEffect(() => {
@@ -73,7 +83,7 @@ const ViewTeamModal: FC<ViewTeamModalProps> = ({ teamData, teamMembers, isModalO
             <Separator />
 
             {/* Team Information */}
-            <div className="flex flex-col mt-4 gap-y-3">
+            <div className="flex flex-col mt-4 mb-4 gap-y-3">
               {/* Team Name */}
               <TeamName teamData={teamData} />
 
@@ -91,17 +101,18 @@ const ViewTeamModal: FC<ViewTeamModalProps> = ({ teamData, teamMembers, isModalO
               <div>
                 <p className="text-sm">
                   {" "}
-                  Created by: <span className="font-bold">Team </span>
-                </p>
-                <p className="text-sm">
-                  {" "}
                   Created on: <span className="font-bold">{formatDate(teamData.createdAt)} </span>
                 </p>
               </div>
             </div>
+            <Separator />
             <div className="mt-4">
-              <p className="text-sm mb-2"> Add Members:</p>
-              <AddUsersTeam teamMembers={teamMembers} team_id={teamData.id} />
+              <ManageMembersTeam
+                teamMembers={teamMembers}
+                team_id={teamData.id}
+                dropDownRef={dropdownRef}
+                setIsDropDownOpen={setIsDropDownOpen}
+              />
             </div>
           </div>
         </div>

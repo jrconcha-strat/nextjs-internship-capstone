@@ -52,6 +52,23 @@ export async function addUsersToTeam(users_ids: number[], team_id: number): Prom
   };
 }
 
+export async function removeUsersFromTeam(users_ids: number[], team_id: number): Promise<ServerActionResponse<boolean>> {
+  for (const user_id of users_ids) {
+    // remove current user from team
+    const removeUserFromTeamResponse = await queries.teams.removeUserFromTeam(user_id, team_id);
+    if (!removeUserFromTeamResponse.success) {
+      return removeUserFromTeamResponse;
+    }
+  }
+  revalidatePath("/teams");
+  // Return success response
+  return {
+    success: true,
+    message: "Successfully removed users as members.",
+    data: true,
+  };
+}
+
 export async function getUsersForTeam(team_id: number): Promise<ServerActionResponse<types.UserSelect[]>> {
   const teamId = team_id;
   try {
