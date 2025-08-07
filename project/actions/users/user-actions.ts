@@ -2,15 +2,16 @@
 
 import { queries } from "@/lib/db/queries/queries";
 import { auth } from "@clerk/nextjs/server";
-import { GetAllUsersResponse, GetUserIdResponse } from "./user-types";
+import { ServerActionResponse } from "../actions-types";
+import * as types from "../../types/index";
 
-export async function getAllUsers(): Promise<GetAllUsersResponse> {
+export async function getAllUsers(): Promise<ServerActionResponse<types.UserSelect[]>> {
   const response = await queries.users.getAll();
 
   return response.success ? response : response;
 }
 
-export async function getUserId(): Promise<GetUserIdResponse> {
+export async function getUserId(): Promise<ServerActionResponse<types.UserSelect>> {
   try {
     const { userId } = await auth();
 
