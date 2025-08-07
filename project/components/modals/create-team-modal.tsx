@@ -14,19 +14,13 @@ type TeamModalProps = {
   setIsModalOpen: (value: boolean) => void;
 };
 
-const CreateTeamModal: FC<TeamModalProps> = ({
-  isModalOpen,
-  setIsModalOpen,
-}) => {
+const CreateTeamModal: FC<TeamModalProps> = ({ isModalOpen, setIsModalOpen }) => {
   // Any outside clicks will close the modal.
   const modalRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       // If the clicked element is not a child of modal, close modal.
-      if (
-        modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
-      ) {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
         setIsModalOpen(!isModalOpen);
       }
     }
@@ -45,8 +39,7 @@ const CreateTeamModal: FC<TeamModalProps> = ({
   useEffect(() => {
     if (isModalOpen) {
       // Account for layout shift due to hiding the scrollbar. Usually 15px
-      const scrollBarWidth =
-        window.innerWidth - document.documentElement.clientWidth;
+      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
       document.body.classList.add("overflow-hidden");
       document.body.style.paddingRight = `${scrollBarWidth}px`;
     } else {
@@ -92,6 +85,9 @@ const CreateTeamModal: FC<TeamModalProps> = ({
     }
 
     const response = await createTeam(values.teamName, user.id);
+    if (!response.success) {
+      toast.error("Error", { description: response.message });
+    }
 
     toast.success("Success", { description: response.message });
     setIsLoading(false);
@@ -108,14 +104,8 @@ const CreateTeamModal: FC<TeamModalProps> = ({
             className="bg-white dark:bg-gray-900 p-6 rounded-lg w-full mx-4 md:mx-0 max-w-md shadow-xl"
           >
             <div className="flex justify-between mb-4">
-              <h2 className="text-xl font-semibold text-dark-grey-600 dark:text-gray-100">
-                Create a New Team
-              </h2>
-              <button
-                onClick={() => setIsModalOpen(!isModalOpen)}
-                className="hover: "
-                aria-label="Close"
-              >
+              <h2 className="text-xl font-semibold text-dark-grey-600 dark:text-gray-100">Create a New Team</h2>
+              <button onClick={() => setIsModalOpen(!isModalOpen)} className="hover: " aria-label="Close">
                 <XIcon className="text-dark-grey-600 w-full h-full" />
               </button>
             </div>
@@ -125,16 +115,8 @@ const CreateTeamModal: FC<TeamModalProps> = ({
                 {" "}
                 Team Name
               </label>
-              <input
-                id="teamName"
-                className="outline-1 px-2 rounded-sm "
-                {...register("teamName")}
-              ></input>
-              {errors.teamName && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.teamName.message}
-                </p>
-              )}
+              <input id="teamName" className="outline-1 px-2 rounded-sm " {...register("teamName")}></input>
+              {errors.teamName && <p className="text-red-500 text-sm mt-1">{errors.teamName.message}</p>}
               <div className="w-full flex justify-end mt-4">
                 {isLoading ? (
                   <div className="bg-emerald-400 rounded-sm text-white w-[100px] flex items-center justify-center px-2 py-1 gap-2 ">
@@ -142,10 +124,7 @@ const CreateTeamModal: FC<TeamModalProps> = ({
                     <Loader2Icon className="animate-spin" /> Loading{" "}
                   </div>
                 ) : (
-                  <input
-                    className="bg-emerald-400 text-white  rounded-sm w-[100px]"
-                    type="submit"
-                  />
+                  <input className="bg-emerald-400 text-white  rounded-sm w-[100px]" type="submit" />
                 )}
               </div>
             </form>
