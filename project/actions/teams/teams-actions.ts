@@ -52,7 +52,10 @@ export async function addUsersToTeam(users_ids: number[], team_id: number): Prom
   };
 }
 
-export async function removeUsersFromTeam(users_ids: number[], team_id: number): Promise<ServerActionResponse<boolean>> {
+export async function removeUsersFromTeam(
+  users_ids: number[],
+  team_id: number,
+): Promise<ServerActionResponse<boolean>> {
   for (const user_id of users_ids) {
     // remove current user from team
     const removeUserFromTeamResponse = await queries.teams.removeUserFromTeam(user_id, team_id);
@@ -70,39 +73,15 @@ export async function removeUsersFromTeam(users_ids: number[], team_id: number):
 }
 
 export async function getUsersForTeam(team_id: number): Promise<ServerActionResponse<types.UserSelect[]>> {
-  const teamId = team_id;
-  try {
-    const response = await queries.teams.getAllTeamMembers(teamId);
-    if (!response.success) {
-      return response;
-    }
+  const getUsersForTeamResponse = await queries.teams.getAllTeamMembers(team_id);
 
-    return {
-      success: true,
-      message: `Successfully retrieved team members for ${teamId}`,
-      data: response.data,
-    };
-  } catch (e) {
-    return {
-      success: false,
-      message: `Unable to retrieve members for ${teamId}`,
-      error: e,
-    };
-  }
+  return getUsersForTeamResponse.success ? getUsersForTeamResponse : getUsersForTeamResponse;
 }
 
 export async function getTeamsForUser(user_id: number): Promise<ServerActionResponse<types.TeamsSelect[]>> {
-  const userId = user_id;
-
   // Retrieve teams of user.
-  const response = await queries.teams.getTeamsForUser(userId);
-
-  if (!response.success) {
-    return { ...response };
-  }
-
-  // Return success response
-  return { ...response };
+  const getTeamsForUserResponse = await queries.teams.getTeamsForUser(user_id);
+  return getTeamsForUserResponse.success ? getTeamsForUserResponse : getTeamsForUserResponse;
 }
 
 export async function createTeam(
@@ -113,21 +92,13 @@ export async function createTeam(
   const getByClerkIdResponse = await queries.users.getByClerkId(currentUserClerkId);
 
   if (!getByClerkIdResponse.success) {
-    return {
-      success: false,
-      message: "Team Creation: Unable to get current user.",
-      error: getByClerkIdResponse.error,
-    };
+    return getByClerkIdResponse;
   }
 
   // Create team
   const teamCreationResponse = await queries.teams.createTeam(teamName);
   if (!teamCreationResponse.success) {
-    return {
-      success: false,
-      message: "Team Creation: Unable to create team.",
-      error: teamCreationResponse.error,
-    };
+    return teamCreationResponse;
   }
 
   // Add current user to team
@@ -137,11 +108,7 @@ export async function createTeam(
     true,
   );
   if (!addUsertoTeamResponse.success) {
-    return {
-      success: false,
-      message: "Team Creation: Unable to add current user to team.",
-      error: addUsertoTeamResponse.error,
-    };
+    return addUsertoTeamResponse;
   }
 
   revalidatePath("/teams");
@@ -149,7 +116,7 @@ export async function createTeam(
   // Return success response
   return {
     success: true,
-    message: "Team Creation: Team creation successful and added current user as member.",
+    message: "Team creation success! Invite people to your team!",
     data: teamCreationResponse.data,
   };
 }

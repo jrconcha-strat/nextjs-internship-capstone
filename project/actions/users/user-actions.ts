@@ -12,28 +12,12 @@ export async function getAllUsers(): Promise<ServerActionResponse<types.UserSele
 }
 
 export async function getUserId(): Promise<ServerActionResponse<types.UserSelect>> {
-  try {
-    const { userId } = await auth();
+  const { userId } = await auth();
 
-    if (!userId) {
-      throw new Error("userId is null.");
-    }
-
-    const response = await queries.users.getByClerkId(userId);
-    if (!response.success) {
-      return response;
-    }
-
-    return {
-      success: true,
-      message: `User id of currently logged in user has been retrieved.`,
-      data: response.data,
-    };
-  } catch (e) {
-    return {
-      success: false,
-      message: `Unable to retrieve user id.`,
-      error: e,
-    };
+  if (!userId || userId === null) {
+    throw new Error("Unable to get logged in user's id from Clerk.");
   }
+
+  const getUserByClerkIdResponse = await queries.users.getByClerkId(userId);
+  return getUserByClerkIdResponse.success ? getUserByClerkIdResponse : getUserByClerkIdResponse;
 }

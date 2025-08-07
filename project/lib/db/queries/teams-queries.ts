@@ -77,20 +77,20 @@ export const teams = {
       if (teams) {
         return {
           success: true,
-          message: `Successfully retrieved user teams.`,
+          message: `Successfully retrieved user teams of ${userId}.`,
           data: teams,
         };
       } else {
         return {
           success: false,
-          message: `Unable to retrieve user teams.`,
+          message: `Unable to retrieve user teams of ${userId}.`,
           error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
         };
       }
     } catch (e) {
       return {
         success: false,
-        message: `Unable to retrieve user teams.`,
+        message: `Unable to retrieve user teams of ${userId} .`,
         error: e,
       };
     }
@@ -269,20 +269,20 @@ export const teams = {
       if (users) {
         return {
           success: true,
-          message: `Successfully retrieved team's members.`,
+          message: `Successfully retrieved team members of ${team_id}.`,
           data: users,
         };
       } else {
         return {
           success: false,
-          message: `Unable to retrieve team's members`,
+          message: `Unable to retrieve team members of ${team_id}`,
           error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
         };
       }
     } catch (e) {
       return {
         success: false,
-        message: `Unable to retrieve team's members.`,
+        message: `Unable to retrieve team members of ${team_id}.`,
         error: e,
       };
     }
