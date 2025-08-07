@@ -2,6 +2,7 @@ import * as types from "../../../types/index";
 import { db } from "../db-index";
 import * as schema from "../schema";
 import { eq } from "drizzle-orm";
+import { getBaseFields } from "./query_utils";
 
 export const teams = {
   getById: async (teamId: number): Promise<types.QueryResponse<types.TeamsSelect>> => {
@@ -90,6 +91,64 @@ export const teams = {
       return {
         success: false,
         message: `Unable to retrieve user teams.`,
+        error: e,
+      };
+    }
+  },
+  updateTeam: async (teamId: number, newTeamName: string): Promise<types.QueryResponse<types.TeamsSelect>> => {
+    try {
+      // Retrieve existing team data. Check if team exists.
+      const response = await teams.getById(teamId);
+      if (response.success === false) {
+        // Failed to retrieve, throw error.
+        throw new Error(response.message);
+      }
+
+      // Determine which fields have changed.
+      const existingTeamData = response.data;
+
+      const changed: Partial<types.TeamsInsert> = {};
+
+      if (existingTeamData.teamName !== newTeamName) changed.teamName = newTeamName;
+
+      const finalUpdatedTeamData = {
+        ...getBaseFields(existingTeamData),
+        ...changed,
+        ...(Object.keys(changed).length > 0 ? { updatedAt: new Date() } : {}),
+      };
+
+      if (Object.keys(changed).length === 0) {
+        return {
+          success: true,
+          message: `No changes detected for this team..`,
+          data: existingTeamData,
+        };
+      }
+
+      const [result] = await db
+        .update(schema.teams)
+        .set(finalUpdatedTeamData)
+        .where(eq(schema.teams.id, teamId))
+        .returning();
+
+      // Check if update is successful.
+      if (result) {
+        return {
+          success: true,
+          message: `Updated team successfully.`,
+          data: existingTeamData,
+        };
+      } else {
+        return {
+          success: false,
+          message: `Unable to update team.`,
+          error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
+        };
+      }
+    } catch (e) {
+      return {
+        success: false,
+        message: `Unable to update team`,
         error: e,
       };
     }

@@ -5,6 +5,17 @@ import { revalidatePath } from "next/cache";
 import * as types from "../../types/index";
 import { ServerActionResponse } from "../actions-types";
 
+export async function updateTeam(
+  team_id: number,
+  newTeamName: string,
+): Promise<ServerActionResponse<types.TeamsSelect>> {
+  const updateTeamResponse = await queries.teams.updateTeam(team_id, newTeamName);
+
+  revalidatePath("/teams");
+
+  return updateTeamResponse.success ? updateTeamResponse : updateTeamResponse;
+}
+
 export async function checkTeamNameUnique(teamName: string): Promise<ServerActionResponse<boolean>> {
   // call utility function to check teamname uniqueness.
   const nameIsUniqueResponse = await queries.teams.checkTeamNameUnique(teamName);

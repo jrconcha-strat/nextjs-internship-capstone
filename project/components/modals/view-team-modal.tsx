@@ -4,6 +4,9 @@ import { FC, useEffect, useRef } from "react";
 import { TeamsSelect, UserSelect } from "@/types";
 import { formatDate } from "@/lib/utils";
 import AddUsersTeam from "../teams/add-users-team";
+import { Separator } from "../ui/separator";
+
+import TeamName from "../teams/team-name";
 
 type ViewTeamModalProps = {
   teamData: TeamsSelect;
@@ -61,26 +64,40 @@ const ViewTeamModal: FC<ViewTeamModalProps> = ({ teamData, teamMembers, isModalO
             className="bg-white dark:bg-gray-900 p-6 rounded-lg w-full mx-4 md:mx-0 max-w-md shadow-xl"
           >
             <div className="flex justify-between mb-4">
-              <h2 className="text-xl font-semibold text-dark-grey-600 dark:text-gray-100">{teamData.teamName}</h2>
+              <h2 className="text-xl font-semibold text-dark-grey-600 dark:text-gray-100">Team Information</h2>
               <button onClick={() => setIsModalOpen(!isModalOpen)} className="hover: " aria-label="Close">
                 <XIcon className="text-dark-grey-600 w-full h-full" />
               </button>
             </div>
+
+            <Separator />
+
             {/* Team Information */}
-            <div className="flex flex-col mt-4">
+            <div className="flex flex-col mt-4 gap-y-3">
+              {/* Team Name */}
+              <TeamName teamData={teamData} />
+
               {/* Placeholder */}
-              <p className="text-sm">
-                {" "}
-                Currently Active Projects: <span className="font-bold">14 </span>
-              </p>
-              <p className="text-sm">
-                {" "}
-                Active Members: <span className="font-bold">{teamMembers.length} </span>
-              </p>
-              <p className="text-sm">
-                {" "}
-                Created on: <span className="font-bold">{formatDate(teamData.createdAt)} </span>
-              </p>
+              <div>
+                <p className="text-sm">
+                  {" "}
+                  Active Projects: <span className="font-bold">14 </span>
+                </p>
+                <p className="text-sm">
+                  {" "}
+                  Active Members: <span className="font-bold">{teamMembers.length} </span>
+                </p>
+              </div>
+              <div>
+                <p className="text-sm">
+                  {" "}
+                  Created by: <span className="font-bold">Team </span>
+                </p>
+                <p className="text-sm">
+                  {" "}
+                  Created on: <span className="font-bold">{formatDate(teamData.createdAt)} </span>
+                </p>
+              </div>
             </div>
             <div className="mt-4">
               <p className="text-sm mb-2"> Add Members:</p>

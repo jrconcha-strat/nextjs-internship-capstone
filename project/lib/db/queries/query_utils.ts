@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import * as types from "../../../types/index";
 import { queries } from "./queries";
 
-type QueryKeys = Exclude<keyof typeof queries, "teams">
+type QueryKeys = Exclude<keyof typeof queries, "teams">;
 
 // Used to map the query key to their tables
 const tableMap = {
@@ -40,12 +40,8 @@ export const getByParentObject = async <T>(
     // The table of the child object. e.g task.
     const childTable = tableMap[query_key];
     // Here we get the necessary information linking the child to its parent table, e.g info that links task to list.
-    const { child_foreign_key, parent_table } =
-      childToParentTableMetadata[query_key];
-    const childObjects = await db
-      .select()
-      .from(childTable)
-      .where(eq(child_foreign_key, parentId));
+    const { child_foreign_key, parent_table } = childToParentTableMetadata[query_key];
+    const childObjects = await db.select().from(childTable).where(eq(child_foreign_key, parentId));
 
     // Check if child objects exist.
     if (childObjects.length > 1) {
@@ -63,9 +59,7 @@ export const getByParentObject = async <T>(
         data: childObjects as Array<T>,
       };
     }
-    throw new Error(
-      `No ${query_key} for this parent ${parent_table} retrieved.`,
-    );
+    throw new Error(`No ${query_key} for this parent ${parent_table} retrieved.`);
   } catch (e) {
     return {
       success: false,
@@ -91,9 +85,7 @@ export const createObject = async <T>(
         data: newObject as T,
       };
     }
-    throw new Error(
-      `Error: response.rowCount returned 0 rows modified. Check database connection.`,
-    );
+    throw new Error(`Error: response.rowCount returned 0 rows modified. Check database connection.`);
   } catch (e) {
     return {
       success: false,
@@ -103,9 +95,7 @@ export const createObject = async <T>(
   }
 };
 
-export const getAllObject = async <T>(
-  query_key: QueryKeys,
-): Promise<types.QueryResponse<Array<T>>> => {
+export const getAllObject = async <T>(query_key: QueryKeys): Promise<types.QueryResponse<Array<T>>> => {
   try {
     const table = tableMap[query_key];
 
@@ -136,17 +126,10 @@ export const getAllObject = async <T>(
   }
 };
 
-export const getObjectById = async <T>(
-  id: number,
-  query_key: QueryKeys,
-): Promise<types.QueryResponse<T>> => {
+export const getObjectById = async <T>(id: number, query_key: QueryKeys): Promise<types.QueryResponse<T>> => {
   try {
     const table = tableMap[query_key];
-    const [object] = await db
-      .select()
-      .from(table)
-      .limit(1)
-      .where(eq(table.id, id));
+    const [object] = await db.select().from(table).limit(1).where(eq(table.id, id));
     // Check if object exists.
     if (object) {
       return {
@@ -165,10 +148,7 @@ export const getObjectById = async <T>(
   }
 };
 
-export const deleteObject = async <T>(
-  id: number,
-  query_key: QueryKeys,
-): Promise<types.QueryResponse<T>> => {
+export const deleteObject = async <T>(id: number, query_key: QueryKeys): Promise<types.QueryResponse<T>> => {
   try {
     // Check if object exists
     const table = tableMap[query_key];
@@ -182,9 +162,7 @@ export const deleteObject = async <T>(
     // Retrieve the data of the object to be deleted
     const existingObjectData = response.data as T;
 
-    const result = await db
-      .delete(table)
-      .where(eq(table.id, id));
+    const result = await db.delete(table).where(eq(table.id, id));
 
     // Check if deletion is successful.
     if (result.rowCount === 1) {
@@ -247,10 +225,7 @@ export const updateObject = async <TSelect, TInsert>(
       };
     }
 
-    const result = await db
-      .update(table)
-      .set(finalUpdatedObjectData)
-      .where(eq(table.id, id));
+    const result = await db.update(table).set(finalUpdatedObjectData).where(eq(table.id, id));
 
     // Check if update is successful.
     if (result.rowCount === 1) {
@@ -273,4 +248,10 @@ export const updateObject = async <TSelect, TInsert>(
       error: e,
     };
   }
+};
+
+export const getBaseFields = (existingData: types.ObjectSelect) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id, ...base } = existingData;
+  return base;
 };
