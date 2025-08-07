@@ -1,17 +1,11 @@
 "use server";
 
 import { queries } from "@/lib/db/queries/queries";
-import {
-  GetTeamsResponse,
-  CreateTeamResponse,
-  GetUsersForTeamResponse,
-  DeleteTeamResponse,
-  CheckTeamNameUniquenessResponse,
-  AddUsersToTeamResponse,
-} from "./teams-types";
 import { revalidatePath } from "next/cache";
+import * as types from "../../types/index";
+import { ServerActionResponse } from "../actions-types";
 
-export async function checkTeamNameUnique(teamName: string): Promise<CheckTeamNameUniquenessResponse> {
+export async function checkTeamNameUnique(teamName: string): Promise<ServerActionResponse<boolean>> {
   // call utility function to check teamname uniqueness.
   const nameIsUniqueResponse = await queries.teams.checkTeamNameUnique(teamName);
 
@@ -19,7 +13,7 @@ export async function checkTeamNameUnique(teamName: string): Promise<CheckTeamNa
   return nameIsUniqueResponse.success ? nameIsUniqueResponse : nameIsUniqueResponse;
 }
 
-export async function deleteTeam(team_id: number): Promise<DeleteTeamResponse> {
+export async function deleteTeam(team_id: number): Promise<ServerActionResponse<types.TeamsSelect>> {
   // call utility function to delete team.
   const deleteTeamResponse = await queries.teams.deleteTeam(team_id);
 
@@ -30,7 +24,7 @@ export async function deleteTeam(team_id: number): Promise<DeleteTeamResponse> {
   return deleteTeamResponse.success ? deleteTeamResponse : deleteTeamResponse;
 }
 
-export async function addUsersToTeam(users_ids: number[], team_id: number): Promise<AddUsersToTeamResponse> {
+export async function addUsersToTeam(users_ids: number[], team_id: number): Promise<ServerActionResponse<boolean>> {
   for (const user_id of users_ids) {
     // Add current user to team
     const addUsertoTeamResponse = await queries.teams.addUserToTeam(user_id, team_id, false);
@@ -47,7 +41,7 @@ export async function addUsersToTeam(users_ids: number[], team_id: number): Prom
   };
 }
 
-export async function getUsersForTeam(team_id: number): Promise<GetUsersForTeamResponse> {
+export async function getUsersForTeam(team_id: number): Promise<ServerActionResponse<types.UserSelect[]>> {
   const teamId = team_id;
   try {
     const response = await queries.teams.getAllTeamMembers(teamId);
@@ -69,7 +63,7 @@ export async function getUsersForTeam(team_id: number): Promise<GetUsersForTeamR
   }
 }
 
-export async function getTeamsForUser(user_id: number): Promise<GetTeamsResponse> {
+export async function getTeamsForUser(user_id: number): Promise<ServerActionResponse<types.TeamsSelect[]>> {
   const userId = user_id;
 
   // Retrieve teams of user.
@@ -83,7 +77,10 @@ export async function getTeamsForUser(user_id: number): Promise<GetTeamsResponse
   return { ...response };
 }
 
-export async function createTeam(teamName: string, currentUserClerkId: string): Promise<CreateTeamResponse> {
+export async function createTeam(
+  teamName: string,
+  currentUserClerkId: string,
+): Promise<ServerActionResponse<types.TeamsSelect>> {
   // Get current user by Clerk ID
   const getByClerkIdResponse = await queries.users.getByClerkId(currentUserClerkId);
 
