@@ -3,53 +3,6 @@
   - Many to Many Relations necessitates the use of a junction table for best practices.
   - Logging feature may be necessary.
 
-  # On the Concept of Deletion
-    - Hard Deletion is restricted to preserve historical accuracy. Instead, employ soft deleiton via isArchived to flag deleted objects.
-    - This requires writing logic at the app level (functions) / db level (triggers) to archive relations / child objects, because postgresql only supports cascading of hard deletion and not this logic at the db level.
-    - What can be soft-deleted or archived through the UI? (e.g there is a link or button to delete this object)
-        - Users
-        - Teams
-        - Projects
-        - Lists
-        - Tasks
-        - Comments
-    - Cases:
-      - A user is archived? Do the logic for:
-          - Archiving all team_members entries.
-            - if IsCreator, allow archival to retain history.
-          - Archiving all task_assignees entries.
-            - if isTaskOwner, allow archival to retain history.
-          - Archiving all comments entries
-          - Conditional archivals:
-            - If user.id == projects.ownerId and project.status != completed:
-              - Restrict user archival. Indicate that project owner must change to a non-archived user before allowing archival. Show UI to change owner assigned. Owner should be on the same team.
-              - Log this action
-            - else if user.id == projects.ownerId and project.status == completed:
-              - Allow user archival
-      - A project is archived? Do the logic for:
-        - Archiving all child lists
-        - Archiving all child tasks of those lists.
-        - Archiving all child comments of those child tasks.
-        - Archiving all task_assignees entries of those tasks.
-      - A team is archived? Do the logic for:
-        - Archiving all team_members entries.
-        - Conditional archivals:
-          - if team is assigned to an active project
-            - Restrict team archival. Indicate that project must be assigned to another team, before allowing team archival. Show UI to change team assigned.
-            - Log this action.
-          - else team is assigned to no active project
-            - Allow team archival
-      - A list is archived? Do the logic for:
-        - Archiving all child tasks of those lists.
-        - Archiving all child comments of those child tasks.
-        - Archiving all task_assignees entries of those tasks.
-      - A task is archived? Do the logic for:
-        - Archiving all child comments of those child tasks.
-        - Archiving all task_assignees entries of those tasks.
-      - A comment is archived? Do the logic for:
-        - Archiving all task_assignees entries of those tasks.
-      
-
   # On Project Creation
     - At the least one team may be assigned to a project, with the option for more.
     - A project cannot be created without an assigned team.
@@ -83,16 +36,7 @@
     3. (comments) authorId	Must be a member of the team assigned to the project
 */
 
-import {
-  pgTable,
-  varchar,
-  timestamp,
-  integer,
-  boolean,
-  text,
-  primaryKey,
-  foreignKey,
-} from "drizzle-orm/pg-core";
+import { pgTable, varchar, timestamp, integer, boolean, text, primaryKey, foreignKey } from "drizzle-orm/pg-core";
 import { priorityEnum, rolesEnum, statusEnum } from "./db-enums";
 export { priorityEnum, rolesEnum, statusEnum } from "./db-enums";
 
@@ -104,15 +48,13 @@ export const users = pgTable("users", {
   image_url: varchar("image_url").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  archivedAt: timestamp("archivedAt"),
 });
 
 export const teams = pgTable("teams", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
-  teamName: varchar("teamName").notNull(),
+  teamName: varchar("teamName").notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  archivedAt: timestamp("archivedAt"),
 });
 
 export const roles = pgTable("roles", {
@@ -126,37 +68,36 @@ export const projects = pgTable("projects", {
   description: text("description"),
   status: statusEnum().notNull().default("Planning"),
   ownerId: integer("ownerId")
-    .references(() => users.id)
+    .references(() => users.id, { onDelete: "restrict" })
     .notNull(),
   dueDate: timestamp("dueDate"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  archivedAt: timestamp("archivedAt"),
 });
 
 export const lists = pgTable("lists", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
   name: varchar("name").notNull(),
   projectId: integer("projectId")
-    .references(() => projects.id)
+    .references(() => projects.id, { onDelete: "cascade" })
     .notNull(),
   position: integer("position").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  archivedAt: timestamp("archivedAt"),
 });
 
 export const tasks = pgTable("tasks", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
   title: varchar("title").notNull(),
   description: text("description"),
-  listId: integer("listId").notNull(),
+  listId: integer("listId")
+    .references(() => lists.id, { onDelete: "cascade" })
+    .notNull(),
   priority: priorityEnum("priority").default("unselected").notNull(),
   dueDate: timestamp("dueDate"),
   position: integer("position").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  archivedAt: timestamp("archivedAt"),
 });
 
 export const comments = pgTable(
@@ -165,13 +106,14 @@ export const comments = pgTable(
     id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
     content: text("content"),
     taskId: integer("taskId")
-      .references(() => tasks.id)
+      .references(() => tasks.id, { onDelete: "cascade" })
       .notNull(),
-    authorId: integer("authorId").notNull(),
+    authorId: integer("authorId")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
     parentCommentId: integer("parentCommentId"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-    archivedAt: timestamp("archivedAt"),
   },
   // https://stackoverflow.com/questions/78329576/how-to-declare-self-referencing-foreign-key-with-drizzle-orm
   // https://orm.drizzle.team/docs/indexes-constraints#foreign-key
@@ -180,14 +122,14 @@ export const comments = pgTable(
       columns: [table.parentCommentId],
       foreignColumns: [table.id],
       name: "comments_self_reference_id",
-    }),
+    }).onDelete("cascade"),
   ],
 );
 
 export const task_labels = pgTable("task_labels", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
   taskId: integer("taskId")
-    .references(() => tasks.id)
+    .references(() => tasks.id, { onDelete: "cascade" })
     .notNull(),
   name: varchar("name").notNull(),
   category: varchar("category").notNull(),
@@ -202,19 +144,18 @@ export const users_to_teams = pgTable(
   "users_to_teams",
   {
     team_id: integer("team_id")
-      .references(() => teams.id)
+      .references(() => teams.id, { onDelete: "cascade" })
       .notNull(),
     user_id: integer("user_id")
-      .references(() => users.id)
+      .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     role: integer("role")
-      .references(() => roles.id)
+      .references(() => roles.id, { onDelete: "restrict" })
       .notNull()
       .default(1), // "No Role Yet" default
     isCreator: boolean("isCreator").notNull().default(false),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-    archivedAt: timestamp("archived_at"),
   },
   (table) => [primaryKey({ columns: [table.team_id, table.user_id] })],
 );
@@ -224,15 +165,14 @@ export const users_to_tasks = pgTable(
   "users_to_tasks",
   {
     task_id: integer("task_id")
-      .references(() => tasks.id)
+      .references(() => tasks.id, { onDelete: "cascade" })
       .notNull(),
     user_id: integer("user_id")
-      .references(() => users.id)
+      .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     isTaskOwner: boolean("isTaskOwner").notNull().default(false),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-    archivedAt: timestamp("archived_at"),
   },
   (table) => [primaryKey({ columns: [table.task_id, table.user_id] })],
 );
@@ -241,14 +181,13 @@ export const teams_to_projects = pgTable(
   "teams_to_projects",
   {
     team_id: integer("team_id")
-      .references(() => teams.id)
+      .references(() => teams.id, { onDelete: "cascade" })
       .notNull(),
     project_id: integer("project_id")
-      .references(() => projects.id)
+      .references(() => projects.id, { onDelete: "cascade" })
       .notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-    archivedAt: timestamp("archived_at"),
   },
   (table) => [primaryKey({ columns: [table.team_id, table.project_id] })],
 );

@@ -9,7 +9,7 @@ import {
 } from "./query_utils";
 import { db } from "../db-index";
 import { users } from "../schema";
-import { eq, and, isNotNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import * as schema from "../schema";
 import { teams } from "./teams-queries";
 
@@ -20,20 +20,12 @@ export const queries = {
     getAll: async (): Promise<types.QueryResponse<Array<types.UserSelect>>> => {
       return getAllObject<types.UserSelect>("users");
     },
-    getById: async (
-      id: number,
-    ): Promise<types.QueryResponse<types.UserSelect>> => {
+    getById: async (id: number): Promise<types.QueryResponse<types.UserSelect>> => {
       return getObjectById<types.UserSelect>(id, "users");
     },
-    getByClerkId: async (
-      clerkId: string,
-    ): Promise<types.QueryResponse<types.UserSelect>> => {
+    getByClerkId: async (clerkId: string): Promise<types.QueryResponse<types.UserSelect>> => {
       try {
-        const [user] = await db
-          .select()
-          .from(schema.users)
-          .limit(1)
-          .where(eq(schema.users.clerkId, clerkId));
+        const [user] = await db.select().from(schema.users).limit(1).where(eq(schema.users.clerkId, clerkId));
         if (user) {
           return {
             success: true,
@@ -50,44 +42,7 @@ export const queries = {
         };
       }
     },
-    checkUserArchiveStatus: async (
-      id: number | string,
-    ): Promise<types.QueryResponse<types.UserSelect>> => {
-      let archivedUser;
-      try {
-        if (typeof id === "number") {
-          [archivedUser] = await db
-            .select()
-            .from(users)
-            .limit(1)
-            .where(and(eq(users.id, id), isNotNull(users.archivedAt)));
-        } else {
-          [archivedUser] = await db
-            .select()
-            .from(users)
-            .limit(1)
-            .where(and(eq(users.clerkId, id), isNotNull(users.archivedAt)));
-        }
-
-        if (archivedUser) {
-          return {
-            success: true,
-            message: `User is currently archived.`,
-            data: archivedUser,
-          };
-        }
-        throw new Error(`User does not exist.`);
-      } catch (e) {
-        return {
-          success: false,
-          message: `Unable to check user archival status.`,
-          error: e,
-        };
-      }
-    },
-    createUser: async (
-      data: types.UserInsert,
-    ): Promise<types.QueryResponse<types.UserInsert>> => {
+    createUser: async (data: types.UserInsert): Promise<types.QueryResponse<types.UserInsert>> => {
       try {
         const response = await db.insert(users).values(data);
         if (response.rowCount === 1) {
@@ -116,10 +71,7 @@ export const queries = {
       data: types.UserInsert,
     ): Promise<types.QueryResponse<types.UserInsert>> => {
       try {
-        const response = await db
-          .update(users)
-          .set(data)
-          .where(eq(users.clerkId, userClerkIdToBeUpdated));
+        const response = await db.update(users).set(data).where(eq(users.clerkId, userClerkIdToBeUpdated));
 
         // Check if updating is successful or not
         if (response.rowCount === 1) {
@@ -143,39 +95,22 @@ export const queries = {
         };
       }
     },
-    deleteUser: async (
-      userClerkIdToBeDeleted: string,
-    ): Promise<types.QueryResponse<types.UserSelect>> => {
+    deleteUser: async (userClerkIdToBeDeleted: string): Promise<types.QueryResponse<types.UserSelect>> => {
       try {
-        // Set soft-deletion fields
-        const response = await db
-          .update(users)
-          .set({ archivedAt: new Date() })
-          .where(eq(users.clerkId, userClerkIdToBeDeleted));
+        // Delete user api call
+        const [response] = await db.delete(users).where(eq(users.clerkId, userClerkIdToBeDeleted)).returning();
 
-        // Check if deletion is successful or not. Find user using deletedUserClerkID and verify if isArchived flag is set to true.
-        const [result] = await db
-          .select()
-          .from(users)
-          .limit(1)
-          .where(
-            and(
-              eq(users.clerkId, userClerkIdToBeDeleted),
-              isNotNull(users.archivedAt),
-            ),
-          );
-
-        if (response.rowCount === 1) {
+        if (response) {
           return {
             success: true,
-            message: `Successful archival in users table of user with clerk id: ${JSON.stringify(result.clerkId)}`,
-            data: result,
+            message: `Successful deletion in users table of user with clerk id: ${userClerkIdToBeDeleted}`,
+            data: response,
           };
         } else {
           return {
             success: false,
-            message: `Unsuccessful archival in users table of user with clerk id:. ${JSON.stringify(result.clerkId)}`,
-            error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
+            message: `Unsuccessful deletion in users table of user with clerk id:. ${userClerkIdToBeDeleted}`,
+            error: `Error: response returned no data. Check database connection.`,
           };
         }
       } catch (e) {
@@ -188,25 +123,16 @@ export const queries = {
     },
   },
   projects: {
-    getAll: async (): Promise<
-      types.QueryResponse<Array<types.ProjectSelect>>
-    > => {
+    getAll: async (): Promise<types.QueryResponse<Array<types.ProjectSelect>>> => {
       return getAllObject<types.ProjectSelect>("projects");
     },
-    getById: async (
-      id: number,
-    ): Promise<types.QueryResponse<types.ProjectSelect>> => {
+    getById: async (id: number): Promise<types.QueryResponse<types.ProjectSelect>> => {
       return getObjectById<types.ProjectSelect>(id, "projects");
     },
-    create: async (
-      data: types.ProjectInsert,
-    ): Promise<types.QueryResponse<types.ProjectInsert>> => {
+    create: async (data: types.ProjectInsert): Promise<types.QueryResponse<types.ProjectInsert>> => {
       return createObject<types.ProjectInsert>(data, "projects");
     },
-    update: async (
-      id: number,
-      data: types.ProjectInsert,
-    ): Promise<types.QueryResponse<types.ProjectInsert>> => {
+    update: async (id: number, data: types.ProjectInsert): Promise<types.QueryResponse<types.ProjectInsert>> => {
       return updateObject<types.ProjectSelect, types.ProjectInsert>(
         id,
         data,
@@ -215,16 +141,10 @@ export const queries = {
         (existing, incoming) => {
           const changed: Partial<types.ProjectInsert> = {};
           if (existing.name !== incoming.name) changed.name = incoming.name;
-          if (existing.status !== incoming.status)
-            changed.status = incoming.status;
-          if (existing.ownerId !== incoming.ownerId)
-            changed.ownerId = incoming.ownerId;
-          if (existing.description !== incoming.description)
-            changed.description = incoming.description;
-          if (existing.dueDate !== incoming.dueDate)
-            changed.dueDate = incoming.dueDate;
-          if (existing.archivedAt !== incoming.archivedAt)
-            changed.archivedAt = incoming.archivedAt;
+          if (existing.status !== incoming.status) changed.status = incoming.status;
+          if (existing.ownerId !== incoming.ownerId) changed.ownerId = incoming.ownerId;
+          if (existing.description !== incoming.description) changed.description = incoming.description;
+          if (existing.dueDate !== incoming.dueDate) changed.dueDate = incoming.dueDate;
           return changed;
         },
         (existing) => {
@@ -234,33 +154,22 @@ export const queries = {
         },
       );
     },
-    delete: async (
-      id: number,
-    ): Promise<types.QueryResponse<types.ProjectSelect>> => {
+    delete: async (id: number): Promise<types.QueryResponse<types.ProjectSelect>> => {
       // Call Generic function to delete object
       return deleteObject<types.ProjectSelect>(id, "projects");
     },
   },
   lists: {
-    getByProject: async (
-      projectId: number,
-    ): Promise<types.QueryResponse<Array<types.ListSelect>>> => {
+    getByProject: async (projectId: number): Promise<types.QueryResponse<Array<types.ListSelect>>> => {
       return getByParentObject<types.ListSelect>(projectId, "lists");
     },
-    getById: async (
-      id: number,
-    ): Promise<types.QueryResponse<types.ListSelect>> => {
+    getById: async (id: number): Promise<types.QueryResponse<types.ListSelect>> => {
       return getObjectById<types.ListSelect>(id, "lists");
     },
-    create: async (
-      data: types.ListInsert,
-    ): Promise<types.QueryResponse<types.ListInsert>> => {
+    create: async (data: types.ListInsert): Promise<types.QueryResponse<types.ListInsert>> => {
       return createObject<types.ListInsert>(data, "lists");
     },
-    update: async (
-      id: number,
-      data: types.ListInsert,
-    ): Promise<types.QueryResponse<types.ListInsert>> => {
+    update: async (id: number, data: types.ListInsert): Promise<types.QueryResponse<types.ListInsert>> => {
       return updateObject<types.ListSelect, types.ListInsert>(
         id,
         data,
@@ -269,10 +178,7 @@ export const queries = {
         (existing, incoming) => {
           const changed: Partial<types.ListSelect> = {};
           if (existing.name != incoming.name) changed.name = incoming.name;
-          if (existing.position != incoming.position)
-            changed.position = incoming.position;
-          if (existing.archivedAt != incoming.archivedAt)
-            changed.archivedAt = incoming.archivedAt;
+          if (existing.position != incoming.position) changed.position = incoming.position;
           return changed;
         },
         (existing) => {
@@ -282,33 +188,22 @@ export const queries = {
         },
       );
     },
-    delete: async (
-      id: number,
-    ): Promise<types.QueryResponse<types.ListSelect>> => {
+    delete: async (id: number): Promise<types.QueryResponse<types.ListSelect>> => {
       // Call Generic function to delete object
       return deleteObject<types.ListSelect>(id, "lists");
     },
   },
   tasks: {
-    getByList: async (
-      listId: number,
-    ): Promise<types.QueryResponse<Array<types.TaskSelect>>> => {
+    getByList: async (listId: number): Promise<types.QueryResponse<Array<types.TaskSelect>>> => {
       return getByParentObject<types.TaskSelect>(listId, "tasks");
     },
-    getById: async (
-      id: number,
-    ): Promise<types.QueryResponse<types.TaskSelect>> => {
+    getById: async (id: number): Promise<types.QueryResponse<types.TaskSelect>> => {
       return getObjectById<types.TaskSelect>(id, "tasks");
     },
-    create: async (
-      data: types.TaskInsert,
-    ): Promise<types.QueryResponse<types.TaskInsert>> => {
+    create: async (data: types.TaskInsert): Promise<types.QueryResponse<types.TaskInsert>> => {
       return createObject<types.TaskInsert>(data, "tasks");
     },
-    update: async (
-      id: number,
-      data: types.TaskInsert,
-    ): Promise<types.QueryResponse<types.TaskInsert>> => {
+    update: async (id: number, data: types.TaskInsert): Promise<types.QueryResponse<types.TaskInsert>> => {
       return updateObject<types.TaskSelect, types.TaskInsert>(
         id,
         data,
@@ -316,17 +211,11 @@ export const queries = {
         queries.tasks.getById,
         (existing, incoming) => {
           const changed: Partial<types.TaskSelect> = {};
-          if (existing.position != incoming.position)
-            changed.position = incoming.position;
+          if (existing.position != incoming.position) changed.position = incoming.position;
           if (existing.title != incoming.title) changed.title = incoming.title;
-          if (existing.description != incoming.description)
-            changed.description = incoming.description;
-          if (existing.dueDate != incoming.dueDate)
-            changed.dueDate = incoming.dueDate;
-          if (existing.priority != incoming.priority)
-            changed.priority = incoming.priority;
-          if (existing.archivedAt != incoming.archivedAt)
-            changed.archivedAt = incoming.archivedAt;
+          if (existing.description != incoming.description) changed.description = incoming.description;
+          if (existing.dueDate != incoming.dueDate) changed.dueDate = incoming.dueDate;
+          if (existing.priority != incoming.priority) changed.priority = incoming.priority;
           return changed;
         },
         (existing) => {
@@ -336,33 +225,22 @@ export const queries = {
         },
       );
     },
-    delete: async (
-      id: number,
-    ): Promise<types.QueryResponse<types.TaskSelect>> => {
+    delete: async (id: number): Promise<types.QueryResponse<types.TaskSelect>> => {
       // Call Generic function to delete object
       return deleteObject<types.TaskSelect>(id, "tasks");
     },
   },
   comments: {
-    getByTask: async (
-      taskId: number,
-    ): Promise<types.QueryResponse<Array<types.CommentSelect>>> => {
+    getByTask: async (taskId: number): Promise<types.QueryResponse<Array<types.CommentSelect>>> => {
       return getByParentObject<types.CommentSelect>(taskId, "comments");
     },
-    getById: async (
-      id: number,
-    ): Promise<types.QueryResponse<types.CommentSelect>> => {
+    getById: async (id: number): Promise<types.QueryResponse<types.CommentSelect>> => {
       return getObjectById<types.CommentSelect>(id, "comments");
     },
-    create: async (
-      data: types.CommentInsert,
-    ): Promise<types.QueryResponse<types.CommentInsert>> => {
+    create: async (data: types.CommentInsert): Promise<types.QueryResponse<types.CommentInsert>> => {
       return createObject<types.CommentInsert>(data, "comments");
     },
-    update: async (
-      id: number,
-      data: types.CommentInsert,
-    ): Promise<types.QueryResponse<types.CommentInsert>> => {
+    update: async (id: number, data: types.CommentInsert): Promise<types.QueryResponse<types.CommentInsert>> => {
       return updateObject<types.CommentSelect, types.CommentInsert>(
         id,
         data,
@@ -370,10 +248,7 @@ export const queries = {
         queries.comments.getById,
         (existing, incoming) => {
           const changed: Partial<types.CommentInsert> = {};
-          if (existing.content != incoming.content)
-            changed.content = incoming.content;
-          if (existing.archivedAt != incoming.archivedAt)
-            changed.archivedAt = incoming.archivedAt;
+          if (existing.content != incoming.content) changed.content = incoming.content;
           return changed;
         },
         (existing) => {
@@ -383,9 +258,7 @@ export const queries = {
         },
       );
     },
-    delete: async (
-      id: number,
-    ): Promise<types.QueryResponse<types.CommentSelect>> => {
+    delete: async (id: number): Promise<types.QueryResponse<types.CommentSelect>> => {
       // Call Generic function to delete object
       return deleteObject<types.CommentSelect>(id, "comments");
     },

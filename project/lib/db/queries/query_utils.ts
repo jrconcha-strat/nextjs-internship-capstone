@@ -183,20 +183,20 @@ export const deleteObject = async <T>(
     const existingObjectData = response.data as T;
 
     const result = await db
-      .update(table)
-      .set({ archivedAt: new Date() })
+      .delete(table)
       .where(eq(table.id, id));
+
     // Check if deletion is successful.
     if (result.rowCount === 1) {
       return {
         success: true,
-        message: `Archived object of type ${query_key} successfully.`,
+        message: `Deleted object of type ${query_key} successfully.`,
         data: existingObjectData,
       };
     } else {
       return {
         success: false,
-        message: `Unable to Archive object of type ${query_key}`,
+        message: `Unable to delete object of type ${query_key}`,
         error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
       };
     }
