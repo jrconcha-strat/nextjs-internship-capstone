@@ -3,6 +3,7 @@ import { db } from "../db-index";
 import { getAllObject, getObjectById, deleteObject, updateObject } from "./query_utils";
 import * as schema from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { teams as teamsQuery } from "@/lib/db/queries/teams-queries";
 
 export const projects = {
   getAll: async (): Promise<types.QueryResponse<Array<types.ProjectSelect>>> => {
@@ -79,6 +80,54 @@ export const projects = {
       return {
         success: false,
         message: "Unable to check if project name is unique.",
+        error: e,
+      };
+    }
+  },
+  getAllMembersForProject: async (project_id: number): Promise<types.QueryResponse<types.UserSelect[]>> => {
+    try {
+      const result = await db
+        .select()
+        .from(schema.teams)
+        .innerJoin(schema.teams_to_projects, eq(schema.teams_to_projects.team_id, schema.teams.id))
+        .where(eq(schema.teams_to_projects.project_id, project_id));
+
+      // Extract the teams
+      const teams = result.map((row) => row.teams);
+
+      const memberTeams = await teams.reduce(
+        async (accPromise, cv) => {
+          const acc = await accPromise;
+
+          const teamMembers = await teamsQuery.getAllTeamMembers(cv.id);
+
+          if (!teamMembers.success) {
+            throw new Error("Unable to get members of teams");
+          }
+          acc.push(...teamMembers.data);
+
+          return acc;
+        },
+        Promise.resolve([] as types.UserSelect[]),
+      );
+
+      if (!memberTeams) {
+        return {
+          success: false,
+          message: "Unable to retrieve the members of the project.",
+          error: "No results returned.",
+        };
+      }
+
+      return {
+        success: true,
+        message: "Successfully retrieved members of the project.",
+        data: memberTeams,
+      };
+    } catch (e) {
+      return {
+        success: false,
+        message: "Unable to retrieve the members of the project.",
         error: e,
       };
     }

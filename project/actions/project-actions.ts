@@ -6,7 +6,8 @@ import { queries } from "@/lib/db/queries/queries";
 import { projectSchemaDB } from "../lib/validations/validations";
 import { auth } from "@clerk/nextjs/server";
 import { ServerActionResponse } from "./actions-types";
-import { ProjectSelect } from "@/types";
+import { ProjectSelect, UserSelect } from "@/types";
+import { revalidatePath } from "next/cache";
 
 export async function createProject(
   projectFormData: z.infer<typeof projectSchemaForm>,
@@ -42,6 +43,8 @@ export async function createProject(
   // Create project
   const createProjectResponse = await queries.projects.create(projectDBData);
 
+  revalidatePath("/projects");
+
   return createProjectResponse.success ? createProjectResponse : createProjectResponse;
 }
 
@@ -51,4 +54,16 @@ export async function checkProjectNameUnique(ProjectName: string): Promise<Serve
 
   // Ternary to narrow the response type.
   return nameIsUniqueResponse.success ? nameIsUniqueResponse : nameIsUniqueResponse;
+}
+
+export async function getAllProjects(): Promise<ServerActionResponse<ProjectSelect[]>> {
+  const getAllProjectsResult = await queries.projects.getAll();
+
+  return getAllProjectsResult.success ? getAllProjectsResult : getAllProjectsResult;
+}
+
+export async function getAllMembersForProject(project_id: number): Promise<ServerActionResponse<UserSelect[]>> {
+  const getAllMembersForProjectResult = await queries.projects.getAllMembersForProject(project_id);
+
+  return getAllMembersForProjectResult.success ? getAllMembersForProjectResult : getAllMembersForProjectResult;
 }
