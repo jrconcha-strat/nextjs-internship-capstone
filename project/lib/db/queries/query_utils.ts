@@ -101,7 +101,7 @@ export const getAllObject = async <T>(query_key: QueryKeys): Promise<types.Query
 
     const objects = await db.select().from(table);
     // Check if objects exist
-    if (objects.length > 1) {
+    if (objects.length >= 1) {
       return {
         success: true,
         message: `All ${query_key} retrieved.`,
