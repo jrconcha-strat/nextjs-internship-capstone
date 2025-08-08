@@ -1,4 +1,4 @@
-import { CreateProjectButton } from "@/components/create-project-button";
+import { CreateProjectButton } from "@/components/projects/create-project-button";
 import { Plus, Search, Filter } from "lucide-react";
 
 export default function ProjectsPage() {

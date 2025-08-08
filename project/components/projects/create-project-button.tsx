@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import CreateProjectModal from "./modals/create-project-modal";
+import CreateProjectModal from "../modals/create-project-modal";
 
 export function CreateProjectButton() {
   const [isModalOpen, setIsModalOpen] = useState(false);
