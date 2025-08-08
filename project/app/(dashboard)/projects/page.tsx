@@ -1,3 +1,4 @@
+import { CreateProjectButton } from "@/components/create-project-button";
 import { Plus, Search, Filter } from "lucide-react";
 
 export default function ProjectsPage() {
@@ -8,10 +9,7 @@ export default function ProjectsPage() {
           <h1 className="text-3xl font-bold text-outer_space-500 dark:text-platinum-500">Projects</h1>
           <p className="text-payne's_gray-500 dark:text-french_gray-500 mt-2">Manage and organize your team projects</p>
         </div>
-        <button className="inline-flex items-center px-4 py-2 bg-blue_munsell-500 text-white rounded-lg hover:bg-blue_munsell-600 transition-colors">
-          <Plus size={20} className="mr-2" />
-          New Project
-        </button>
+        <CreateProjectButton/>
       </div>
 
       {/* Implementation Tasks Banner */}

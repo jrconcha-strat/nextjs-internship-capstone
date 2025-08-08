@@ -103,6 +103,8 @@ export const projectSchemaForm = projectSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  ownerId: true,
+  status: true,
 });
 
 export const listSchema = z
