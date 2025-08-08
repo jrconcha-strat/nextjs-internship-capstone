@@ -1,11 +1,13 @@
 "use client";
+import { createProject } from "@/actions/project-actions";
 // TODO: Task 4.1 - Implement project CRUD operations
 // TODO: Task 4.4 - Build task creation and editing functionality
 import { projectSchemaForm } from "@/lib/validations/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X } from "lucide-react";
+import { Loader2Icon, X } from "lucide-react";
 import { FC, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 
 /*
@@ -92,8 +94,16 @@ const CreateProjectModal: FC<CreateProjectModalProps> = ({ isModalOpen, setIsMod
 
   const onSubmit = async (values: z.infer<typeof projectSchemaForm>) => {
     setIsLoading(true);
-    console.log(values);
 
+    const result = await createProject(values);
+    if (!result.success) {
+      toast.error("Error", { description: result.message });
+      setIsLoading(false);
+      return;
+    }
+
+    toast.success("Success", { description: result.message });
+    setIsModalOpen(false);
     setIsLoading(false);
   };
   return (
@@ -118,6 +128,7 @@ const CreateProjectModal: FC<CreateProjectModalProps> = ({ isModalOpen, setIsMod
                 </label>
                 <input
                   type="text"
+                  disabled={isLoading}
                   className="w-full px-3 py-2 border border-french_gray-300 dark:border-payne's_gray-400 rounded-lg bg-white dark:bg-outer_space-400 text-outer_space-500 dark:text-platinum-500 focus:outline-hidden focus:ring-2 focus:ring-blue_munsell-500"
                   placeholder="Enter project name"
                   {...register("name")}
@@ -134,6 +145,7 @@ const CreateProjectModal: FC<CreateProjectModalProps> = ({ isModalOpen, setIsMod
                   className="w-full px-3 py-2 border border-french_gray-300 dark:border-payne's_gray-400 rounded-lg bg-white dark:bg-outer_space-400 text-outer_space-500 dark:text-platinum-500 focus:outline-hidden focus:ring-2 focus:ring-blue_munsell-500"
                   placeholder="Project description"
                   {...register("description")}
+                  disabled={isLoading}
                 />
                 {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
               </div>
@@ -144,6 +156,7 @@ const CreateProjectModal: FC<CreateProjectModalProps> = ({ isModalOpen, setIsMod
                 </label>
                 <input
                   type="date"
+                  disabled={isLoading}
                   className="w-full px-3 py-2 border border-french_gray-300 dark:border-payne's_gray-400 rounded-lg bg-white dark:bg-outer_space-400 text-outer_space-500 dark:text-platinum-500 focus:outline-hidden focus:ring-2 focus:ring-blue_munsell-500"
                   {...register("dueDate", {
                     setValueAs: (value: string | null) => {
@@ -164,15 +177,23 @@ const CreateProjectModal: FC<CreateProjectModalProps> = ({ isModalOpen, setIsMod
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
+                  disabled={isLoading}
                   className="px-4 py-2 text-payne's_gray-500 dark:text-french_gray-400 hover:bg-platinum-500 dark:hover:bg-payne's_gray-400 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
+                  disabled={isLoading}
                   className="px-4 py-2 bg-blue_munsell-500 text-white rounded-lg hover:bg-blue_munsell-600 transition-colors"
                 >
-                  Create Project
+                  {isLoading ? (
+                    <div className="flex gap-2">
+                      <Loader2Icon className="animate-spin " /> Loading
+                    </div>
+                  ) : (
+                    "Create Project"
+                  )}
                 </button>
               </div>
             </form>

@@ -1,5 +1,7 @@
 import * as types from "../../../types/index";
-import { createObject, getAllObject, getObjectById, deleteObject, updateObject } from "./query_utils";
+import { db } from "../db-index";
+import { getAllObject, getObjectById, deleteObject, updateObject } from "./query_utils";
+import * as schema from "@/lib/db/schema";
 
 export const projects = {
   getAll: async (): Promise<types.QueryResponse<Array<types.ProjectSelect>>> => {
@@ -8,8 +10,26 @@ export const projects = {
   getById: async (id: number): Promise<types.QueryResponse<types.ProjectSelect>> => {
     return getObjectById<types.ProjectSelect>(id, "projects");
   },
-  create: async (data: types.ProjectInsert): Promise<types.QueryResponse<types.ProjectInsert>> => {
-    return createObject<types.ProjectInsert>(data, "projects");
+  create: async (data: types.ProjectInsert): Promise<types.QueryResponse<types.ProjectSelect>> => {
+    try {
+      const newProject = data;
+      const [insertedProject] = await db.insert(schema.projects).values(newProject).returning();
+      // Check if operation is successful
+      if (insertedProject) {
+        return {
+          success: true,
+          message: `Successfully created new project ${insertedProject.name}`,
+          data: insertedProject,
+        };
+      }
+      throw new Error(`Error: Database did not return a result. Check database connection.`);
+    } catch (e) {
+      return {
+        success: false,
+        message: `Unable to create the project.`,
+        error: e,
+      };
+    }
   },
   update: async (id: number, data: types.ProjectInsert): Promise<types.QueryResponse<types.ProjectInsert>> => {
     return updateObject<types.ProjectSelect, types.ProjectInsert>(
