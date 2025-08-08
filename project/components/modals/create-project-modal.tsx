@@ -1,5 +1,5 @@
 "use client";
-import { createProject } from "@/actions/project-actions";
+import { checkProjectNameUnique, createProject } from "@/actions/project-actions";
 // TODO: Task 4.1 - Implement project CRUD operations
 // TODO: Task 4.4 - Build task creation and editing functionality
 import { projectSchemaForm } from "@/lib/validations/validations";
@@ -85,6 +85,7 @@ const CreateProjectModal: FC<CreateProjectModalProps> = ({ isModalOpen, setIsMod
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<z.infer<typeof projectSchemaForm>>({
     resolver: zodResolver(projectSchemaForm),
@@ -95,6 +96,20 @@ const CreateProjectModal: FC<CreateProjectModalProps> = ({ isModalOpen, setIsMod
   const onSubmit = async (values: z.infer<typeof projectSchemaForm>) => {
     setIsLoading(true);
 
+    // Check if project name is unique.
+    const checkProjectNameUniqueResult = await checkProjectNameUnique(values.name);
+    // Unable to check for uniqueness | Project name is not unique
+    if (
+      !checkProjectNameUniqueResult.success ||
+      (checkProjectNameUniqueResult.success && !checkProjectNameUniqueResult.data)
+    ) {
+      setError("name", {
+        type: "manual",
+        message: checkProjectNameUniqueResult.message,
+      });
+      setIsLoading(false);
+      return;
+    }
     const result = await createProject(values);
     if (!result.success) {
       toast.error("Error", { description: result.message });

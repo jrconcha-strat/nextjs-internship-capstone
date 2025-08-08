@@ -64,7 +64,7 @@ export const roles = pgTable("roles", {
 
 export const projects = pgTable("projects", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
-  name: varchar("name").notNull(),
+  name: varchar("name").notNull().unique(),
   description: text("description"),
   status: statusEnum().notNull().default("Planning"),
   ownerId: integer("ownerId")

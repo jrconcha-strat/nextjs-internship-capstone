@@ -44,3 +44,11 @@ export async function createProject(
 
   return createProjectResponse.success ? createProjectResponse : createProjectResponse;
 }
+
+export async function checkProjectNameUnique(ProjectName: string): Promise<ServerActionResponse<boolean>> {
+  // call utility function to check project nameuniqueness.
+  const nameIsUniqueResponse = await queries.projects.checkProjectNameUnique(ProjectName);
+
+  // Ternary to narrow the response type.
+  return nameIsUniqueResponse.success ? nameIsUniqueResponse : nameIsUniqueResponse;
+}
