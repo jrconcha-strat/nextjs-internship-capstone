@@ -5,7 +5,6 @@ import { formatDate } from "@/lib/utils";
 import { ProjectSelect } from "@/types";
 import { Calendar, Users } from "lucide-react";
 import { FC } from "react";
-import { toast } from "sonner";
 
 /*
 TODO: Implementation Notes for Interns:
@@ -118,10 +117,7 @@ const ProjectCard: FC<ProjectCardProps> = async ({ project }) => {
   }
 
   return (
-    <div
-      key={project.id}
-      className="bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 p-6 hover:shadow-lg transition-shadow cursor-pointer"
-    >
+    <div className="bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 p-6 hover:shadow-lg transition-shadow">
       <h3 className="text-xl font-semibold text-outer_space-500 dark:text-platinum-500 mb-2">{project.name}</h3>
 
       <p className="text-sm text-payne's_gray-500 dark:text-french_gray-400 mb-4 line-clamp-2">{project.description}</p>
