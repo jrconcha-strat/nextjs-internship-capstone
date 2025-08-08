@@ -1,5 +1,5 @@
-import { getTeamsForUser } from "@/actions/teams/teams-actions";
-import { getUserId } from "@/actions/users/user-actions";
+import { getTeamsForUser } from "@/actions/teams-actions";
+import { getUserId } from "@/actions/user-actions";
 import CreateTeamButton from "@/components/teams/create-team-button";
 import TeamsSection from "@/components/teams/teams-section";
 import { Mail, MoreHorizontal } from "lucide-react";

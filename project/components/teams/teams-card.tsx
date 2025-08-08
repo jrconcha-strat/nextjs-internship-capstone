@@ -6,7 +6,7 @@ import TeamMembersAvatars from "./team-members-avatars";
 import ViewTeamButton from "./view-team-button";
 import TeamsOptions from "./teams-options";
 import { UserSelect } from "../../types/index";
-import { getUsersForTeam } from "@/actions/teams/teams-actions";
+import { getUsersForTeam } from "@/actions/teams-actions";
 
 type TeamsCardProps = {
   teamData: TeamsSelect;

@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { teamSchemaForm } from "@/lib/validations/validations";
 import z from "zod";
-import { updateTeam } from "@/actions/teams/teams-actions";
+import { updateTeam } from "@/actions/teams-actions";
 import { toast } from "sonner";
 import { Loader2Icon } from "lucide-react";
 import { TeamsSelect } from "@/types";

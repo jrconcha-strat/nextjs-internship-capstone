@@ -2,8 +2,8 @@
 
 import { queries } from "@/lib/db/queries/queries";
 import { revalidatePath } from "next/cache";
-import * as types from "../../types/index";
-import { ServerActionResponse } from "../actions-types";
+import * as types from "../types/index";
+import { ServerActionResponse } from "./actions-types";
 
 export async function updateTeam(
   team_id: number,

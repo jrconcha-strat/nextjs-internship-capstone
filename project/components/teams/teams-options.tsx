@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { deleteTeam } from "@/actions/teams/teams-actions";
+import { deleteTeam } from "@/actions/teams-actions";
 import { toast } from "sonner";
 
 type TeamsOptionsProps = {

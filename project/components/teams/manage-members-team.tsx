@@ -1,8 +1,8 @@
 "use client";
 import { FC, Fragment, RefObject, useEffect, useState } from "react";
 import { UserSelect } from "@/types";
-import { getAllUsers } from "@/actions/users/user-actions";
-import { addUsersToTeam, removeUsersFromTeam } from "@/actions/teams/teams-actions";
+import { getAllUsers } from "@/actions/user-actions";
+import { addUsersToTeam, removeUsersFromTeam } from "@/actions/teams-actions";
 import { toast } from "sonner";
 import { DataTable } from "./data-table-members";
 import { columns } from "./members-columns";

@@ -1,8 +1,8 @@
 "use client";
 import { FC, useEffect, useState } from "react";
 import { UserSelect } from "@/types";
-import { getAllUsers } from "@/actions/users/user-actions";
-import { addUsersToTeam } from "@/actions/teams/teams-actions";
+import { getAllUsers } from "@/actions/user-actions";
+import { addUsersToTeam } from "@/actions/teams-actions";
 import { toast } from "sonner";
 
 type AddUsersToTeamProps = {

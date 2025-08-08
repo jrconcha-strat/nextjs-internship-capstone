@@ -6,7 +6,7 @@ import { teamSchemaForm } from "@/lib/validations/validations";
 import z from "zod";
 import { Loader2Icon, XIcon } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
-import { checkTeamNameUnique, createTeam } from "@/actions/teams/teams-actions";
+import { checkTeamNameUnique, createTeam } from "@/actions/teams-actions";
 import { toast } from "sonner";
 
 type TeamModalProps = {
