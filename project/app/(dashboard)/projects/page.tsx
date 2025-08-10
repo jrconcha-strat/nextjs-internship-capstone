@@ -1,9 +1,7 @@
 "use client";
 import { CreateProjectButton } from "@/components/projects/create-project-button";
-import ProjectGrid from "@/components/projects/project-grid";
 import ProjectsSection from "@/components/projects/projects-section";
 import { useProjects } from "@/hooks/use-projects";
-import { Plus, Search, Filter } from "lucide-react";
 
 export default function ProjectsPage() {
   const { projects } = useProjects();
