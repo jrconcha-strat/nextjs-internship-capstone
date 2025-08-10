@@ -63,6 +63,7 @@ import {
   deleteProjectAction,
   getAllMembersForProject,
   getAllProjects,
+  getProjectByIdAction,
   updateProjectAction,
 } from "@/actions/project-actions";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -71,7 +72,7 @@ import z from "zod";
 import { toast } from "sonner";
 
 // Projects list
-export function useProjects() {
+export function useProjects(project_id?: number) {
   const queryClient = useQueryClient();
 
   const {
@@ -82,6 +83,17 @@ export function useProjects() {
     queryKey: ["projects"],
     queryFn: async () => {
       const res = await getAllProjects();
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+  });
+
+  const getProjectById = useQuery({
+    queryKey: ["project", project_id],
+    enabled: typeof project_id === "number",
+    queryFn: async ({ queryKey }) => {
+      const [, project_id] = queryKey as ["project", number];
+      const res = await getProjectByIdAction(project_id);
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
@@ -151,6 +163,9 @@ export function useProjects() {
     updateProject: updateProject.mutate,
     isProjectUpdateLoading: updateProject.isPending,
     updateProjectError: updateProject.error,
+    project: getProjectById.data,
+    isProjectLoading: getProjectById.isLoading,
+    projectError: getProjectById.error
   };
 }
 

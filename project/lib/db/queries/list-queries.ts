@@ -8,8 +8,8 @@ export const lists = {
   getById: async (id: number): Promise<types.QueryResponse<types.ListSelect>> => {
     return getObjectById<types.ListSelect>(id, "lists");
   },
-  create: async (data: types.ListInsert): Promise<types.QueryResponse<types.ListInsert>> => {
-    return createObject<types.ListInsert>(data, "lists");
+  create: async (data: types.ListInsert): Promise<types.QueryResponse<types.ListSelect>> => {
+    return createObject<types.ListSelect>(data, "lists");
   },
   update: async (id: number, data: types.ListInsert): Promise<types.QueryResponse<types.ListInsert>> => {
     return updateObject<types.ListSelect, types.ListInsert>(

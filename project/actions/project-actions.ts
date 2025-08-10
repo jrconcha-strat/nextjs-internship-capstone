@@ -13,12 +13,11 @@ export async function updateProjectAction(
   project_id: number,
   projectFormData: z.infer<typeof projectSchemaForm>,
 ): Promise<ServerActionResponse<types.ProjectSelect>> {
-
   // Get existing project
   const getExistingProjectResponse = await queries.projects.getById(project_id);
-  if(!getExistingProjectResponse.success){
+  if (!getExistingProjectResponse.success) {
     return getExistingProjectResponse;
-  } 
+  }
 
   // Construct the projectDBData
   const projectDBData: z.infer<typeof projectSchemaDB> = {
@@ -29,7 +28,7 @@ export async function updateProjectAction(
     dueDate: projectFormData.dueDate,
     createdAt: getExistingProjectResponse.data.createdAt,
     updatedAt: new Date(),
-  }
+  };
 
   const updateProjectResponse = await queries.projects.update(project_id, projectDBData);
 
@@ -93,6 +92,11 @@ export async function checkProjectNameUnique(ProjectName: string): Promise<Serve
   return nameIsUniqueResponse.success ? nameIsUniqueResponse : nameIsUniqueResponse;
 }
 
+export async function getProjectByIdAction(project_id: number): Promise<ServerActionResponse<types.ProjectSelect>> {
+  const getProjectByIDResult = await queries.projects.getById(project_id);
+
+  return getProjectByIDResult.success ? getProjectByIDResult : getProjectByIDResult;
+}
 export async function getAllProjects(): Promise<ServerActionResponse<types.ProjectSelect[]>> {
   const getAllProjectsResult = await queries.projects.getAll();
 

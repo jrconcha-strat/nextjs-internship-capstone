@@ -42,9 +42,9 @@ export const getByParentObject = async <T>(
     // Here we get the necessary information linking the child to its parent table, e.g info that links task to list.
     const { child_foreign_key, parent_table } = childToParentTableMetadata[query_key];
     const childObjects = await db.select().from(childTable).where(eq(child_foreign_key, parentId));
-
+    
     // Check if child objects exist.
-    if (childObjects.length > 1) {
+    if (childObjects.length >= 1) {
       return {
         success: true,
         message: `All ${query_key} retrieved using parent ${parent_table} id: ${parentId}.`,
@@ -76,13 +76,13 @@ export const createObject = async <T>(
   try {
     const table = tableMap[query_key];
     const newObject = data;
-    const result = await db.insert(table).values(newObject);
+    const result = await db.insert(table).values(newObject).returning();
     // Check if operation is successful
-    if (result.rowCount === 1) {
+    if (result) {
       return {
         success: true,
         message: `New ${query_key} object successfully created.`,
-        data: newObject as T,
+        data: result as T,
       };
     }
     throw new Error(`Error: response.rowCount returned 0 rows modified. Check database connection.`);
