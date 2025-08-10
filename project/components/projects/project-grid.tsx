@@ -3,10 +3,10 @@ import { FC } from "react";
 import { ProjectSelect } from "@/types";
 import ProjectCard from "./project-card";
 
-type ProjectGridProps = {
+type ProjectsGridProps = {
   projects: ProjectSelect[];
 };
-const ProjectGrid: FC<ProjectGridProps> = ({ projects }) => {
+const ProjectsGrid: FC<ProjectsGridProps> = ({ projects }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {projects.map((project, index) => (
@@ -16,4 +16,4 @@ const ProjectGrid: FC<ProjectGridProps> = ({ projects }) => {
   );
 };
 
-export default ProjectGrid;
+export default ProjectsGrid;
