@@ -7,9 +7,10 @@ import { useProjects } from "@/hooks/use-projects";
 
 type ProjectOptionsProps = {
   project_id: number;
+  setEditModalOpen: (val: boolean) => void;
 };
 
-const ProjectOptions: FC<ProjectOptionsProps> = ({ project_id }) => {
+const ProjectOptions: FC<ProjectOptionsProps> = ({ project_id, setEditModalOpen }) => {
   const { deleteProject, isProjectDeleteLoading } = useProjects();
 
   function onClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
@@ -38,6 +39,14 @@ const ProjectOptions: FC<ProjectOptionsProps> = ({ project_id }) => {
           e.stopPropagation();
         }}
       >
+        <DropdownMenuItem
+          variant="default"
+          onClick={() => {
+            setEditModalOpen(true);
+          }}
+        >
+          Edit
+        </DropdownMenuItem>
         <DropdownMenuItem disabled={isProjectDeleteLoading} variant="destructive" onClick={(e) => onClick(e)}>
           Delete Project
         </DropdownMenuItem>

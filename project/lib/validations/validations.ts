@@ -64,7 +64,13 @@ export const projectSchema = z
     description: z.string().trim().max(200, errorTemplates.descriptionMaxError).nullable(),
     status: z.enum(statusTuple),
     ownerId: z.int().min(1, errorTemplates.idMinError),
-    dueDate: z.date().min(today, errorTemplates.dueDateMinError).nullable(), // Allow only Today or Future dates
+    dueDate: z.union([
+      z
+        .string()
+        .transform((val) => new Date(val))
+        .pipe(z.date().min(today, errorTemplates.dueDateMinError)),
+      z.date().min(today, errorTemplates.dueDateMinError).nullable(),
+    ]), // Allow only Today or Future dates
     createdAt: z.date(),
     updatedAt: z.date(),
   })

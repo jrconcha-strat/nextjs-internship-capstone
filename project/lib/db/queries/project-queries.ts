@@ -1,6 +1,6 @@
 import * as types from "../../../types/index";
 import { db } from "../db-index";
-import { getAllObject, getObjectById, deleteObject, updateObject } from "./query_utils";
+import { getAllObject, getObjectById, deleteObject, updateObject, getBaseFields } from "./query_utils";
 import * as schema from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { teams as teamsQuery } from "@/lib/db/queries/teams-queries";
@@ -33,27 +33,70 @@ export const projects = {
       };
     }
   },
-  update: async (id: number, data: types.ProjectInsert): Promise<types.QueryResponse<types.ProjectInsert>> => {
-    return updateObject<types.ProjectSelect, types.ProjectInsert>(
-      id,
-      data,
-      "projects",
-      projects.getById,
-      (existing, incoming) => {
-        const changed: Partial<types.ProjectInsert> = {};
-        if (existing.name !== incoming.name) changed.name = incoming.name;
-        if (existing.status !== incoming.status) changed.status = incoming.status;
-        if (existing.ownerId !== incoming.ownerId) changed.ownerId = incoming.ownerId;
-        if (existing.description !== incoming.description) changed.description = incoming.description;
-        if (existing.dueDate !== incoming.dueDate) changed.dueDate = incoming.dueDate;
-        return changed;
-      },
-      (existing) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { id, ...base } = existing;
-        return base;
-      },
-    );
+  update: async (
+    project_id: number,
+    incomingProject: types.ProjectInsert,
+  ): Promise<types.QueryResponse<types.ProjectSelect>> => {
+    try {
+      // Retrieve existing object data. Check if object exists.
+      const response = await projects.getById(project_id);
+      if (response.success === false) {
+        // Failed to retrieve, throw error.
+        throw new Error(response.message);
+      }
+
+      // Determine which fields have changed.
+      const existingProject = response.data;
+
+      const changed: Partial<types.ProjectInsert> = {};
+      if (existingProject.name !== incomingProject.name) changed.name = incomingProject.name;
+      if (existingProject.status !== incomingProject.status) changed.status = incomingProject.status;
+      if (existingProject.ownerId !== incomingProject.ownerId) changed.ownerId = incomingProject.ownerId;
+      if (existingProject.description !== incomingProject.description)
+        changed.description = incomingProject.description;
+      if (existingProject.dueDate !== incomingProject.dueDate) changed.dueDate = incomingProject.dueDate;
+
+      const finalUpdatedObjectData = {
+        ...getBaseFields(existingProject),
+        ...changed,
+        ...(Object.keys(changed).length > 0 ? { updatedAt: new Date() } : {}),
+      };
+
+      if (Object.keys(changed).length === 0) {
+        return {
+          success: true,
+          message: `No changes detected for this project.`,
+          data: existingProject,
+        };
+      }
+
+      const [result] = await db
+        .update(schema.projects)
+        .set(finalUpdatedObjectData)
+        .where(eq(schema.projects.id, project_id))
+        .returning();
+
+      // Check if update is successful.
+      if (result) {
+        return {
+          success: true,
+          message: `Updated project successfully.`,
+          data: result,
+        };
+      } else {
+        return {
+          success: false,
+          message: `Unable to update project.`,
+          error: `Error: Database returned nothing. Check database connection.`,
+        };
+      }
+    } catch (e) {
+      return {
+        success: false,
+        message: `Unable to update project.`,
+        error: e,
+      };
+    }
   },
   delete: async (id: number): Promise<types.QueryResponse<types.ProjectSelect>> => {
     // Call Generic function to delete object

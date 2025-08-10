@@ -9,6 +9,35 @@ import { ServerActionResponse } from "./actions-types";
 import * as types from "@/types";
 import { revalidatePath } from "next/cache";
 
+export async function updateProjectAction(
+  project_id: number,
+  projectFormData: z.infer<typeof projectSchemaForm>,
+): Promise<ServerActionResponse<types.ProjectSelect>> {
+
+  // Get existing project
+  const getExistingProjectResponse = await queries.projects.getById(project_id);
+  if(!getExistingProjectResponse.success){
+    return getExistingProjectResponse;
+  } 
+
+  // Construct the projectDBData
+  const projectDBData: z.infer<typeof projectSchemaDB> = {
+    name: projectFormData.name,
+    description: projectFormData.description,
+    status: getExistingProjectResponse.data.status,
+    ownerId: getExistingProjectResponse.data.ownerId,
+    dueDate: projectFormData.dueDate,
+    createdAt: getExistingProjectResponse.data.createdAt,
+    updatedAt: new Date(),
+  }
+
+  const updateProjectResponse = await queries.projects.update(project_id, projectDBData);
+
+  revalidatePath("/projects");
+
+  return updateProjectResponse.success ? updateProjectResponse : updateProjectResponse;
+}
+
 export async function deleteProjectAction(project_id: number): Promise<ServerActionResponse<types.ProjectSelect>> {
   const deleteProjectResponse = await queries.projects.delete(project_id);
 

@@ -63,6 +63,7 @@ import {
   deleteProjectAction,
   getAllMembersForProject,
   getAllProjects,
+  updateProjectAction,
 } from "@/actions/project-actions";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { projectSchemaForm } from "../lib/validations/validations";
@@ -116,6 +117,27 @@ export function useProjects() {
     },
   });
 
+  const updateProject = useMutation({
+    mutationFn: async ({
+      project_id,
+      projectFormData,
+    }: {
+      project_id: number;
+      projectFormData: z.infer<typeof projectSchemaForm>;
+    }) => {
+      const res = await updateProjectAction(project_id, projectFormData);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast.success("Success", { description: "Successfully updated the project." });
+    },
+    onError: (error) => {
+      toast.error("Error", { description: error.message });
+    },
+  });
+
   return {
     projects,
     isProjectsLoading,
@@ -126,6 +148,9 @@ export function useProjects() {
     deleteProject: deleteProject.mutate,
     isProjectDeleteLoading: deleteProject.isPending,
     deleteProjectError: deleteProject.error,
+    updateProject: updateProject.mutate,
+    isProjectUpdateLoading: updateProject.isPending,
+    updateProjectError: updateProject.error,
   };
 }
 
