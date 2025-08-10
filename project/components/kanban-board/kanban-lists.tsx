@@ -1,8 +1,8 @@
 "use client";
 import { ListSelect } from "@/types";
-import { MoreHorizontal } from "lucide-react";
 import { FC, useEffect, useState } from "react";
-import KanbanListOptions from "../modals/kanban-list-options";
+import KanbanListOptions from "./kanban-list-options";
+import UpdateKanbanModal from "../modals/update-kanban-list-modal";
 
 type KanbanListsProps = {
   lists: ListSelect[];
@@ -11,7 +11,7 @@ type KanbanListsProps = {
 
 const KanbanLists: FC<KanbanListsProps> = ({ project_id, lists }) => {
   const [sortedLists, setSortedList] = useState<ListSelect[]>([]);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<{ id: number; name: string } | null>(null);
 
   useEffect(() => {
     const positionSortedList = [...lists].sort((a, b) => a.position - b.position);
@@ -20,6 +20,15 @@ const KanbanLists: FC<KanbanListsProps> = ({ project_id, lists }) => {
 
   return (
     <>
+      {editTarget && (
+        <UpdateKanbanModal
+          list_name={editTarget.name}
+          project_id={project_id}
+          list_id={editTarget.id}
+          isModalOpen={true}
+          setIsModalOpen={(open) => !open && setEditTarget(null)}
+        />
+      )}
       {sortedLists.map((list, index) => (
         <div key={index} className="min-w-[80px] w-80 overflow-y shrink-0">
           <div className="bg-platinum-800 dark:bg-outer_space-400 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400">
@@ -34,7 +43,7 @@ const KanbanLists: FC<KanbanListsProps> = ({ project_id, lists }) => {
                 <KanbanListOptions
                   project_id={project_id}
                   list_id={list.id}
-                  setEditModalOpen={setIsEditModalOpen}
+                  onEdit={() => setEditTarget({ id: list.id, name: list.name })}
                 />
               </div>
             </div>

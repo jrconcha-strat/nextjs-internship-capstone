@@ -3,8 +3,30 @@ import { ListSelect } from "@/types";
 import { ServerActionResponse } from "./actions-types";
 import { queries } from "@/lib/db/queries/queries";
 import { revalidatePath } from "next/cache";
-import { listSchemaDB } from "@/lib/validations/validations";
+import { listSchemaDB, listSchemaForm } from "@/lib/validations/validations";
 import z from "zod";
+
+export async function updateListAction(
+  project_id: number,
+  list_id: number,
+  listFormData: z.infer<typeof listSchemaForm>,
+): Promise<ServerActionResponse<ListSelect>> {
+  const getExistingListResponse = await queries.lists.getById(list_id);
+  if (!getExistingListResponse.success) {
+    return getExistingListResponse;
+  }
+
+  const listDBData: z.infer<typeof listSchemaDB> = {
+    ...getExistingListResponse.data,
+    name: listFormData.name,
+  };
+
+  const updateListResponse = await queries.lists.update(list_id, listDBData);
+
+  revalidatePath(`/projects/${project_id}`);
+
+  return updateListResponse.success ? updateListResponse : updateListResponse;
+}
 
 export async function deleteListAction(project_id: number, list_id: number): Promise<ServerActionResponse<ListSelect>> {
   const deleteListResponse = await queries.lists.delete(list_id);

@@ -8,37 +8,26 @@ import { useLists } from "@/hooks/use-lists";
 type KanbanListOptionsProps = {
   project_id: number;
   list_id: number;
-  setEditModalOpen: (val: boolean) => void;
+  onEdit: () => void;
 };
 
-const KanbanListOptions: FC<KanbanListOptionsProps> = ({ project_id, list_id, setEditModalOpen }) => {
+const KanbanListOptions: FC<KanbanListOptionsProps> = ({ project_id, list_id, onEdit }) => {
   const { deleteList, isListDeleteLoading } = useLists();
 
-  function onClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-    deleteList({project_id, list_id});
+  function onClick() {
+    deleteList({ project_id, list_id });
   }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-        >
+        <Button variant="ghost" size="icon">
           <EllipsisVertical />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-      >
-        <DropdownMenuItem
-          variant="default"
-          onClick={() => {
-            setEditModalOpen(true);
-          }}
-        >
-          Edit
-        </DropdownMenuItem>
-        <DropdownMenuItem disabled={isListDeleteLoading} variant="destructive" onClick={(e) => onClick(e)}>
+      <DropdownMenuContent>
+        <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
+        <DropdownMenuItem disabled={isListDeleteLoading} variant="destructive" onClick={onClick}>
           Delete List
         </DropdownMenuItem>
       </DropdownMenuContent>

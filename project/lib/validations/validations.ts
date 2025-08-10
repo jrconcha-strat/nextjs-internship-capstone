@@ -157,6 +157,8 @@ export const listSchemaForm = listSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  projectId: true,
+  position: true,
 });
 
 export const taskSchema = z
