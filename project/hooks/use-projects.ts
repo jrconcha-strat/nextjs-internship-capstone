@@ -58,7 +58,12 @@ Dependencies to install:
 // Placeholder to prevent import errors
 
 "use client";
-import { createProjectAction, getAllMembersForProject, getAllProjects } from "@/actions/project-actions";
+import {
+  createProjectAction,
+  deleteProjectAction,
+  getAllMembersForProject,
+  getAllProjects,
+} from "@/actions/project-actions";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { projectSchemaForm } from "../lib/validations/validations";
 import z from "zod";
@@ -96,6 +101,21 @@ export function useProjects() {
     },
   });
 
+  const deleteProject = useMutation({
+    mutationFn: async (project_id: number) => {
+      const res = await deleteProjectAction(project_id);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast.success("Success", { description: "Successfully deleted the project." });
+    },
+    onError: (error) => {
+      toast.error("Error", { description: error.message });
+    },
+  });
+
   return {
     projects,
     isProjectsLoading,
@@ -103,6 +123,9 @@ export function useProjects() {
     createProject: createProject.mutate,
     isProjectCreationLoading: createProject.isPending,
     projectCreationError: createProject.error,
+    deleteProject: deleteProject.mutate,
+    isProjectDeleteLoading: deleteProject.isPending,
+    deleteProjectError: deleteProject.error,
   };
 }
 

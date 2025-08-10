@@ -6,12 +6,20 @@ import { queries } from "@/lib/db/queries/queries";
 import { projectSchemaDB } from "../lib/validations/validations";
 import { auth } from "@clerk/nextjs/server";
 import { ServerActionResponse } from "./actions-types";
-import { ProjectSelect, UserSelect } from "@/types";
+import * as types from "@/types";
 import { revalidatePath } from "next/cache";
+
+export async function deleteProjectAction(project_id: number): Promise<ServerActionResponse<types.ProjectSelect>> {
+  const deleteProjectResponse = await queries.projects.delete(project_id);
+
+  revalidatePath("/projects");
+
+  return deleteProjectResponse.success ? deleteProjectResponse : deleteProjectResponse;
+}
 
 export async function createProjectAction(
   projectFormData: z.infer<typeof projectSchemaForm>,
-): Promise<ServerActionResponse<ProjectSelect>> {
+): Promise<ServerActionResponse<types.ProjectSelect>> {
   // Retrieve project creator's clerkId
   const { userId } = await auth();
   if (!userId) {
@@ -56,13 +64,13 @@ export async function checkProjectNameUnique(ProjectName: string): Promise<Serve
   return nameIsUniqueResponse.success ? nameIsUniqueResponse : nameIsUniqueResponse;
 }
 
-export async function getAllProjects(): Promise<ServerActionResponse<ProjectSelect[]>> {
+export async function getAllProjects(): Promise<ServerActionResponse<types.ProjectSelect[]>> {
   const getAllProjectsResult = await queries.projects.getAll();
 
   return getAllProjectsResult.success ? getAllProjectsResult : getAllProjectsResult;
 }
 
-export async function getAllMembersForProject(project_id: number): Promise<ServerActionResponse<UserSelect[]>> {
+export async function getAllMembersForProject(project_id: number): Promise<ServerActionResponse<types.UserSelect[]>> {
   const getAllMembersForProjectResult = await queries.projects.getAllMembersForProject(project_id);
 
   return getAllMembersForProjectResult.success ? getAllMembersForProjectResult : getAllMembersForProjectResult;
