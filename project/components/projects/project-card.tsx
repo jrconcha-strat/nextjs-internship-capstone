@@ -1,7 +1,7 @@
 // TODO: Task 4.5 - Design and implement project cards and layouts
 
 import { useProjectMembers } from "@/hooks/use-projects";
-import { formatDate } from "@/lib/utils";
+import { formatDate, projectStatusColor } from "@/lib/utils";
 import { ProjectSelect } from "@/types";
 import { Calendar, Users } from "lucide-react";
 import Link from "next/link";
@@ -161,15 +161,7 @@ const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
         </div>
 
         <div className="flex items-center justify-between">
-          <span
-            className={`px-2 py-1 text-xs font-medium rounded-full ${
-              project.status === "In Progress"
-                ? "bg-blue_munsell-100 text-blue_munsell-700 dark:bg-blue_munsell-900 dark:text-blue_munsell-300"
-                : project.status === "Review"
-                  ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
-                  : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-            }`}
-          >
+          <span className={`px-2 py-1 text-xs font-medium rounded-full ${projectStatusColor[project.status]}`}>
             {project.status}
           </span>
         </div>

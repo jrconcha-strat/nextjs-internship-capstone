@@ -1,6 +1,16 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+
+export const projectStatusColor = {
+  "Completed": "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
+  "On-hold": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300",
+  "In Progress": "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
+  "Planning": "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
+  "Review": "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300",
+} as const;
+
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
