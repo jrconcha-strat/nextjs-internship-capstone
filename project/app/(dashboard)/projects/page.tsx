@@ -1,10 +1,11 @@
-import { getAllProjects } from "@/actions/project-actions";
+"use client";
 import { CreateProjectButton } from "@/components/projects/create-project-button";
 import ProjectGrid from "@/components/projects/project-grid";
+import { useProjects } from "@/hooks/use-projects";
 import { Plus, Search, Filter } from "lucide-react";
 
-export default async function ProjectsPage() {
-  const projects = await getAllProjects();
+export default function ProjectsPage() {
+  const { projects } = useProjects();
 
   return (
     <div className="space-y-6">
@@ -49,8 +50,8 @@ export default async function ProjectsPage() {
       </div>
 
       {/* Projects Grid */}
-      {projects.success ? (
-        <ProjectGrid projects={projects.data} />
+      {projects ? (
+        <ProjectGrid projects={projects} />
       ) : (
         <div className="flex justify-center">
           {" "}

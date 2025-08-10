@@ -56,14 +56,72 @@ Dependencies to install:
 */
 
 // Placeholder to prevent import errors
+
+"use client";
+import { createProjectAction, getAllMembersForProject, getAllProjects } from "@/actions/project-actions";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { projectSchemaForm } from "../lib/validations/validations";
+import z from "zod";
+import { toast } from "sonner";
+
+// Projects list
 export function useProjects() {
-  console.log("TODO: Implement useProjects hook")
+  const queryClient = useQueryClient();
+
+  const {
+    data: projects,
+    isLoading: isProjectsLoading,
+    error: projectsError,
+  } = useQuery({
+    queryKey: ["projects"],
+    queryFn: async () => {
+      const res = await getAllProjects();
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+  });
+
+  const createProject = useMutation({
+    mutationFn: async (projectFormData: z.infer<typeof projectSchemaForm>) => {
+      const res = await createProjectAction(projectFormData);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast.success("Success", { description: "Successfully created the project." });
+    },
+    onError: (error) => {
+      toast.error("Error", { description: error.message });
+    },
+  });
+
   return {
-    projects: [],
-    isLoading: false,
-    error: null,
-    createProject: (data: any) => console.log("TODO: Create project", data),
-    updateProject: (id: string, data: any) => console.log(`TODO: Update project ${id}`, data),
-    deleteProject: (id: string) => console.log(`TODO: Delete project ${id}`),
-  }
+    projects,
+    isProjectsLoading,
+    projectsError,
+    createProject: createProject.mutate,
+    isProjectCreationLoading: createProject.isPending,
+    projectCreationError: createProject.error,
+  };
+}
+
+// Members for *one* project
+export function useProjectMembers(projectId: number) {
+  const {
+    data: members,
+    isLoading: isMembersLoading,
+    error: membersError,
+  } = useQuery({
+    queryKey: ["project_members", projectId],
+    enabled: typeof projectId === "number",
+    queryFn: async ({ queryKey }) => {
+      const [, id] = queryKey as ["project_members", number];
+      const res = await getAllMembersForProject(id);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+  });
+
+  return { members, isMembersLoading, membersError };
 }

@@ -1,7 +1,6 @@
-import { Calendar, Users, MoreHorizontal } from "lucide-react";
+"use client";
 import { FC } from "react";
 import { ProjectSelect } from "@/types";
-import { formatDate } from "../../lib/utils";
 import ProjectCard from "./project-card";
 
 type ProjectGridProps = {

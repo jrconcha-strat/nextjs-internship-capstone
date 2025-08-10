@@ -1,12 +1,11 @@
 // TODO: Task 4.5 - Design and implement project cards and layouts
 
-import { getAllMembersForProject } from "@/actions/project-actions";
+import { useProjectMembers } from "@/hooks/use-projects";
 import { formatDate } from "@/lib/utils";
 import { ProjectSelect } from "@/types";
 import { Calendar, Users } from "lucide-react";
 import Link from "next/link";
 import { FC } from "react";
-import { toast } from "sonner";
 
 /*
 TODO: Implementation Notes for Interns:
@@ -111,12 +110,8 @@ interface ProjectCardProps {
   onDelete?: (id: string) => void;
 }
 
-const ProjectCard: FC<ProjectCardProps> = async ({ project }) => {
-  const teamMembers = await getAllMembersForProject(project.id);
-
-  if (!teamMembers.success) {
-    return null;
-  }
+const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
+  const { members, membersError } = useProjectMembers(project.id);
 
   return (
     <Link href={`projects/${project.id}`}>
@@ -130,7 +125,7 @@ const ProjectCard: FC<ProjectCardProps> = async ({ project }) => {
         <div className="flex items-center justify-between text-sm text-payne's_gray-500 dark:text-french_gray-400 mb-4">
           <div className="flex items-center">
             <Users size={16} className="mr-1" />
-            {teamMembers.data.length} members
+            {membersError ? "Unable to load members." : members ? `${members.length} members ` : "Loading..."}
           </div>
           <div className="flex items-center">
             <Calendar size={16} className="mr-1" />

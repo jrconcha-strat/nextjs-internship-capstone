@@ -9,7 +9,7 @@ import { ServerActionResponse } from "./actions-types";
 import { ProjectSelect, UserSelect } from "@/types";
 import { revalidatePath } from "next/cache";
 
-export async function createProject(
+export async function createProjectAction(
   projectFormData: z.infer<typeof projectSchemaForm>,
 ): Promise<ServerActionResponse<ProjectSelect>> {
   // Retrieve project creator's clerkId
