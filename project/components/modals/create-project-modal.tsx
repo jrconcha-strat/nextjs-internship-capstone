@@ -1,14 +1,15 @@
 "use client";
 import { checkProjectNameUnique } from "@/actions/project-actions";
 import { useProjects } from "@/hooks/use-projects";
-// TODO: Task 4.1 - Implement project CRUD operations
-// TODO: Task 4.4 - Build task creation and editing functionality
 import { projectSchemaForm } from "@/lib/validations/validations";
+import { ProjectFormInput, ProjectFormOutput } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon, X } from "lucide-react";
 import { FC, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
-import z from "zod";
+
+// TODO: Task 4.1 - Implement project CRUD operations
+// TODO: Task 4.4 - Build task creation and editing functionality
 
 /*
 TODO: Implementation Notes for Interns:
@@ -87,13 +88,13 @@ const CreateProjectModal: FC<CreateProjectModalProps> = ({ isModalOpen, setIsMod
     handleSubmit,
     setError,
     formState: { errors },
-  } = useForm<z.infer<typeof projectSchemaForm>>({
+  } = useForm<ProjectFormInput, never, ProjectFormOutput>({
     resolver: zodResolver(projectSchemaForm),
   });
 
   const { createProject, isProjectCreationLoading } = useProjects();
 
-  const onSubmit = async (values: z.infer<typeof projectSchemaForm>) => {
+  const onSubmit = async (values: ProjectFormOutput) => {
     // Check if project name is unique.
     const checkProjectNameUniqueResult = await checkProjectNameUnique(values.name);
     // Unable to check for uniqueness | Project name is not unique

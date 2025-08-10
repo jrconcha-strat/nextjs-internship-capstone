@@ -2,12 +2,11 @@
 import { checkProjectNameUnique } from "@/actions/project-actions";
 import { useProjects } from "@/hooks/use-projects";
 import { projectSchemaForm } from "@/lib/validations/validations";
-import { ProjectSelect } from "@/types";
+import { ProjectFormInput, ProjectFormOutput, ProjectSelect } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon, X } from "lucide-react";
 import { FC, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
-import z from "zod";
 
 type UpdateProjectModalProps = {
   projectData: ProjectSelect;
@@ -53,15 +52,12 @@ const UpdateProjectModal: FC<UpdateProjectModalProps> = ({ projectData, isModalO
     };
   }, [isModalOpen]);
 
-  type FormInput = z.input<typeof projectSchemaForm>; // This is because our input for duedate field accepts string.
-  type FormOutput = z.output<typeof projectSchemaForm>; // For after validation, dueDate output is a Date or null.
-
   const {
     register,
     handleSubmit,
     setError,
     formState: { errors },
-  } = useForm<FormInput, never, FormOutput>({
+  } = useForm<ProjectFormInput, never, ProjectFormOutput>({
     resolver: zodResolver(projectSchemaForm),
     defaultValues: {
       name: projectData.name,
@@ -72,7 +68,7 @@ const UpdateProjectModal: FC<UpdateProjectModalProps> = ({ projectData, isModalO
 
   const { updateProject, isProjectUpdateLoading } = useProjects();
 
-  const onSubmit = async (values: FormOutput) => {
+  const onSubmit = async (values: ProjectFormOutput) => {
     // Check if name values has changed.
     if (values.name !== projectData.name) {
       // Check if project name is unique.
