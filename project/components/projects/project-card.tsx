@@ -1,5 +1,4 @@
 "use client";
-// TODO: Task 4.5 - Design and implement project cards and layouts
 
 import { useProjectMembers } from "@/hooks/use-projects";
 import { formatDate, projectStatusColor } from "@/lib/utils";
@@ -9,7 +8,9 @@ import Link from "next/link";
 import { FC, useState } from "react";
 import ProjectOptions from "./project-options";
 import UpdateProjectModal from "../modals/update-project-modal";
+import { differenceInDays, isValid } from "date-fns";
 
+// TODO: Task 4.5 - Design and implement project cards and layouts
 /*
 TODO: Implementation Notes for Interns:
 
@@ -116,6 +117,10 @@ interface ProjectCardProps {
 const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
   const { members, membersError } = useProjectMembers(project.id);
   const [isEditModalOpen, setIsModalOpen] = useState(false);
+  const daysLeft =
+    project.dueDate && isValid(new Date(project.dueDate))
+      ? differenceInDays(new Date(project.dueDate), new Date())
+      : null;
 
   return (
     <>
@@ -152,7 +157,11 @@ const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
             <span>{Math.floor(Math.random() * 20) + 5} tasks</span>
 
             <div className="text-sm text-payne's_gray-500 dark:text-french_gray-400">
-              {Math.floor(Math.random() * 30) + 1} days left
+              {daysLeft !== null
+                ? daysLeft >= 0
+                  ? `${daysLeft} days left`
+                  : `${Math.abs(daysLeft)} days overdue`
+                : "N/A"}
             </div>
           </div>
 
