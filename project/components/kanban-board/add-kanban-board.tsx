@@ -8,7 +8,7 @@ type AddKanbanBoardProps = {
 };
 
 const AddKanbanBoard: FC<AddKanbanBoardProps> = ({ project_id, position }) => {
-  const { createList, isCreateListLoading } = useLists(project_id);
+  const { createList, isListCreateLoading } = useLists(project_id);
 
   const onClick = () => {
     const incrementedPosition = position + 1;
@@ -16,14 +16,14 @@ const AddKanbanBoard: FC<AddKanbanBoardProps> = ({ project_id, position }) => {
   };
 
   return (
-    <div className="min-w-[80px] w-80 shrink-0">
+    <div className="min-w-[80px] min-h-[350px] w-80 shrink-0">
       <button
-        disabled={isCreateListLoading}
+        disabled={isListCreateLoading}
         onClick={onClick}
         className="w-full h-full p-3 border-2 border-dashed border-french_gray-300 dark:border-payne's_gray-400 rounded-lg text-payne's_gray-500 dark:text-french_gray-400 hover:border-blue_munsell-500 hover:text-blue_munsell-500 transition-colors"
       >
         {" "}
-        {isCreateListLoading ? (
+        {isListCreateLoading ? (
           <div className="flex gap-2">
             <Loader2Icon className="animate-spin " /> Loading
           </div>

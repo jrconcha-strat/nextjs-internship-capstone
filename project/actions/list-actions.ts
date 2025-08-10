@@ -6,6 +6,14 @@ import { revalidatePath } from "next/cache";
 import { listSchemaDB } from "@/lib/validations/validations";
 import z from "zod";
 
+export async function deleteListAction(project_id: number, list_id: number): Promise<ServerActionResponse<ListSelect>> {
+  const deleteListResponse = await queries.lists.delete(list_id);
+
+  revalidatePath(`/projects/${project_id}`);
+
+  return deleteListResponse.success ? deleteListResponse : deleteListResponse;
+}
+
 export async function createListAction(
   project_id: number,
   position: number,
@@ -13,7 +21,7 @@ export async function createListAction(
   const listDBData: z.infer<typeof listSchemaDB> = {
     name: "New Board",
     projectId: project_id,
-    position: position, 
+    position: position,
     createdAt: new Date(),
     updatedAt: new Date(),
   };

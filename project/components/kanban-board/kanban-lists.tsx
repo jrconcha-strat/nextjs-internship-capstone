@@ -2,13 +2,16 @@
 import { ListSelect } from "@/types";
 import { MoreHorizontal } from "lucide-react";
 import { FC, useEffect, useState } from "react";
+import KanbanListOptions from "../modals/kanban-list-options";
 
 type KanbanListsProps = {
   lists: ListSelect[];
+  project_id: number;
 };
 
-const KanbanLists: FC<KanbanListsProps> = ({ lists }) => {
+const KanbanLists: FC<KanbanListsProps> = ({ project_id, lists }) => {
   const [sortedLists, setSortedList] = useState<ListSelect[]>([]);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     const positionSortedList = [...lists].sort((a, b) => a.position - b.position);
@@ -28,9 +31,11 @@ const KanbanLists: FC<KanbanListsProps> = ({ lists }) => {
                     {list.position}
                   </span>
                 </h3>
-                <button className="p-1 hover:bg-platinum-500 dark:hover:bg-payne's_gray-400 rounded">
-                  <MoreHorizontal size={16} />
-                </button>
+                <KanbanListOptions
+                  project_id={project_id}
+                  list_id={list.id}
+                  setEditModalOpen={setIsEditModalOpen}
+                />
               </div>
             </div>
 

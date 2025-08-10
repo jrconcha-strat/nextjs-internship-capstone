@@ -59,7 +59,7 @@ export function KanbanBoard({ projectId }: { projectId: string }) {
           )
         ) : (
           <>
-            <KanbanLists lists={lists} />
+            <KanbanLists project_id={Number(projectId)} lists={lists} />
             <AddKanbanBoard project_id={Number(projectId)} position={lists.length} />
           </>
         )}

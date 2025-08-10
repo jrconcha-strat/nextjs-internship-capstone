@@ -1,5 +1,8 @@
+import { and, eq, gt, sql } from "drizzle-orm";
 import * as types from "../../../types/index";
-import { createObject, getObjectById, deleteObject, updateObject, getByParentObject } from "./query_utils";
+import { db } from "../db-index";
+import * as schema from "../schema";
+import { createObject, getObjectById, updateObject, getByParentObject } from "./query_utils";
 
 export const lists = {
   getByProject: async (projectId: number): Promise<types.QueryResponse<Array<types.ListSelect>>> => {
@@ -31,7 +34,56 @@ export const lists = {
     );
   },
   delete: async (id: number): Promise<types.QueryResponse<types.ListSelect>> => {
-    // Call Generic function to delete object
-    return deleteObject<types.ListSelect>(id, "lists");
+    try {
+      const result = await db.transaction<types.QueryResponse<types.ListSelect>>(async (tx) => {
+        // 1) Re-fetch inside the transaction to ensure consistency
+        const toDelete = await tx.query.lists.findFirst({
+          where: eq(schema.lists.id, id),
+          columns: { id: true, position: true, projectId: true },
+        });
+
+        if (!toDelete) {
+          return {
+            success: false,
+            message: "Unable to delete list.",
+            error: "List not found.",
+          };
+        }
+
+        const { position: deletedPos, projectId } = toDelete;
+
+        // 2) Delete the row
+        const [deleted] = await tx.delete(schema.lists).where(eq(schema.lists.id, id)).returning();
+
+        if (!deleted) {
+          return {
+            success: false,
+            message: "Unable to delete list.",
+            error: "Delete returned 0 rows. Check database connection.",
+          };
+        }
+
+        // 3) Close the gap: shift positions > deletedPos down by 1 (same project only)
+        await tx
+          .update(schema.lists)
+          .set({ position: sql`${schema.lists.position} - 1` })
+          .where(and(eq(schema.lists.projectId, projectId), gt(schema.lists.position, deletedPos)));
+
+        // 4) Return.
+        return {
+          success: true,
+          message: "Deleted list successfully.",
+          data: deleted,
+        };
+      });
+
+      return result;
+    } catch (e) {
+      return {
+        success: false,
+        message: "Unable to delete list.",
+        error: e,
+      };
+    }
   },
 };
