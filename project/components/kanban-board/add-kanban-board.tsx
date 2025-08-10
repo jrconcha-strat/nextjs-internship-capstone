@@ -24,7 +24,7 @@ const AddKanbanBoard: FC<AddKanbanBoardProps> = ({ project_id, position }) => {
       >
         {" "}
         {isListCreateLoading ? (
-          <div className="flex gap-2">
+          <div className="flex justify-center gap-2">
             <Loader2Icon className="animate-spin " /> Loading
           </div>
         ) : (
