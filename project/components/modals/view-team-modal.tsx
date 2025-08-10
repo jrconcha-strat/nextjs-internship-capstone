@@ -1,6 +1,6 @@
 "use client";
 import { XIcon } from "lucide-react";
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect } from "react";
 import { TeamsSelect, UserSelect } from "@/types";
 import { formatDate } from "@/lib/utils";
 import { Separator } from "../ui/separator";
@@ -16,36 +16,6 @@ type ViewTeamModalProps = {
 };
 
 const ViewTeamModal: FC<ViewTeamModalProps> = ({ teamData, teamMembers, isModalOpen, setIsModalOpen }) => {
-  // Any outside clicks will close the modal.
-  const modalRef = useRef<HTMLDivElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null); // Reference for dropdown menu items to stop propagation
-  const [isDropDownOpen, setIsDropDownOpen] = useState(false);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      const isClickInsideModal = modalRef.current && modalRef.current.contains(event.target as Node);
-      const isClickInsideDropdownMenu = dropdownRef.current && dropdownRef.current.contains(event.target as Node);
-
-      // If the dropdown is open and the click is outside of the dropdown menu, close the dropdown
-      if (isDropDownOpen && !isClickInsideDropdownMenu) {
-        setIsDropDownOpen(false); // Close dropdown
-      }
-
-      // If the dropdown is not open and the click is outside of both modal and dropdown, close the modal
-      else if (!isDropDownOpen && !isClickInsideModal && !isClickInsideDropdownMenu) {
-        setIsModalOpen(false); // Close modal
-      }
-    }
-
-    if (isModalOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isDropDownOpen, isModalOpen, setIsModalOpen]);
-
   // Disable scrolling when modal is open.
   useEffect(() => {
     if (isModalOpen) {
@@ -68,10 +38,13 @@ const ViewTeamModal: FC<ViewTeamModalProps> = ({ teamData, teamMembers, isModalO
     <>
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/45"
+          onMouseDown={() => setIsModalOpen(false)}
+        >
           <div
-            ref={modalRef}
             className="bg-white dark:bg-gray-900 p-6 rounded-lg w-full mx-4 md:mx-0 max-w-md shadow-xl"
+            onMouseDown={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between mb-4">
               <h2 className="text-xl font-semibold text-dark-grey-600 dark:text-gray-100">Team Information</h2>
@@ -107,12 +80,7 @@ const ViewTeamModal: FC<ViewTeamModalProps> = ({ teamData, teamMembers, isModalO
             </div>
             <Separator />
             <div className="mt-4">
-              <ManageMembersTeam
-                teamMembers={teamMembers}
-                team_id={teamData.id}
-                dropDownRef={dropdownRef}
-                setIsDropDownOpen={setIsDropDownOpen}
-              />
+              <ManageMembersTeam teamMembers={teamMembers} team_id={teamData.id} />
             </div>
           </div>
         </div>

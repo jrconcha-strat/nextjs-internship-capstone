@@ -5,7 +5,7 @@ import { projectSchemaForm } from "@/lib/validations/validations";
 import { ProjectFormInput, ProjectFormOutput, ProjectSelect } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon, X } from "lucide-react";
-import { FC, useEffect, useRef } from "react";
+import { FC, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 type UpdateProjectModalProps = {
@@ -15,25 +15,6 @@ type UpdateProjectModalProps = {
 };
 
 const UpdateProjectModal: FC<UpdateProjectModalProps> = ({ projectData, isModalOpen, setIsModalOpen }) => {
-  const modalRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      // If the clicked element is not a child of modal, close modal.
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        setIsModalOpen(false);
-      }
-    }
-
-    if (isModalOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    // Cleanup function
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isModalOpen, setIsModalOpen]);
-
   // Disable scrolling when modal is open.
   useEffect(() => {
     if (isModalOpen) {
@@ -96,8 +77,14 @@ const UpdateProjectModal: FC<UpdateProjectModalProps> = ({ projectData, isModalO
   return (
     <>
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45">
-          <div ref={modalRef} className="bg-white dark:bg-outer_space-500 rounded-lg p-6 w-full max-w-md mx-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 "
+          onMouseDown={() => setIsModalOpen(false)}
+        >
+          <div
+            className="bg-white dark:bg-outer_space-500 rounded-lg p-6 w-full max-w-md mx-4"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-outer_space-500 dark:text-platinum-500">Update Project</h3>
               <button

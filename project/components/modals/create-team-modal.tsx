@@ -15,26 +15,6 @@ type TeamModalProps = {
 };
 
 const CreateTeamModal: FC<TeamModalProps> = ({ isModalOpen, setIsModalOpen }) => {
-  // Any outside clicks will close the modal.
-  const modalRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      // If the clicked element is not a child of modal, close modal.
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        setIsModalOpen(!isModalOpen);
-      }
-    }
-
-    if (isModalOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    // Cleanup function
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isModalOpen, setIsModalOpen]);
-
   // Disable scrolling when modal is open.
   useEffect(() => {
     if (isModalOpen) {
@@ -98,10 +78,13 @@ const CreateTeamModal: FC<TeamModalProps> = ({ isModalOpen, setIsModalOpen }) =>
     <>
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/45"
+          onMouseDown={() => setIsModalOpen(false)}
+        >
           <div
-            ref={modalRef}
             className="bg-white dark:bg-gray-900 p-6 rounded-lg w-full mx-4 md:mx-0 max-w-md shadow-xl"
+            onMouseDown={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between mb-4">
               <h2 className="text-xl font-semibold text-dark-grey-600 dark:text-gray-100">Create a New Team</h2>

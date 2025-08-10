@@ -1,5 +1,5 @@
 "use client";
-import { FC, Fragment, RefObject, useEffect, useState } from "react";
+import { FC, Fragment, useEffect, useState } from "react";
 import { UserSelect } from "@/types";
 import { getAllUsers } from "@/actions/user-actions";
 import { addUsersToTeam, removeUsersFromTeam } from "@/actions/teams-actions";
@@ -13,13 +13,11 @@ import { ChevronDownIcon } from "lucide-react";
 type ManageMembersTeamProps = {
   teamMembers: UserSelect[];
   team_id: number;
-  dropDownRef: RefObject<HTMLDivElement | null>;
-  setIsDropDownOpen: (val: boolean) => void;
 };
 
 const modeOptions = ["Add", "Remove"];
 
-const ManageMembersTeam: FC<ManageMembersTeamProps> = ({ teamMembers, team_id, dropDownRef, setIsDropDownOpen }) => {
+const ManageMembersTeam: FC<ManageMembersTeamProps> = ({ teamMembers, team_id}) => {
   const [users, setUsers] = useState<UserSelect[]>([]);
   const [dataTableMode, setDataTableMode] = useState(modeOptions[0]);
 
@@ -73,15 +71,15 @@ const ManageMembersTeam: FC<ManageMembersTeamProps> = ({ teamMembers, team_id, d
 
   return (
     <Fragment>
-      <div ref={dropDownRef} className="flex justify-between">
+      <div className="flex justify-between">
         <p className="text-md font-bold"> Manage Members</p>
         <DropdownMenu>
-          <DropdownMenuTrigger onClick={() => setIsDropDownOpen(true)} asChild>
+          <DropdownMenuTrigger asChild>
             <Button variant="outline">
               {dataTableMode} <ChevronDownIcon />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent ref={dropDownRef}>
+          <DropdownMenuContent>
             {modeOptions.map((option, index) => {
               return (
                 <DropdownMenuItem key={index} onClick={() => setDataTableMode(modeOptions[index])}>
