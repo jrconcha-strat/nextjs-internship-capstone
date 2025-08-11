@@ -219,4 +219,37 @@ export const projects = {
       };
     }
   },
+  getProjectsForUser: async (userId: number): Promise<types.QueryResponse<types.ProjectSelect[]>> => {
+    try {
+      // Join users To Teams and teams to Projects to retrieve projects of the user.
+      const result = await db
+        .select({ project: schema.projects })
+        .from(schema.users_to_teams)
+        .innerJoin(schema.teams_to_projects, eq(schema.teams_to_projects.team_id, schema.users_to_teams.team_id))
+        .innerJoin(schema.projects, eq(schema.projects.id, schema.teams_to_projects.project_id))
+        .where(eq(schema.users_to_teams.user_id, userId));
+
+      const userProjects = result.map((row) => row.project);
+
+      if (!userProjects) {
+        return {
+          success: false,
+          message: `Unable to retrieve user projects.`,
+          error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
+        };
+      }
+
+      return {
+        success: true,
+        message: `Successfully retrieved user projects.`,
+        data: userProjects,
+      };
+    } catch (e) {
+      return {
+        success: false,
+        message: `Unable to retrieve user projects.`,
+        error: e,
+      };
+    }
+  },
 };

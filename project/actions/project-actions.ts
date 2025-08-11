@@ -9,6 +9,11 @@ import { ServerActionResponse } from "./actions-types";
 import * as types from "@/types";
 import { revalidatePath } from "next/cache";
 
+export async function getProjectsForUserAction(user_id: number): Promise<ServerActionResponse<types.ProjectSelect[]>> {
+  const getProjectsForUserResponse = await queries.projects.getProjectsForUser(user_id);
+  return getProjectsForUserResponse.success ? getProjectsForUserResponse : getProjectsForUserResponse;
+}
+
 export async function updateProjectAction(
   project_id: number,
   projectFormData: z.infer<typeof projectSchemaForm>,

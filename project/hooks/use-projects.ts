@@ -62,14 +62,15 @@ import {
   createProjectAction,
   deleteProjectAction,
   getAllMembersForProject,
-  getAllProjects,
   getProjectByIdAction,
+  getProjectsForUserAction,
   updateProjectAction,
 } from "@/actions/project-actions";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { projectSchemaForm } from "../lib/validations/validations";
 import z from "zod";
 import { toast } from "sonner";
+import { getUserId } from "@/actions/user-actions";
 
 // Projects list
 export function useProjects(project_id?: number) {
@@ -82,7 +83,9 @@ export function useProjects(project_id?: number) {
   } = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
-      const res = await getAllProjects();
+      const me = await getUserId();
+      if (!me.success) throw new Error(me.message);
+      const res = await getProjectsForUserAction(me.data.id);
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
@@ -165,7 +168,7 @@ export function useProjects(project_id?: number) {
     updateProjectError: updateProject.error,
     project: getProjectById.data,
     isProjectLoading: getProjectById.isLoading,
-    projectError: getProjectById.error
+    projectError: getProjectById.error,
   };
 }
 
