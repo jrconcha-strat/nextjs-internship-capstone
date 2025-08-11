@@ -6,9 +6,12 @@ import {
   deleteTeamAction,
   getTeamsForUser,
   removeUsersFromTeamAction,
+  updateTeamAction,
 } from "@/actions/teams-actions";
 import { getUserId } from "@/actions/user-actions";
 import { toast } from "sonner";
+import z from "zod";
+import { teamSchemaForm } from "@/lib/validations/validations";
 
 export function useTeams(team_id?: number) {
   const queryClient = useQueryClient();
@@ -37,6 +40,27 @@ export function useTeams(team_id?: number) {
       if (!checkUserIsLeaderResponse.success) throw new Error(checkUserIsLeaderResponse.message);
 
       return checkUserIsLeaderResponse.data;
+    },
+  });
+
+  const updateTeam = useMutation({
+    mutationFn: async ({
+      team_id,
+      teamFormData,
+    }: {
+      team_id: number;
+      teamFormData: z.infer<typeof teamSchemaForm>;
+    }) => {
+      const res = await updateTeamAction(team_id, teamFormData);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
+      toast.success("Success", { description: "Successfully updated the team." });
+    },
+    onError: (error) => {
+      toast.error("Error", { description: error.message });
     },
   });
 
@@ -127,5 +151,9 @@ export function useTeams(team_id?: number) {
     leaveTeam: leaveTeam.mutate,
     isLeaveTeamLoading: leaveTeam.isPending,
     leaveTeamError: leaveTeam.error,
+
+    updateTeam: updateTeam.mutate,
+    isTeamUpdateLoading: updateTeam.isPending,
+    updateTeamError: updateTeam.error,
   };
 }

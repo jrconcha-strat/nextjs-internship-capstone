@@ -1,5 +1,3 @@
-"use client";
-
 import { userSchema } from "@/lib/validations/validations";
 import { ColumnDef } from "@tanstack/react-table";
 import z from "zod";
@@ -10,28 +8,34 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 type MemberColumn = z.infer<typeof userSchema>;
 
-export const columns: ColumnDef<MemberColumn>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-  },
-  {
-    accessorKey: "name",
-    header: ({ column }) => {
-      return (
+export function getMemberColumns(isTeamLeader: boolean): ColumnDef<MemberColumn>[] {
+  return [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+          onCheckedChange={(value) => {
+            if (isTeamLeader) table.toggleAllPageRowsSelected(!!value);
+          }}
+          aria-label="Select all"
+          disabled={!isTeamLeader} // disable for non-leaders
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => {
+            if (isTeamLeader) row.toggleSelected(!!value);
+          }}
+          aria-label="Select row"
+          disabled={!isTeamLeader} // disable for non-leaders
+        />
+      ),
+    },
+    {
+      accessorKey: "name",
+      header: ({ column }) => (
         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
           User
           {column.getIsSorted() === "asc" ? (
@@ -40,10 +44,8 @@ export const columns: ColumnDef<MemberColumn>[] = [
             <ArrowDownZA className="ml-2 h-4 w-4" />
           )}
         </Button>
-      );
-    },
-    cell: ({ row }) => {
-      return (
+      ),
+      cell: ({ row }) => (
         <div className="flex gap-2">
           <Avatar>
             <AvatarImage src={row.original.image_url}></AvatarImage>
@@ -56,7 +58,7 @@ export const columns: ColumnDef<MemberColumn>[] = [
             <p className="text-foreground text-xs font-light">{row.original.email}</p>
           </div>
         </div>
-      );
+      ),
     },
-  },
-];
+  ];
+}

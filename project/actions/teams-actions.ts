@@ -4,12 +4,14 @@ import { queries } from "@/lib/db/queries/queries";
 import { revalidatePath } from "next/cache";
 import * as types from "../types/index";
 import { ServerActionResponse } from "./actions-types";
+import { teamSchemaForm } from "@/lib/validations/validations";
+import z from "zod";
 
-export async function updateTeam(
+export async function updateTeamAction(
   team_id: number,
-  newTeamName: string,
+  newData: z.infer<typeof teamSchemaForm>
 ): Promise<ServerActionResponse<types.TeamsSelect>> {
-  const updateTeamResponse = await queries.teams.updateTeam(team_id, newTeamName);
+  const updateTeamResponse = await queries.teams.updateTeam(team_id, newData.teamName);
 
   revalidatePath("/teams");
 

@@ -15,18 +15,20 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "../ui/button";
 import { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2Icon } from "lucide-react";
 import { Input } from "../ui/input";
 import { UserSelect } from "@/types";
 
 interface DataTableProps {
+  isTeamLeader: boolean;
   columns: ColumnDef<UserSelect>[];
   data: UserSelect[];
   buttonAction: (selectedUsers: UserSelect[]) => void;
+  buttonLoadingState: boolean;
   mode: string;
 }
 
-export function DataTable({ columns, data, buttonAction, mode }: DataTableProps) {
+export function DataTable({ isTeamLeader, columns, data, buttonAction, buttonLoadingState, mode }: DataTableProps) {
   const [pageIndex, setPageIndex] = useState(0);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -127,13 +129,24 @@ export function DataTable({ columns, data, buttonAction, mode }: DataTableProps)
             <ChevronRight />
           </Button>
         </div>
-        <Button
-          onClick={() => {
-            executeButtonAction(table.getSelectedRowModel());
-          }}
-        >
-          {mode}
-        </Button>
+
+        {/* Show action button only if current user is TeamLeader and not in View mode */}
+        {isTeamLeader && mode !== "View" && (
+          <Button
+            disabled={buttonLoadingState}
+            onClick={() => {
+              executeButtonAction(table.getSelectedRowModel());
+            }}
+          >
+            {buttonLoadingState ? (
+              <div className="flex gap-2">
+                <Loader2Icon className="animate-spin " /> Loading
+              </div>
+            ) : (
+              mode
+            )}
+          </Button>
+        )}
       </div>
     </div>
   );
