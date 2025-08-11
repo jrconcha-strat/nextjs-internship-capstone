@@ -48,7 +48,7 @@ const ProjectsSection: FC<ProjectsSectionProps> = ({ projectsData }) => {
 
       {/* Project Card Grid */}
       {projectsData.length === 0 ? (
-        <div className="flex justify-center text-center text-sm text-dark-grey-400">
+        <div className="flex flex-col justify-center text-center text-sm text-dark-grey-400">
           <p>You have no projects right now.</p>
           <p>Create or get invited to one!</p>
         </div>
