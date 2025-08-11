@@ -102,6 +102,12 @@ export async function removeUsersFromTeamAction(
   };
 }
 
+export async function getProjectsForTeamAction(team_id: number): Promise<ServerActionResponse<types.ProjectSelect[]>> {
+  const getProjectsForTeamResponse = await queries.teams.getProjectsForTeam(team_id);
+
+  return getProjectsForTeamResponse.success ? getProjectsForTeamResponse : getProjectsForTeamResponse;
+}
+
 export async function getUsersForTeam(team_id: number): Promise<ServerActionResponse<types.UserSelect[]>> {
   const getUsersForTeamResponse = await queries.teams.getAllTeamMembers(team_id);
 

@@ -37,13 +37,16 @@ const TeamsOptions: FC<TeamsOptionsProps> = ({ team_id, openModal }) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem
-          disabled={isLeaveTeamLoading || isTeamLeaderCheckLoading}
-          variant="destructive"
-          onClick={onLeaveTeamClick}
-        >
-          Leave Team
-        </DropdownMenuItem>
+        {!isTeamLeader && (
+          <DropdownMenuItem
+            disabled={isLeaveTeamLoading || isTeamLeaderCheckLoading}
+            variant="destructive"
+            onClick={onLeaveTeamClick}
+          >
+            Leave Team
+          </DropdownMenuItem>
+        )}
+
         {isTeamLeader && (
           <>
             <DropdownMenuItem

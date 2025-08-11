@@ -4,6 +4,7 @@ import {
   addUsersToTeamAction,
   checkUserIsLeaderAction,
   deleteTeamAction,
+  getProjectsForTeamAction,
   getTeamsForUser,
   reassignTeamLeaderAction,
   removeUsersFromTeamAction,
@@ -77,6 +78,12 @@ export function useTeams(team_id?: number) {
 
   const deleteTeam = useMutation({
     mutationFn: async (team_id: number) => {
+      // Prevent team deletion of teams with projects.
+      const teamProjects = await getProjectsForTeamAction(team_id);
+      if (!teamProjects.success) throw new Error(teamProjects.message);
+
+      if (teamProjects.data.length > 0) throw new Error("Cannot delete a team with projects assigned.");
+
       const res = await deleteTeamAction(team_id);
       if (!res.success) throw new Error(res.message);
       return res.data;

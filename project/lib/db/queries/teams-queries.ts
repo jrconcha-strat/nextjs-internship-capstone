@@ -435,4 +435,36 @@ export const teams = {
       };
     }
   },
+  getProjectsForTeam: async (team_id: number): Promise<types.QueryResponse<types.ProjectSelect[]>> => {
+    try {
+      const result = await db
+        .select({ project: schema.projects })
+        .from(schema.projects)
+        .innerJoin(schema.teams_to_projects, eq(schema.teams_to_projects.project_id, schema.projects.id))
+        .where(eq(schema.teams_to_projects.team_id, team_id));
+
+      if (result.length === 0) {
+        return {
+          success: true,
+          message: "Team has no assigned projects.",
+          data: [],
+        };
+      }
+
+      // Unwrapping
+      const projects = result.map((r) => r.project);
+
+      return {
+        success: true,
+        message: "Successfully retrieved team's projects",
+        data: projects,
+      };
+    } catch (e) {
+      return {
+        success: false,
+        message: "Unable to retrieve team's projects",
+        error: e,
+      };
+    }
+  },
 };
