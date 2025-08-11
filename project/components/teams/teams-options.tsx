@@ -8,9 +8,10 @@ import { toast } from "sonner";
 
 type TeamsOptionsProps = {
   team_id: number;
+  openModal: () => void;
 };
 
-const TeamsOptions: FC<TeamsOptionsProps> = ({ team_id }) => {
+const TeamsOptions: FC<TeamsOptionsProps> = ({ team_id, openModal }) => {
   const { deleteTeam, isTeamDeleteLoading, isTeamLeader, isTeamLeaderCheckLoading, leaveTeam, isLeaveTeamLoading } =
     useTeams(team_id);
 
@@ -44,13 +45,22 @@ const TeamsOptions: FC<TeamsOptionsProps> = ({ team_id }) => {
           Leave Team
         </DropdownMenuItem>
         {isTeamLeader && (
-          <DropdownMenuItem
-            disabled={isTeamDeleteLoading || isTeamLeaderCheckLoading}
-            variant="destructive"
-            onClick={onDeleteTeamClick}
-          >
-            Delete Team
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuItem
+              disabled={isTeamDeleteLoading || isTeamLeaderCheckLoading}
+              variant="default"
+              onClick={openModal}
+            >
+              Re-assign Leader
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={isTeamDeleteLoading || isTeamLeaderCheckLoading}
+              variant="destructive"
+              onClick={onDeleteTeamClick}
+            >
+              Delete Team
+            </DropdownMenuItem>
+          </>
         )}
       </DropdownMenuContent>
     </DropdownMenu>

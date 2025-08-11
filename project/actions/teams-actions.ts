@@ -9,13 +9,29 @@ import z from "zod";
 
 export async function updateTeamAction(
   team_id: number,
-  newData: z.infer<typeof teamSchemaForm>
+  newData: z.infer<typeof teamSchemaForm>,
 ): Promise<ServerActionResponse<types.TeamsSelect>> {
   const updateTeamResponse = await queries.teams.updateTeam(team_id, newData.teamName);
 
   revalidatePath("/teams");
 
   return updateTeamResponse.success ? updateTeamResponse : updateTeamResponse;
+}
+
+export async function reassignTeamLeaderAction(
+  old_leader_id: number,
+  new_leader_id: number,
+  team_id: number,
+): Promise<ServerActionResponse<types.UserSelect>> {
+  const reassignTeamLeaderResponse = await queries.teams.reassignTeamLeader(old_leader_id, new_leader_id, team_id);
+
+  return reassignTeamLeaderResponse.success ? reassignTeamLeaderResponse : reassignTeamLeaderResponse;
+}
+
+export async function getTeamLeaderAction(team_id: number): Promise<ServerActionResponse<types.UserSelect>> {
+  const getTeamLeaderResponse = await queries.teams.getTeamLeader(team_id);
+
+  return getTeamLeaderResponse.success ? getTeamLeaderResponse : getTeamLeaderResponse;
 }
 
 export async function checkUserIsLeaderAction(
@@ -46,7 +62,10 @@ export async function deleteTeamAction(team_id: number): Promise<ServerActionRes
   return deleteTeamResponse.success ? deleteTeamResponse : deleteTeamResponse;
 }
 
-export async function addUsersToTeamAction(users_ids: number[], team_id: number): Promise<ServerActionResponse<boolean>> {
+export async function addUsersToTeamAction(
+  users_ids: number[],
+  team_id: number,
+): Promise<ServerActionResponse<boolean>> {
   for (const user_id of users_ids) {
     // Add current user to team
     const addUsertoTeamResponse = await queries.teams.addUserToTeam(user_id, team_id, false);

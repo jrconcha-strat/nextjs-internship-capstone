@@ -344,4 +344,95 @@ export const teams = {
       };
     }
   },
+  getTeamLeader: async (team_id: number): Promise<types.QueryResponse<types.UserSelect>> => {
+    try {
+      const result = await db
+        .select({ users: schema.users })
+        .from(schema.users)
+        .innerJoin(schema.users_to_teams, eq(schema.users_to_teams.user_id, schema.users.id))
+        .where(and(eq(schema.users_to_teams.team_id, team_id), eq(schema.users_to_teams.isLeader, true)))
+        .limit(1);
+
+      // Retrieve team Leader
+      const [teamLeaderUser] = result.map((entry) => entry.users);
+
+      if (!teamLeaderUser) {
+        throw new Error("Unable to retrieve team leader for that team.");
+      }
+
+      return {
+        success: true,
+        message: "Successfully retrieved team leader of that team.",
+        data: teamLeaderUser,
+      };
+    } catch (e) {
+      return {
+        success: false,
+        message: "Unable to retrieve team leader for that team.",
+        error: e,
+      };
+    }
+  },
+  reassignTeamLeader: async (
+    old_leader_id: number,
+    new_leader_id: number,
+    team_id: number,
+  ): Promise<types.QueryResponse<types.UserSelect>> => {
+    try {
+      await db.transaction(async (trx) => {
+        // This sets old leader (userToTeams entry) flag to false.
+        const [demoted] = await trx
+          .update(schema.users_to_teams)
+          .set({ isLeader: false })
+          .where(
+            and(
+              eq(schema.users_to_teams.team_id, team_id),
+              eq(schema.users_to_teams.user_id, old_leader_id),
+              eq(schema.users_to_teams.isLeader, true),
+            ),
+          )
+          .returning();
+
+        if (!demoted) {
+          throw new Error("Failed to set old leader's isLeader flag to false.");
+        }
+
+        // This sets new leader (userToTeams entry) flag to true
+        const [promoted] = await trx
+          .update(schema.users_to_teams)
+          .set({ isLeader: true })
+          .where(
+            and(
+              eq(schema.users_to_teams.team_id, team_id),
+              eq(schema.users_to_teams.user_id, new_leader_id),
+              eq(schema.users_to_teams.isLeader, false),
+            ),
+          )
+          .returning();
+
+        if (!promoted) {
+          throw new Error("Failed to set new leader's isLeader flag to true.");
+        }
+      });
+
+      // Return the new leader's info
+      const [newLeaderUser] = await db.select().from(schema.users).where(eq(schema.users.id, new_leader_id)).limit(1);
+
+      if (!newLeaderUser) {
+        throw new Error("Unable to fetch new leader user.");
+      }
+
+      return {
+        success: true,
+        message: "Successfully reassigned team leader.",
+        data: newLeaderUser,
+      };
+    } catch (e) {
+      return {
+        success: false,
+        message: "Unable to reassign team leader.",
+        error: e,
+      };
+    }
+  },
 };
