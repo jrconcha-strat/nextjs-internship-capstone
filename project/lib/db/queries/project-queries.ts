@@ -12,9 +12,10 @@ export const projects = {
   getById: async (id: number): Promise<types.QueryResponse<types.ProjectSelect>> => {
     return getObjectById<types.ProjectSelect>(id, "projects");
   },
-  create: async (data: types.ProjectInsert): Promise<types.QueryResponse<types.ProjectSelect>> => {
+  create: async (data: types.ProjectInsert, teamIds: number[]): Promise<types.QueryResponse<types.ProjectSelect>> => {
     try {
       const newProject = data;
+      const now = new Date();
 
       const txResult = await db.transaction(async (tx): Promise<types.QueryResponse<types.ProjectSelect>> => {
         // Insert project
@@ -23,11 +24,23 @@ export const projects = {
           throw new Error(`Database did not return a project. Check connection.`);
         }
 
+        // Assign teams
+        const teamsToAssign: types.TeamsToProjectsInsert[] = teamIds.map((id) => ({
+          team_id: id,
+          project_id: insertedProject.id,
+          createdAt: now,
+          updatedAt: now,
+        }));
+
+        const assignedTeams = await tx.insert(schema.teams_to_projects).values(teamsToAssign).returning();
+        if (assignedTeams.length !== teamIds.length) {
+          throw new Error("Not all teams were assigned.");
+        }
+
         // Insert default columns
         const defaultColumns = ["To Do", "In Progress", "Done"];
-        const now = new Date();
 
-        const listsToInsert = defaultColumns.map((name, idx) => ({
+        const listsToInsert: types.ListInsert[] = defaultColumns.map((name, idx) => ({
           name: name,
           projectId: insertedProject.id,
           position: idx + 1,

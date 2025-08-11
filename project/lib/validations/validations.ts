@@ -105,13 +105,17 @@ export const projectSchemaDB = projectSchema.omit({
   id: true,
 });
 
-export const projectSchemaForm = projectSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  ownerId: true,
-  status: true,
-});
+export const projectSchemaForm = projectSchema
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    ownerId: true,
+    status: true,
+  })
+  .extend({
+    teamIds: z.array(z.int()).min(1, "Select at least one team"), // Because on project creation, we must have a team assigned.
+  });
 
 export const listSchema = z
   .object({

@@ -7,38 +7,41 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon, X } from "lucide-react";
 import { FC, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { Controller } from "react-hook-form";
+import MultiSelect from "../projects/multi-select-teams";
+import { useTeams } from "@/hooks/use-teams";
 
 // TODO: Task 4.1 - Implement project CRUD operations
 // TODO: Task 4.4 - Build task creation and editing functionality
 
 /*
-TODO: Implementation Notes for Interns:
+  TODO: Implementation Notes for Interns:
 
-Modal for creating new projects with form validation.
+  Modal for creating new projects with form validation.
 
-Features to implement:
-- Form with project name, description, due date
-- Zod validation
-- Error handling
-- Loading states
-- Success feedback
-- Team member assignment
-- Project template selection
+  Features to implement:
+  - Form with project name, description, due date
+  - Zod validation
+  - Error handling
+  - Loading states
+  - Success feedback
+  - Team member assignment
+  - Project template selection
 
-Form fields:
-- Name (required)
-- Description (optional)
-- Due date (optional)
-- Team members (optional)
-- Project template (optional)
-- Privacy settings
+  Form fields:
+  - Name (required)
+  - Description (optional)
+  - Due date (optional)
+  - Team members (optional)
+  - Project template (optional)
+  - Privacy settings
 
-Integration:
-- Use project validation schema from lib/validations.ts
-- Call project creation API
-- Update project list optimistically
-- Handle errors gracefully
-*/
+  Integration:
+  - Use project validation schema from lib/validations.ts
+  - Call project creation API
+  - Update project list optimistically
+  - Handle errors gracefully
+  */
 
 type CreateProjectModalProps = {
   isModalOpen: boolean;
@@ -46,7 +49,6 @@ type CreateProjectModalProps = {
 };
 
 const CreateProjectModal: FC<CreateProjectModalProps> = ({ isModalOpen, setIsModalOpen }) => {
-
   // Disable scrolling when modal is open.
   useEffect(() => {
     if (isModalOpen) {
@@ -69,12 +71,16 @@ const CreateProjectModal: FC<CreateProjectModalProps> = ({ isModalOpen, setIsMod
     register,
     handleSubmit,
     setError,
+    control,
     formState: { errors },
-  } = useForm<ProjectFormInput, never, ProjectFormOutput>({
+  } = useForm<ProjectFormInput, undefined, ProjectFormOutput>({
     resolver: zodResolver(projectSchemaForm),
+    defaultValues: { teamIds: [] },
   });
 
   const { createProject, isProjectCreationLoading } = useProjects();
+
+  const { userTeams, isUserTeamsLoading, getUserTeamsError } = useTeams();
 
   const onSubmit = async (values: ProjectFormOutput) => {
     // Check if project name is unique.
@@ -117,7 +123,10 @@ const CreateProjectModal: FC<CreateProjectModalProps> = ({ isModalOpen, setIsMod
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-outer_space-500 dark:text-platinum-500 mb-2">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-outer_space-500 dark:text-platinum-500 mb-2"
+                >
                   Project Name *
                 </label>
                 <input
@@ -131,7 +140,10 @@ const CreateProjectModal: FC<CreateProjectModalProps> = ({ isModalOpen, setIsMod
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-outer_space-500 dark:text-platinum-500 mb-2">
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium text-outer_space-500 dark:text-platinum-500 mb-2"
+                >
                   Description
                 </label>
                 <textarea
@@ -145,7 +157,10 @@ const CreateProjectModal: FC<CreateProjectModalProps> = ({ isModalOpen, setIsMod
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-outer_space-500 dark:text-platinum-500 mb-2">
+                <label
+                  htmlFor="dueDate"
+                  className="block text-sm font-medium text-outer_space-500 dark:text-platinum-500 mb-2"
+                >
                   Due Date
                 </label>
                 <input
@@ -165,6 +180,28 @@ const CreateProjectModal: FC<CreateProjectModalProps> = ({ isModalOpen, setIsMod
                   })} // Transform input string YYYY-MM-DD to desired date object before validation.
                 />
                 {errors.dueDate && <p className="text-red-500 text-sm mt-1">{errors.dueDate.message}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-outer_space-500 dark:text-platinum-500 mb-2">
+                  Assign Teams *
+                </label>
+                <Controller
+                  name="teamIds"
+                  control={control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      options={(userTeams.data ?? []).map((t) => ({ label: t.teamName, value: t.id }))}
+                      value={field.value ?? []}
+                      onChange={field.onChange}
+                      disabled={isUserTeamsLoading || isProjectCreationLoading}
+                      placeholder={isUserTeamsLoading ? "Loading teams..." : "Select teams"}
+                      emptyText={getUserTeamsError ? "Failed to load teams" : "You are not in any teams."}
+                    />
+                  )}
+                />
+
+                {errors.teamIds && <p className="text-red-500 text-sm mt-1">{errors.teamIds.message}</p>}
               </div>
 
               <div className="flex justify-end space-x-3 pt-4">

@@ -76,8 +76,11 @@ export async function createProjectAction(
     updatedAt: new Date(),
   };
 
+  //
+  const assignedTeams: number[] = projectFormData.teamIds;
+
   // Create project
-  const createProjectResponse = await queries.projects.create(projectDBData);
+  const createProjectResponse = await queries.projects.create(projectDBData, assignedTeams);
 
   revalidatePath("/projects");
 
