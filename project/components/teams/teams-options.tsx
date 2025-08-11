@@ -1,14 +1,9 @@
 "use client";
-import { FC, useState } from "react";
+import { FC } from "react";
 import { Button } from "../ui/button";
 import { EllipsisVertical } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { deleteTeam } from "@/actions/teams-actions";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { useTeams } from "@/hooks/use-teams";
 import { toast } from "sonner";
 
 type TeamsOptionsProps = {
@@ -16,19 +11,21 @@ type TeamsOptionsProps = {
 };
 
 const TeamsOptions: FC<TeamsOptionsProps> = ({ team_id }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const { deleteTeam, isTeamDeleteLoading, isTeamLeader, isTeamLeaderCheckLoading, leaveTeam, isLeaveTeamLoading } =
+    useTeams(team_id);
 
-  async function onClick() {
-    setIsLoading(true);
-
-    const response = await deleteTeam(team_id);
-    if (!response.success) {
-      toast.error("Error", { description: response.message });
-      setIsLoading(false);
+  function onLeaveTeamClick() {
+    if (isTeamLeader) {
+      toast.error("Unable to Leave Team", {
+        description: "Please assign another member as the team leader before leaving.",
+      });
       return;
     }
-    toast.success("Success", { description: response.message });
-    setIsLoading(false);
+    leaveTeam(team_id);
+  }
+
+  function onDeleteTeamClick() {
+    deleteTeam(team_id);
   }
 
   return (
@@ -40,12 +37,21 @@ const TeamsOptions: FC<TeamsOptionsProps> = ({ team_id }) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem
-          disabled={isLoading}
+          disabled={isLeaveTeamLoading || isTeamLeaderCheckLoading}
           variant="destructive"
-          onClick={onClick}
+          onClick={onLeaveTeamClick}
         >
-          Delete Team
+          Leave Team
         </DropdownMenuItem>
+        {isTeamLeader && (
+          <DropdownMenuItem
+            disabled={isTeamDeleteLoading || isTeamLeaderCheckLoading}
+            variant="destructive"
+            onClick={onDeleteTeamClick}
+          >
+            Delete Team
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

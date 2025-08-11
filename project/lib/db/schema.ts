@@ -153,7 +153,7 @@ export const users_to_teams = pgTable(
       .references(() => roles.id, { onDelete: "restrict" })
       .notNull()
       .default(1), // "No Role Yet" default
-    isCreator: boolean("isCreator").notNull().default(false),
+    isLeader: boolean("isLeader").notNull().default(false),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

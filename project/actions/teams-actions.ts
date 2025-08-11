@@ -16,6 +16,15 @@ export async function updateTeam(
   return updateTeamResponse.success ? updateTeamResponse : updateTeamResponse;
 }
 
+export async function checkUserIsLeaderAction(
+  user_id: number,
+  team_id: number,
+): Promise<ServerActionResponse<boolean>> {
+  const userIsLeaderResponse = await queries.teams.checkUserIsLeader(user_id, team_id);
+
+  return userIsLeaderResponse.success ? userIsLeaderResponse : userIsLeaderResponse;
+}
+
 export async function checkTeamNameUnique(teamName: string): Promise<ServerActionResponse<boolean>> {
   // call utility function to check teamname uniqueness.
   const nameIsUniqueResponse = await queries.teams.checkTeamNameUnique(teamName);
@@ -24,7 +33,7 @@ export async function checkTeamNameUnique(teamName: string): Promise<ServerActio
   return nameIsUniqueResponse.success ? nameIsUniqueResponse : nameIsUniqueResponse;
 }
 
-export async function deleteTeam(team_id: number): Promise<ServerActionResponse<types.TeamsSelect>> {
+export async function deleteTeamAction(team_id: number): Promise<ServerActionResponse<types.TeamsSelect>> {
   // call utility function to delete team.
   const deleteTeamResponse = await queries.teams.deleteTeam(team_id);
 
@@ -35,7 +44,7 @@ export async function deleteTeam(team_id: number): Promise<ServerActionResponse<
   return deleteTeamResponse.success ? deleteTeamResponse : deleteTeamResponse;
 }
 
-export async function addUsersToTeam(users_ids: number[], team_id: number): Promise<ServerActionResponse<boolean>> {
+export async function addUsersToTeamAction(users_ids: number[], team_id: number): Promise<ServerActionResponse<boolean>> {
   for (const user_id of users_ids) {
     // Add current user to team
     const addUsertoTeamResponse = await queries.teams.addUserToTeam(user_id, team_id, false);
@@ -52,7 +61,7 @@ export async function addUsersToTeam(users_ids: number[], team_id: number): Prom
   };
 }
 
-export async function removeUsersFromTeam(
+export async function removeUsersFromTeamAction(
   users_ids: number[],
   team_id: number,
 ): Promise<ServerActionResponse<boolean>> {

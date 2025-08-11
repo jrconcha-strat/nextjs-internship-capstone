@@ -1,14 +1,13 @@
 "use client";
 import { FC, Fragment, useEffect, useState } from "react";
 import { UserSelect } from "@/types";
-import { getAllUsers } from "@/actions/user-actions";
-import { addUsersToTeam, removeUsersFromTeam } from "@/actions/teams-actions";
-import { toast } from "sonner";
+import { getAllUsers } from "@/actions/user-actions"; 
 import { DataTable } from "./data-table-members";
 import { columns } from "./members-columns";
 import { DropdownMenuContent, DropdownMenu, DropdownMenuTrigger, DropdownMenuItem } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { ChevronDownIcon } from "lucide-react";
+import { useTeams } from "@/hooks/use-teams";
 
 type ManageMembersTeamProps = {
   teamMembers: UserSelect[];
@@ -17,7 +16,7 @@ type ManageMembersTeamProps = {
 
 const modeOptions = ["Add", "Remove"];
 
-const ManageMembersTeam: FC<ManageMembersTeamProps> = ({ teamMembers, team_id}) => {
+const ManageMembersTeam: FC<ManageMembersTeamProps> = ({ teamMembers, team_id }) => {
   const [users, setUsers] = useState<UserSelect[]>([]);
   const [dataTableMode, setDataTableMode] = useState(modeOptions[0]);
 
@@ -44,27 +43,20 @@ const ManageMembersTeam: FC<ManageMembersTeamProps> = ({ teamMembers, team_id}) 
     }
   });
 
+  const { addUsersToTeam, isAddingUsersToTeamLoading, removeUsersFromTeam, isRemoveUsersFromTeamLoading } =
+    useTeams(team_id);
+
   // Handle adding selected users to the team
   const handleAddUsers = async (selectedUsers: UserSelect[]) => {
     // Extract the IDs of selected users and pass them
     const selectedUserIds = selectedUsers.map((user) => user.id);
-    const response = await addUsersToTeam(selectedUserIds, team_id); // Pass only the IDs
-    if (!response.success) {
-      toast.error("Error", { description: response.message });
-      return;
-    }
-    toast.success("Success", { description: response.message });
+    addUsersToTeam({ user_ids: selectedUserIds, team_id });
   };
 
   const handleRemoveUsers = async (selectedUsers: UserSelect[]) => {
     // Extract the IDs of selected users and pass them
     const selectedUserIds = selectedUsers.map((user) => user.id);
-    const response = await removeUsersFromTeam(selectedUserIds, team_id); // Pass only the IDs
-    if (!response.success) {
-      toast.error("Error", { description: response.message });
-      return;
-    }
-    toast.success("Success", { description: response.message });
+    removeUsersFromTeam({ user_ids: selectedUserIds, team_id });
   };
 
   const buttonAction = dataTableMode === "Add" ? handleAddUsers : handleRemoveUsers;

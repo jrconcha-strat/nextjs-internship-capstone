@@ -188,7 +188,7 @@ export const teams = {
   addUserToTeam: async (
     userId: number,
     teamId: number,
-    isCreator: boolean,
+    isLeader: boolean,
   ): Promise<types.QueryResponse<types.UsersToTeamsInsert>> => {
     try {
       // Construct the users to teams object to be inserted
@@ -198,7 +198,7 @@ export const teams = {
         createdAt: new Date(),
         updatedAt: new Date(),
         role: 1,
-        isCreator: isCreator,
+        isLeader: isLeader,
       };
 
       const response = await db.insert(schema.users_to_teams).values(usersToTeamsObject);
@@ -308,6 +308,38 @@ export const teams = {
       return {
         success: false,
         message: "Unable to check if team name is unique.",
+        error: e,
+      };
+    }
+  },
+  checkUserIsLeader: async (user_id: number, team_id: number): Promise<types.QueryResponse<boolean>> => {
+    try {
+      const result = await db
+        .select({ isLeader: schema.users_to_teams.isLeader })
+        .from(schema.users_to_teams)
+        .where(
+          and(
+            eq(schema.users_to_teams.user_id, user_id),
+            eq(schema.users_to_teams.team_id, team_id),
+            eq(schema.users_to_teams.isLeader, true),
+          ),
+        )
+        .limit(1);
+      if (!result) {
+        throw new Error("Unable to find user to teams row of user id.");
+      }
+      const isLeader = result.length === 1;
+      const message = isLeader ? "User is team leader." : "User is a team member";
+
+      return {
+        success: true,
+        message,
+        data: isLeader,
+      };
+    } catch (e) {
+      return {
+        success: false,
+        message: "Unable to check if user is team leader.",
         error: e,
       };
     }

@@ -36,6 +36,13 @@
       "when": 1754637042458,
       "tag": "0004_young_whistler",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1754883114846,
+      "tag": "0005_curious_goliath",
+      "breakpoints": true
     }
   ]
 }
