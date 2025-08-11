@@ -1,6 +1,6 @@
 import * as types from "../../../types/index";
 import { db } from "../db-index";
-import { getAllObject, getObjectById, deleteObject, updateObject, getBaseFields } from "./query_utils";
+import { getAllObject, getObjectById, deleteObject, getBaseFields } from "./query_utils";
 import * as schema from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { teams as teamsQuery } from "@/lib/db/queries/teams-queries";
@@ -15,16 +15,47 @@ export const projects = {
   create: async (data: types.ProjectInsert): Promise<types.QueryResponse<types.ProjectSelect>> => {
     try {
       const newProject = data;
-      const [insertedProject] = await db.insert(schema.projects).values(newProject).returning();
-      // Check if operation is successful
-      if (insertedProject) {
+
+      const txResult = await db.transaction(async (tx): Promise<types.QueryResponse<types.ProjectSelect>> => {
+        // Insert project
+        const [insertedProject] = await tx.insert(schema.projects).values(newProject).returning();
+        if (!insertedProject) {
+          throw new Error(`Database did not return a project. Check connection.`);
+        }
+
+        // Insert default columns
+        const defaultColumns = ["To Do", "In Progress", "Done"];
+        const now = new Date();
+
+        const listsToInsert = defaultColumns.map((name, idx) => ({
+          name: name,
+          projectId: insertedProject.id,
+          position: idx + 1,
+          createdAt: now,
+          updatedAt: now,
+        }));
+
+        const insertedLists = await tx.insert(schema.lists).values(listsToInsert).returning();
+        if (insertedLists.length !== defaultColumns.length) {
+          throw new Error("Not all default columns were created.");
+        }
+
         return {
           success: true,
-          message: `Successfully created new project ${insertedProject.name}`,
+          message: "Created project successfully.",
           data: insertedProject,
         };
+      });
+
+      // Check if the transaction is successful
+      if (txResult.success) {
+        return {
+          success: true,
+          message: `Successfully created new project.`,
+          data: txResult.data,
+        };
       }
-      throw new Error(`Error: Database did not return a result. Check database connection.`);
+      throw new Error("Project database creation transaction failed.");
     } catch (e) {
       return {
         success: false,
