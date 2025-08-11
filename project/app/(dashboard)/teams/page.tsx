@@ -1,22 +1,11 @@
-import { getTeamsForUser } from "@/actions/teams-actions";
-import { getUserId } from "@/actions/user-actions";
+"use client";
 import CreateTeamButton from "@/components/teams/create-team-button";
 import TeamsSection from "@/components/teams/teams-section";
+import { useTeams } from "@/hooks/use-teams";
 import { Mail, MoreHorizontal } from "lucide-react";
-import { toast } from "sonner";
 
-export default async function TeamPage() {
-  const getUserIdResult = await getUserId();
-  if (!getUserIdResult.success) {
-    throw new Error(getUserIdResult.message);
-  }
-
-  const teamsForUserResponse = await getTeamsForUser(getUserIdResult.data.id);
-  if (!teamsForUserResponse.success) {
-    toast.error("Unable to get your teams", {
-      description: `${teamsForUserResponse.message}. Please refresh the page.`,
-    });
-  }
+export default function TeamPage() {
+  const { userTeams, isUserTeamsLoading, getUserTeamsError } = useTeams();
 
   return (
     <div className="space-y-6">
@@ -24,12 +13,8 @@ export default async function TeamPage() {
       <div className="flex flex-col md:flex-row justify-between md:items-center">
         {/* Text Heading and Subheading */}
         <div>
-          <h1 className="text-3xl font-bold text-outer_space-500 dark:text-platinum-500">
-            Teams
-          </h1>
-          <p className="text-payne's_gray-500 dark:text-french_gray-500 mt-2">
-            Manage team members and permissions
-          </p>
+          <h1 className="text-3xl font-bold text-outer_space-500 dark:text-platinum-500">Teams</h1>
+          <p className="text-payne's_gray-500 dark:text-french_gray-500 mt-2">Manage team members and permissions</p>
         </div>
         {/* Team Buttons */}
         <CreateTeamButton />
@@ -37,11 +22,11 @@ export default async function TeamPage() {
 
       {/* Display Teams */}
       <p className="text-xl font-bold mb-4 text-dark-grey-400">Your Teams</p>
-      {teamsForUserResponse.success && teamsForUserResponse.data ? (
-        <TeamsSection teamsData={teamsForUserResponse.data} />
+      {!isUserTeamsLoading && userTeams.data ? (
+        <TeamsSection teamsData={userTeams.data} />
       ) : (
         <div className="text-center text-sm text-dark-grey-400 mb-4">
-          {teamsForUserResponse.success === false ? (
+          {!userTeams && !isUserTeamsLoading && getUserTeamsError ? (
             <p>Unable to load your teams. Please refresh the page.</p>
           ) : (
             <p>Loading your teams...</p>
@@ -55,13 +40,8 @@ export default async function TeamPage() {
           📋 Team Management Implementation Tasks
         </h3>
         <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
-          <li>
-            • Task 6.1: Implement task assignment and user collaboration
-            features
-          </li>
-          <li>
-            • Task 6.4: Implement project member management and permissions
-          </li>
+          <li>• Task 6.1: Implement task assignment and user collaboration features</li>
+          <li>• Task 6.4: Implement project member management and permissions</li>
         </ul>
       </div>
 
@@ -115,12 +95,8 @@ export default async function TeamPage() {
                   {member.avatar}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-outer_space-500 dark:text-platinum-500">
-                    {member.name}
-                  </h3>
-                  <p className="text-sm text-payne's_gray-500 dark:text-french_gray-400">
-                    {member.role}
-                  </p>
+                  <h3 className="font-semibold text-outer_space-500 dark:text-platinum-500">{member.name}</h3>
+                  <p className="text-sm text-payne's_gray-500 dark:text-french_gray-400">{member.role}</p>
                 </div>
               </div>
               <button className="p-1 hover:bg-platinum-500 dark:hover:bg-payne's_gray-400 rounded">
