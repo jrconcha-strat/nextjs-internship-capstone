@@ -83,8 +83,8 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
     resolver: zodResolver(taskSchemaForm),
   });
 
-  const { createTask, isCreateTaskLoading } = useTasks(list_id);
-  const {members, isMembersLoading, membersError} = useProjectMembers(project_id);
+  const { createTask, isCreateTaskLoading } = useTasks({ list_id: list_id });
+  const { members, isMembersLoading, membersError } = useProjectMembers(project_id);
 
   const onSubmit = async (values: z.infer<typeof taskSchemaForm>) => {
     createTask({ project_id, list_id, position, taskFormData: values });
@@ -190,7 +190,7 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
                   control={control}
                   render={({ field }) => (
                     <MultiSelect
-                      options={(members ?? []).map((m) => ({ label: m.name, value: m.id}))}
+                      options={(members ?? []).map((m) => ({ label: m.name, value: m.id }))}
                       value={field.value ?? []}
                       onChange={field.onChange}
                       disabled={isMembersLoading || isCreateTaskLoading}
