@@ -32,8 +32,8 @@ const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit }) => {
           position={listTasks.length}
         />
       )}
-      <div className="min-w-[80px] w-80 overflow-y shrink-0">
-        <div className="bg-platinum-800 dark:bg-outer_space-400 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400">
+      <div className="min-w-[80px] min-h-[350px] w-80 overflow-y shrink-0">
+        <div className="bg-white-smoke-50 min-h-[350px] h-full dark:bg-outer_space-400 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400">
           <div className="p-4 border-b border-french_gray-300 dark:border-payne's_gray-400">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-outer_space-500 dark:text-platinum-500">
@@ -47,11 +47,12 @@ const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit }) => {
           </div>
 
           {listTasks ? (
-            <div className="p-4 space-y-3 min-h-[400px]">
-              {listTasks.map((task) => (
-                <TaskCard key={task.id} task={task} />
-              ))}
-
+            <div className="p-4 min-h-[400px]">
+              <div className=" p-4 space-y-3 max-h-[400px] overflow-y-auto">
+                {listTasks.map((task) => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
+              </div>
               <button
                 type="button"
                 onClick={openModal}
@@ -61,15 +62,17 @@ const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit }) => {
               </button>
             </div>
           ) : isListTasksLoading && !getListTasksError ? (
-            <div className="w-full h-full flex justify-center items-center gap-x-2">
+            <div className="p-4 text-center w-full h-full flex justify-center items-center gap-x-2">
               {" "}
-              <Loader2Icon size={24} className="animate-spin" /> <p className="text-2xl"> Loading Task </p>
+              <Loader2Icon size={24} className="animate-spin" /> <p className="text-sm"> Loading Task </p>
             </div>
           ) : (
-            <div className="w-full h-full flex justify-center items-center gap-x-2">
-              {" "}
-              <p className="text-2xl"> Unable to load task. Please refresh the page. </p>
-            </div>
+            getListTasksError && (
+              <div className="p-4 text-center w-full h-full flex justify-center items-center gap-x-2">
+                {" "}
+                <p className="text-sm"> Unable to load task. Please refresh the page. </p>
+              </div>
+            )
           )}
         </div>
       </div>
