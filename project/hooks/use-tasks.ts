@@ -113,6 +113,7 @@ export function useTasks({ list_id, task_id }: { list_id?: number; task_id?: num
       taskFormData: z.infer<typeof taskSchemaForm>;
     }) => {
       const res = await createTaskAction(project_id, list_id, position, taskFormData);
+      console.log(res)
       if (!res.success) throw new Error(res.message);
       return res.data;
     },

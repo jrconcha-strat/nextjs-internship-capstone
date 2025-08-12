@@ -85,7 +85,7 @@ export const tasks = {
         }
 
         // Assign members, if any.
-        if (assignedIds) {
+        if (assignedIds && assignedIds.length > 0) {
           const membersToAssign: types.UsersToTasksSelect[] = assignedIds.map((id) => ({
             user_id: id,
             task_id: insertedTask.id,

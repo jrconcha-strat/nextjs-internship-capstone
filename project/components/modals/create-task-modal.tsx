@@ -81,6 +81,9 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
     formState: { errors },
   } = useForm<z.infer<typeof taskSchemaForm>>({
     resolver: zodResolver(taskSchemaForm),
+    defaultValues:{
+      assigneeIds: []
+    }
   });
 
   const { createTask, isCreateTaskLoading } = useTasks({ list_id: list_id });
@@ -153,7 +156,7 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
                   htmlFor="Priority"
                   className="block text-sm font-medium text-outer_space-500 dark:text-platinum-500 mb-2"
                 >
-                  Priority
+                  Priority *
                 </label>
                 <Controller
                   name="priority"
