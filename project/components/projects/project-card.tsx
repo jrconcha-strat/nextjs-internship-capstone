@@ -115,7 +115,7 @@ interface ProjectCardProps {
 }
 
 const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
-  const { members, membersError } = useProjectMembers(project.id);
+  const { members, isMembersLoading, membersError } = useProjectMembers(project.id);
   const { taskCount, isTaskCountLoading, taskCountError } = useProjects(project.id);
 
   const [isEditModalOpen, setIsModalOpen] = useState(false);
@@ -143,11 +143,12 @@ const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
           <div className="flex items-center justify-between text-sm text-payne's_gray-500 dark:text-french_gray-400 mb-4">
             <div className="flex items-center">
               <Users size={16} className="mr-1" />
-              {membersError
-                ? "Unable to load members."
-                : members
-                  ? `${members.length === 0 ? "No" : members.length} members `
-                  : "Loading..."}
+
+              {isMembersLoading
+                ? "Loading"
+                : !membersError && members
+                  ? `${members.length === 0 ? "No" : members.length} members`
+                  : "Unable to load members."}
             </div>
             <div className="flex items-center">
               <Calendar size={16} className="mr-1" />
