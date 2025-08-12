@@ -28,6 +28,11 @@ export function formatDate(date: Date | string): string {
   });
 }
 
+export function capitalize(string: string): string {
+  if (string.length === 0) return string;
+  return string[0].toUpperCase() + string.slice(1);
+}
+
 // Perform shallow comparison. Does not handle nested comparisons like for objects or arrays.
 // To be used within update query utilities to identify changed fields to be updated.
 // export function getDataDiff<T>(existingData: T, newData: T): Partial<T> {

@@ -62,16 +62,62 @@ export function useTasks(projectId: string) {
 */
 
 // Placeholder to prevent import errors
-export function useTasks(projectId: string) {
-  console.log(`TODO: Implement useTasks hook for project ${projectId}`)
+
+"use client";
+import { createTaskAction, getTasksByListIdAction } from "@/actions/task-actions";
+import { taskSchemaForm } from "@/lib/validations/validations";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import z from "zod";
+
+export function useTasks(list_id: number) {
+  const queryClient = useQueryClient();
+
+  const getTaskByListId = useQuery({
+    queryKey: ["tasks", list_id],
+    enabled: typeof list_id === "number",
+    queryFn: async ({ queryKey }) => {
+      const [, list_id] = queryKey as ["tasks", number];
+      const res = await getTasksByListIdAction(list_id);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+  });
+
+  const createTask = useMutation({
+    mutationFn: async ({
+      project_id,
+      list_id,
+      position,
+      taskFormData,
+    }: {
+      project_id: number;
+      list_id: number;
+      position: number,
+      taskFormData: z.infer<typeof taskSchemaForm>;
+    }) => {
+      const res = await createTaskAction(project_id, list_id, position, taskFormData);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Success", { description: "Successfully created the task." });
+    },
+    onError: (error) => {
+      toast.error("Error", { description: error.message });
+    },
+  });
+
   return {
-    tasks: [],
-    isLoading: false,
-    error: null,
-    createTask: (data: any) => console.log("TODO: Create task", data),
-    updateTask: (id: string, data: any) => console.log(`TODO: Update task ${id}`, data),
-    deleteTask: (id: string) => console.log(`TODO: Delete task ${id}`),
-    moveTask: (taskId: string, newListId: string, position: number) =>
-      console.log(`TODO: Move task ${taskId} to list ${newListId} at position ${position}`),
-  }
+    // Get list's tasks
+    listTasks: getTaskByListId.data,
+    isListTasksLoading: getTaskByListId.isPending,
+    getListTasksError: getTaskByListId.error,
+
+    // Create task
+    createTask: createTask.mutate,
+    isCreateTaskLoading: createTask.isPending,
+    createTaskError: createTask.error,
+  };
 }

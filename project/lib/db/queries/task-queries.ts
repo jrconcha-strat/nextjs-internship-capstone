@@ -1,5 +1,7 @@
 import * as types from "../../../types/index";
-import { createObject, getObjectById, deleteObject, updateObject, getByParentObject } from "./query_utils";
+import { db } from "../db-index";
+import * as schema from "../schema";
+import { getObjectById, deleteObject, updateObject, getByParentObject } from "./query_utils";
 
 export const tasks = {
   getByList: async (listId: number): Promise<types.QueryResponse<Array<types.TaskSelect>>> => {
@@ -8,8 +10,25 @@ export const tasks = {
   getById: async (id: number): Promise<types.QueryResponse<types.TaskSelect>> => {
     return getObjectById<types.TaskSelect>(id, "tasks");
   },
-  create: async (data: types.TaskInsert): Promise<types.QueryResponse<types.TaskInsert>> => {
-    return createObject<types.TaskInsert>(data, "tasks");
+  create: async (data: types.TaskInsert): Promise<types.QueryResponse<types.TaskSelect>> => {
+    try {
+      const [result] = await db.insert(schema.tasks).values(data).returning();
+
+      if (result) {
+        return {
+          success: true,
+          message: `Successfully created a new task.`,
+          data: result,
+        };
+      }
+      throw new Error(`Database returned no result. Check database connection.`);
+    } catch (e) {
+      return {
+        success: false,
+        message: `Unable to create a new task.`,
+        error: e,
+      };
+    }
   },
   update: async (id: number, data: types.TaskInsert): Promise<types.QueryResponse<types.TaskInsert>> => {
     return updateObject<types.TaskSelect, types.TaskInsert>(

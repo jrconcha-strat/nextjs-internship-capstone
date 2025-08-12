@@ -212,6 +212,8 @@ export const taskSchemaForm = taskSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  position: true,
+  listId: true,
 });
 
 export const commentSchema = z
