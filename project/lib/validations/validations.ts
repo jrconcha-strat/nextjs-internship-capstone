@@ -214,7 +214,7 @@ export const taskSchemaForm = taskSchema.omit({
   updatedAt: true,
   position: true,
   listId: true,
-});
+}).extend({ assigneeIds: z.array(z.int()).nullable()}); // Because on task creation, we can assign zero, one or more members.
 
 export const commentSchema = z
   .object({

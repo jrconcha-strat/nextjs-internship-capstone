@@ -8,7 +8,7 @@ import { Loader2Icon, X } from "lucide-react";
 import { FC, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Controller } from "react-hook-form";
-import MultiSelect from "../projects/multi-select-teams";
+import MultiSelect from "../ui/multi-select";
 import { useTeams } from "@/hooks/use-teams";
 
 // TODO: Task 4.1 - Implement project CRUD operations

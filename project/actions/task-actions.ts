@@ -25,7 +25,10 @@ export async function createTaskAction(
     createdAt: new Date(),
     updatedAt: new Date(),
   };
-  const res = await queries.tasks.create(taskDBData);
+  
+  const assignedIds = taskFormData.assigneeIds;
+
+  const res = await queries.tasks.create(taskDBData, assignedIds);
 
   revalidatePath(`/projects/${project_id}`);
 

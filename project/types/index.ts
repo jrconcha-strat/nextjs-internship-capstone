@@ -41,5 +41,8 @@ export type UsersToTeamsSelect = typeof schema.users_to_teams.$inferSelect
 export type TeamsToProjectsInsert = typeof schema.teams_to_projects.$inferInsert
 export type TeamsToProjectsSelect = typeof schema.teams_to_projects.$inferSelect
 
+export type UsersToTasksInsert = typeof schema.users_to_tasks.$inferInsert
+export type UsersToTasksSelect = typeof schema.users_to_tasks.$inferSelect
+
 // Note for interns: These types should match your database schema
 // Update as needed when implementing the actual database schema

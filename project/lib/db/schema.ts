@@ -170,7 +170,6 @@ export const users_to_tasks = pgTable(
     user_id: integer("user_id")
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
-    isTaskOwner: boolean("isTaskOwner").notNull().default(false),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

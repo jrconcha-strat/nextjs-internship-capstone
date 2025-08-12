@@ -43,7 +43,9 @@ import { Controller, useForm } from "react-hook-form";
 import z from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { priorityTuple } from "@/lib/db/db-enums";
-import { capitalize } from '../../lib/utils';
+import { capitalize } from "../../lib/utils";
+import MultiSelect from "../ui/multi-select";
+import { useProjectMembers } from "@/hooks/use-projects";
 
 type CreateTaskModalProps = {
   isModalOpen: boolean;
@@ -82,6 +84,7 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
   });
 
   const { createTask, isCreateTaskLoading } = useTasks(list_id);
+  const {members, isMembersLoading, membersError} = useProjectMembers(project_id);
 
   const onSubmit = async (values: z.infer<typeof taskSchemaForm>) => {
     createTask({ project_id, list_id, position, taskFormData: values });
@@ -176,6 +179,28 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
                 />
 
                 {errors.priority && <p className="text-red-500 text-sm mt-1">{errors.priority.message}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-outer_space-500 dark:text-platinum-500 mb-2">
+                  Assign Members
+                </label>
+                <Controller
+                  name="assigneeIds"
+                  control={control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      options={(members ?? []).map((m) => ({ label: m.name, value: m.id}))}
+                      value={field.value ?? []}
+                      onChange={field.onChange}
+                      disabled={isMembersLoading || isCreateTaskLoading}
+                      placeholder={isMembersLoading ? "Loading project members..." : "Select Members to Assign"}
+                      emptyText={membersError ? "Failed to load members" : "This project doesn't have any members yet."}
+                    />
+                  )}
+                />
+
+                {errors.assigneeIds && <p className="text-red-500 text-sm mt-1">{errors.assigneeIds.message}</p>}
               </div>
 
               <div>

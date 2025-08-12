@@ -10,22 +10,55 @@ export const tasks = {
   getById: async (id: number): Promise<types.QueryResponse<types.TaskSelect>> => {
     return getObjectById<types.TaskSelect>(id, "tasks");
   },
-  create: async (data: types.TaskInsert): Promise<types.QueryResponse<types.TaskSelect>> => {
+  create: async (
+    data: types.TaskInsert,
+    assignedIds: number[] | null,
+  ): Promise<types.QueryResponse<types.TaskSelect>> => {
     try {
-      const [result] = await db.insert(schema.tasks).values(data).returning();
+      const newTask = data;
+      const now = new Date();
 
-      if (result) {
+      const txResult = await db.transaction(async (tx): Promise<types.QueryResponse<types.TaskSelect>> => {
+        const [insertedTask] = await tx.insert(schema.tasks).values(newTask).returning();
+        if (!insertedTask) {
+          throw new Error(`Database did not return a task. Check connection.`);
+        }
+
+        // Assign members, if any.
+        if (assignedIds) {
+          const membersToAssign: types.UsersToTasksSelect[] = assignedIds.map((id) => ({
+            user_id: id,
+            task_id: insertedTask.id,
+            createdAt: now,
+            updatedAt: now,
+          }));
+
+          const assignedMembers = await tx.insert(schema.users_to_tasks).values(membersToAssign).returning();
+          if (assignedMembers.length !== assignedIds.length) {
+            throw new Error("Not all members were assigned.");
+          }
+        }
+
         return {
           success: true,
-          message: `Successfully created a new task.`,
-          data: result,
+          message: "Created task successfully.",
+          data: insertedTask,
+        };
+      });
+
+      // Check if the transaction is successful
+      if (txResult.success) {
+        return {
+          success: true,
+          message: `Successfully created new Task.`,
+          data: txResult.data,
         };
       }
-      throw new Error(`Database returned no result. Check database connection.`);
+      throw new Error("Task database creation transaction failed.");
     } catch (e) {
       return {
         success: false,
-        message: `Unable to create a new task.`,
+        message: `Unable to create the task.`,
         error: e,
       };
     }
