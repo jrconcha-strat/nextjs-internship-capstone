@@ -7,6 +7,12 @@ import { taskSchemaDB, taskSchemaForm } from "../lib/validations/validations";
 import z from "zod";
 import { revalidatePath } from "next/cache";
 
+export async function getTasksCountForProjectAction(project_id: number): Promise<ServerActionResponse<number>> {
+  const res = await queries.tasks.getTasksCountForProject(project_id);
+
+  return res.success ? res : res;
+}
+
 export async function createTaskAction(
   project_id: number,
   list_id: number,
@@ -25,7 +31,7 @@ export async function createTaskAction(
     createdAt: new Date(),
     updatedAt: new Date(),
   };
-  
+
   const assignedIds = taskFormData.assigneeIds;
 
   const res = await queries.tasks.create(taskDBData, assignedIds);

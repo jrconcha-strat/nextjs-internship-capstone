@@ -71,6 +71,7 @@ import { projectSchemaForm } from "../lib/validations/validations";
 import z from "zod";
 import { toast } from "sonner";
 import { getUserId } from "@/actions/user-actions";
+import { getTasksCountForProjectAction } from "@/actions/task-actions";
 
 // Projects list
 export function useProjects(project_id?: number) {
@@ -86,6 +87,17 @@ export function useProjects(project_id?: number) {
       const me = await getUserId();
       if (!me.success) throw new Error(me.message);
       const res = await getProjectsForUserAction(me.data.id);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+  });
+
+  const taskCount = useQuery({
+    queryKey: ["task_count", project_id],
+    enabled: typeof project_id === "number",
+    queryFn: async ({ queryKey }) => {
+      const [, id] = queryKey as ["task_count", number];
+      const res = await getTasksCountForProjectAction(id);
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
@@ -154,21 +166,33 @@ export function useProjects(project_id?: number) {
   });
 
   return {
+    // Projects for user
     projects,
     isProjectsLoading,
     projectsError,
-    createProject: createProject.mutate,
-    isProjectCreationLoading: createProject.isPending,
-    projectCreationError: createProject.error,
-    deleteProject: deleteProject.mutate,
-    isProjectDeleteLoading: deleteProject.isPending,
-    deleteProjectError: deleteProject.error,
-    updateProject: updateProject.mutate,
-    isProjectUpdateLoading: updateProject.isPending,
-    updateProjectError: updateProject.error,
+
+    // Project by Id
     project: getProjectById.data,
     isProjectLoading: getProjectById.isLoading,
     projectError: getProjectById.error,
+
+    // Project's task count
+    taskCount: taskCount.data,
+    isTaskCountLoading: taskCount.isLoading,
+    taskCountError: taskCount.error,
+
+    // Mutations
+    createProject: createProject.mutate,
+    isProjectCreationLoading: createProject.isPending,
+    projectCreationError: createProject.error,
+
+    deleteProject: deleteProject.mutate,
+    isProjectDeleteLoading: deleteProject.isPending,
+    deleteProjectError: deleteProject.error,
+
+    updateProject: updateProject.mutate,
+    isProjectUpdateLoading: updateProject.isPending,
+    updateProjectError: updateProject.error,
   };
 }
 

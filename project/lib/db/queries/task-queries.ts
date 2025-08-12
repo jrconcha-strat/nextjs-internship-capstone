@@ -1,9 +1,43 @@
 import * as types from "../../../types/index";
 import { db } from "../db-index";
 import * as schema from "../schema";
+import { lists } from "./list-queries";
 import { getObjectById, deleteObject, updateObject, getByParentObject } from "./query_utils";
+import { inArray } from "drizzle-orm";
 
 export const tasks = {
+  getTasksCountForProject: async (project_id: number): Promise<types.QueryResponse<number>> => {
+    try {
+      // Get the project lists
+      const projectLists = await lists.getByProject(project_id);
+
+      if (!projectLists.success) {
+        return projectLists;
+      }
+
+      // Extract the list IDs
+      const projectListIds: number[] = projectLists.data.map((list) => list.id);
+
+      // Retrieve tasks where the listId is in projectListIds
+      const tasksOfProject = await db
+        .select({ tasks: schema.tasks })
+        .from(schema.tasks)
+        .where(inArray(schema.tasks.listId, projectListIds)); // Filter tasks if they're in this project through the list.
+
+      // Return the count of tasks
+      return {
+        success: true,
+        message: "Task count retrieved successfully.",
+        data: tasksOfProject.length,
+      };
+    } catch (e) {
+      return {
+        success: false,
+        message: `Unable to get task count for project.`,
+        error: e,
+      };
+    }
+  },
   getByList: async (listId: number): Promise<types.QueryResponse<Array<types.TaskSelect>>> => {
     return getByParentObject<types.TaskSelect>(listId, "tasks");
   },

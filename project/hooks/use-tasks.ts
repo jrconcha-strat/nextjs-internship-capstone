@@ -64,7 +64,7 @@ export function useTasks(projectId: string) {
 // Placeholder to prevent import errors
 
 "use client";
-import { createTaskAction, getTasksByListIdAction } from "@/actions/task-actions";
+import { createTaskAction, getTasksByListIdAction, getTasksCountForProjectAction } from "@/actions/task-actions";
 import { taskSchemaForm } from "@/lib/validations/validations";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -93,7 +93,7 @@ export function useTasks(list_id: number) {
     }: {
       project_id: number;
       list_id: number;
-      position: number,
+      position: number;
       taskFormData: z.infer<typeof taskSchemaForm>;
     }) => {
       const res = await createTaskAction(project_id, list_id, position, taskFormData);

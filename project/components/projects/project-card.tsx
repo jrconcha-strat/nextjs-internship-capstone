@@ -1,6 +1,6 @@
 "use client";
 
-import { useProjectMembers } from "@/hooks/use-projects";
+import { useProjectMembers, useProjects } from "@/hooks/use-projects";
 import { formatDate, projectStatusColor } from "@/lib/utils";
 import { ProjectSelect } from "@/types";
 import { Calendar, Users } from "lucide-react";
@@ -116,6 +116,8 @@ interface ProjectCardProps {
 
 const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
   const { members, membersError } = useProjectMembers(project.id);
+  const { taskCount, isTaskCountLoading, taskCountError } = useProjects(project.id);
+
   const [isEditModalOpen, setIsModalOpen] = useState(false);
   const daysLeft =
     project.dueDate && isValid(new Date(project.dueDate))
@@ -154,7 +156,13 @@ const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
           </div>
 
           <div className="flex items-center justify-between text-sm text-payne's_gray-500 dark:text-french_gray-400 mb-4">
-            <span>{Math.floor(Math.random() * 20) + 5} tasks</span>
+            <span>
+              {isTaskCountLoading
+                ? "Loading"
+                : taskCountError && !taskCount
+                  ? "Unable to load task count"
+                  : `${taskCount === 0 ? "No" : taskCount} tasks `}
+            </span>
 
             <div className="text-sm text-payne's_gray-500 dark:text-french_gray-400">
               {daysLeft !== null
