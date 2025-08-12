@@ -7,6 +7,13 @@ import { taskSchemaDB, taskSchemaForm } from "../lib/validations/validations";
 import z from "zod";
 import { revalidatePath } from "next/cache";
 
+export async function deleteTaskAction(task_id: number, project_id: number): Promise<ServerActionResponse<TaskSelect>> {
+  const res = await queries.tasks.delete(task_id);
+
+  revalidatePath(`/projects/${project_id}`);
+  return res.success ? res : res;
+}
+
 export async function getTaskMembersAction(task_id: number): Promise<ServerActionResponse<UserSelect[]>> {
   const res = await queries.tasks.getTaskMembers(task_id);
 

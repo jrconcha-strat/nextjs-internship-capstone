@@ -2,8 +2,8 @@ import * as types from "../../../types/index";
 import { db } from "../db-index";
 import * as schema from "../schema";
 import { lists } from "./list-queries";
-import { getObjectById, deleteObject, updateObject, getByParentObject } from "./query_utils";
-import { inArray, eq } from "drizzle-orm";
+import { getObjectById, updateObject, getByParentObject } from "./query_utils";
+import { inArray, eq, sql, and, gt } from "drizzle-orm";
 
 export const tasks = {
   getTaskMembers: async (task_id: number): Promise<types.QueryResponse<types.UserSelect[]>> => {
@@ -146,7 +146,56 @@ export const tasks = {
     );
   },
   delete: async (id: number): Promise<types.QueryResponse<types.TaskSelect>> => {
-    // Call Generic function to delete object
-    return deleteObject<types.TaskSelect>(id, "tasks");
+    try {
+      const result = await db.transaction<types.QueryResponse<types.TaskSelect>>(async (tx) => {
+        // 1) Re-fetch inside the transaction to ensure consistency
+        const toDelete = await tx.query.tasks.findFirst({
+          where: eq(schema.tasks.id, id),
+          columns: { id: true, position: true, listId: true },
+        });
+
+        if (!toDelete) {
+          return {
+            success: false,
+            message: "Unable to delete task.",
+            error: "Task not found.",
+          };
+        }
+
+        const { position: deletedPos, listId } = toDelete;
+
+        // 2) Delete the row
+        const [deleted] = await tx.delete(schema.tasks).where(eq(schema.tasks.id, id)).returning();
+
+        if (!deleted) {
+          return {
+            success: false,
+            message: "Unable to delete task.",
+            error: "Database return no result. Check database connection.",
+          };
+        }
+
+        // 3) Close the gap: shift positions > deletedPos down by 1 (same project only)
+        await tx
+          .update(schema.tasks)
+          .set({ position: sql`${schema.tasks.position} - 1` })
+          .where(and(eq(schema.tasks.listId, listId), gt(schema.tasks.position, deletedPos)));
+
+        // 4) Return.
+        return {
+          success: true,
+          message: "Deleted task successfully.",
+          data: deleted,
+        };
+      });
+
+      return result;
+    } catch (e) {
+      return {
+        success: false,
+        message: "Unable to delete task.",
+        error: e,
+      };
+    }
   },
 };

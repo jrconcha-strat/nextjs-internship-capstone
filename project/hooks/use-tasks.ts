@@ -64,7 +64,12 @@ export function useTasks(projectId: string) {
 // Placeholder to prevent import errors
 
 "use client";
-import { createTaskAction, getTaskMembersAction, getTasksByListIdAction } from "@/actions/task-actions";
+import {
+  createTaskAction,
+  deleteTaskAction,
+  getTaskMembersAction,
+  getTasksByListIdAction,
+} from "@/actions/task-actions";
 import { taskSchemaForm } from "@/lib/validations/validations";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -120,6 +125,21 @@ export function useTasks({ list_id, task_id }: { list_id?: number; task_id?: num
     },
   });
 
+  const deleteTask = useMutation({
+    mutationFn: async ({ task_id, list_id }: { task_id: number; list_id: number }) => {
+      const res = await deleteTaskAction(task_id, list_id);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Success", { description: "Successfully deleted the task." });
+    },
+    onError: (error) => {
+      toast.error("Error", { description: error.message });
+    },
+  });
+
   return {
     // Get list's tasks
     listTasks: getTaskByListId.data,
@@ -135,5 +155,10 @@ export function useTasks({ list_id, task_id }: { list_id?: number; task_id?: num
     createTask: createTask.mutate,
     isCreateTaskLoading: createTask.isPending,
     createTaskError: createTask.error,
+
+    // Delete Task
+    deleteTask: deleteTask.mutate,
+    isDeleteTaskLoading: deleteTask.isPending,
+    deleteTaskError: deleteTask.error,
   };
 }
