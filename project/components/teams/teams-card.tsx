@@ -1,40 +1,28 @@
 "use client";
 import { formatDate } from "@/lib/utils";
 import { TeamsSelect } from "@/types";
-import { FC, useEffect, useState } from "react";
-import TeamMembersAvatars from "./team-members-avatars";
+import { FC, useState } from "react";
+import MembersAvatars from "../ui/members-avatars";
 import ViewTeamButton from "./view-team-button";
 import TeamsOptions from "./teams-options";
-import { UserSelect } from "../../types/index";
-import { getUsersForTeam } from "@/actions/teams-actions";
 import ReassignLeaderModal from "../modals/reassign-leader-modal";
 import { useTeams } from "@/hooks/use-teams";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type TeamsCardProps = {
   teamData: TeamsSelect;
 };
 
 const TeamsCard: FC<TeamsCardProps> = ({ teamData }) => {
-  const [teamMembers, setTeamMembers] = useState<UserSelect[]>([]);
   const [isReassignModalOpen, setReassignModalOpen] = useState(false);
 
-  const { teamLeaderUser } = useTeams(teamData.id);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const response = await getUsersForTeam(teamData.id);
-      if (response.success) {
-        setTeamMembers(response.data);
-      }
-    };
-
-    fetchUsers();
-  }, [teamData]);
+  const { teamLeaderUser, teamMembers, isTeamMembersLoading, teamMembersError } = useTeams(teamData.id);
+  const max_visible_users = 5;
 
   return (
     <>
       {/* Modal */}
-      {isReassignModalOpen && teamLeaderUser && (
+      {isReassignModalOpen && teamLeaderUser && teamMembers && (
         <ReassignLeaderModal
           isOpen={isReassignModalOpen}
           onClose={() => setReassignModalOpen(false)}
@@ -55,12 +43,23 @@ const TeamsCard: FC<TeamsCardProps> = ({ teamData }) => {
 
         {/* Member Avatars */}
         <div className="mt-4">
-          <TeamMembersAvatars teamMembers={teamMembers} />
+          {isTeamMembersLoading ? (
+            <Skeleton className="w-32 h-10 rounded-md" />
+          ) : teamMembers && !teamMembersError ? (
+            <MembersAvatars members={teamMembers} max_visible={max_visible_users} size={8} />
+          ) : (
+            <p>Unable to load members.</p>
+          )}
         </div>
 
         {/* Buttons */}
         <div className="flex justify-between mt-4">
-          <ViewTeamButton teamData={teamData} teamMembers={teamMembers} />
+          {teamMembers ? (
+            <ViewTeamButton teamData={teamData} teamMembers={teamMembers} />
+          ) : (
+            <Skeleton className="w-16 h-8 rounded-md" />
+          )}
+
           <TeamsOptions team_id={teamData.id} openModal={() => setReassignModalOpen(true)} />
         </div>
       </div>

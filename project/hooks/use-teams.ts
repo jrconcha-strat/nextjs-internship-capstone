@@ -6,6 +6,7 @@ import {
   deleteTeamAction,
   getProjectsForTeamAction,
   getTeamsForUser,
+  getUsersForTeam,
   reassignTeamLeaderAction,
   removeUsersFromTeamAction,
   updateTeamAction,
@@ -54,6 +55,18 @@ export function useTeams(team_id?: number) {
       const res = await getTeamLeaderAction(team_id);
       if (!res.success) throw new Error(res.message);
       return res.data; // types.UserSelect
+    },
+  });
+
+  const teamMembers = useQuery({
+    queryKey: ["team_members", { teamId: team_id ?? null }],
+    enabled: typeof team_id === "number",
+    staleTime: 60_000,
+    queryFn: async () => {
+      if (typeof team_id !== "number") return undefined;
+      const res = await getUsersForTeam(team_id);
+      if (!res.success) throw new Error(res.message);
+      return res.data; // types.UserSelect[]
     },
   });
 
@@ -174,6 +187,11 @@ export function useTeams(team_id?: number) {
     teamLeaderUser: teamLeader.data,
     isTeamLeaderUserLoading: teamLeader.isLoading,
     teamLeaderUserError: teamLeader.error,
+
+    // Team members for a team
+    teamMembers: teamMembers.data,
+    isTeamMembersLoading: teamMembers.isLoading,
+    teamMembersError: teamMembers.error,
 
     // mutations
     deleteTeam: deleteTeam.mutate,
