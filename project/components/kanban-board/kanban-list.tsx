@@ -5,7 +5,8 @@ import { ListSelect } from "@/types";
 import { useTasks } from "@/hooks/use-tasks";
 import CreateTaskModal from "../modals/create-task-modal";
 import { Loader2Icon } from "lucide-react";
-import { capitalize } from "@/lib/utils";
+import { capitalize, taskPriorityColor } from "@/lib/utils";
+import { Badge } from "../ui/badge";
 
 type KanbanListProps = {
   list: ListSelect;
@@ -56,9 +57,7 @@ const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit }) => {
                   <h4 className="font-medium text-outer_space-500 dark:text-platinum-500 text-sm mb-2">{task.title}</h4>
                   <p className="text-xs text-payne's_gray-500 dark:text-french_gray-400 mb-3">{task.description}</p>
                   <div className="flex items-center justify-between">
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue_munsell-100 text-blue_munsell-700 dark:bg-blue_munsell-900 dark:text-blue_munsell-300">
-                      {capitalize(task.priority)}
-                    </span>
+                    <Badge className={`${taskPriorityColor[task.priority]}`}>{capitalize(task.priority)}</Badge>
                     <div className="w-6 h-6 bg-blue_munsell-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
                       U
                     </div>

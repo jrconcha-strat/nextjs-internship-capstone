@@ -9,6 +9,13 @@ export const projectStatusColor = {
   Review: "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300",
 } as const;
 
+
+export const taskPriorityColor = {
+  low: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
+  medium: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300", 
+  high: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300", 
+} as const;
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
