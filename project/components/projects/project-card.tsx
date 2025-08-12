@@ -9,6 +9,8 @@ import { FC, useState } from "react";
 import ProjectOptions from "./project-options";
 import UpdateProjectModal from "../modals/update-project-modal";
 import { differenceInDays, isValid } from "date-fns";
+import MembersAvatars from "../ui/members-avatars";
+import { Skeleton } from "../ui/skeleton";
 
 // TODO: Task 4.5 - Design and implement project cards and layouts
 /*
@@ -193,6 +195,13 @@ const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
             <span className={`px-2 py-1 text-xs font-medium rounded-full ${projectStatusColor[project.status]}`}>
               {project.status}
             </span>
+            {isMembersLoading ? (
+              <Skeleton className="w-20 h-6 rounded-md" />
+            ) : members && !membersError ? (
+              <MembersAvatars members={members} max_visible={5} size={6} />
+            ) : (
+              <p>Unable to load members.</p>
+            )}
           </div>
         </div>
       </Link>
