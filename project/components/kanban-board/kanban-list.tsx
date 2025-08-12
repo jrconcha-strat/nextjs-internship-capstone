@@ -5,8 +5,7 @@ import { ListSelect } from "@/types";
 import { useTasks } from "@/hooks/use-tasks";
 import CreateTaskModal from "../modals/create-task-modal";
 import { Loader2Icon } from "lucide-react";
-import { capitalize, taskPriorityColor } from "@/lib/utils";
-import { Badge } from "../ui/badge";
+import TaskCard from "../tasks/task-card";
 
 type KanbanListProps = {
   list: ListSelect;
@@ -15,7 +14,7 @@ type KanbanListProps = {
 };
 
 const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit }) => {
-  const { listTasks, isListTasksLoading, getListTasksError } = useTasks(list.id);
+  const { listTasks, isListTasksLoading, getListTasksError } = useTasks({ list_id: list.id });
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
 
   function openModal() {
@@ -50,19 +49,7 @@ const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit }) => {
           {listTasks ? (
             <div className="p-4 space-y-3 min-h-[400px]">
               {listTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="p-4 bg-white dark:bg-outer_space-300 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 cursor-pointer hover:shadow-md transition-shadow"
-                >
-                  <h4 className="font-medium text-outer_space-500 dark:text-platinum-500 text-sm mb-2">{task.title}</h4>
-                  <p className="text-xs text-payne's_gray-500 dark:text-french_gray-400 mb-3">{task.description}</p>
-                  <div className="flex items-center justify-between">
-                    <Badge className={`${taskPriorityColor[task.priority]}`}>{capitalize(task.priority)}</Badge>
-                    <div className="w-6 h-6 bg-blue_munsell-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
-                      U
-                    </div>
-                  </div>
-                </div>
+                <TaskCard key={task.id} task={task} />
               ))}
 
               <button

@@ -64,13 +64,13 @@ export function useTasks(projectId: string) {
 // Placeholder to prevent import errors
 
 "use client";
-import { createTaskAction, getTasksByListIdAction, getTasksCountForProjectAction } from "@/actions/task-actions";
+import { createTaskAction, getTaskMembersAction, getTasksByListIdAction } from "@/actions/task-actions";
 import { taskSchemaForm } from "@/lib/validations/validations";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import z from "zod";
 
-export function useTasks(list_id: number) {
+export function useTasks({ list_id, task_id }: { list_id?: number; task_id?: number }) {
   const queryClient = useQueryClient();
 
   const getTaskByListId = useQuery({
@@ -79,6 +79,17 @@ export function useTasks(list_id: number) {
     queryFn: async ({ queryKey }) => {
       const [, list_id] = queryKey as ["tasks", number];
       const res = await getTasksByListIdAction(list_id);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+  });
+
+  const getTaskMembers = useQuery({
+    queryKey: ["task_members", task_id],
+    enabled: typeof task_id === "number",
+    queryFn: async ({ queryKey }) => {
+      const [, task_id] = queryKey as ["tasks_members", number];
+      const res = await getTaskMembersAction(task_id);
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
@@ -114,6 +125,11 @@ export function useTasks(list_id: number) {
     listTasks: getTaskByListId.data,
     isListTasksLoading: getTaskByListId.isPending,
     getListTasksError: getTaskByListId.error,
+
+    // Get members assigned to task
+    taskMembers: getTaskMembers.data,
+    isTaskMembersLoading: getTaskMembers.isLoading,
+    getTaskMembersError: getTaskMembers.isError,
 
     // Create task
     createTask: createTask.mutate,

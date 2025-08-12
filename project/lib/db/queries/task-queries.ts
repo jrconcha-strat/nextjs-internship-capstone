@@ -3,9 +3,35 @@ import { db } from "../db-index";
 import * as schema from "../schema";
 import { lists } from "./list-queries";
 import { getObjectById, deleteObject, updateObject, getByParentObject } from "./query_utils";
-import { inArray } from "drizzle-orm";
+import { inArray, eq } from "drizzle-orm";
 
 export const tasks = {
+  getTaskMembers: async (task_id: number): Promise<types.QueryResponse<types.UserSelect[]>> => {
+    try {
+      const res = await db
+        .select({ users: schema.users })
+        .from(schema.tasks)
+        .innerJoin(schema.users_to_tasks, eq(schema.users_to_tasks.task_id, schema.tasks.id))
+        .innerJoin(schema.users, eq(schema.users.id, schema.users_to_tasks.user_id))
+        .where(eq(schema.tasks.id, task_id));
+
+      // Unwrap
+      const taskMembers = res.map((r) => r.users);
+
+      // Return the count of tasks
+      return {
+        success: true,
+        message: "Task members retrieve successfully.",
+        data: taskMembers,
+      };
+    } catch (e) {
+      return {
+        success: false,
+        message: `Unable to retrieve task members.`,
+        error: e,
+      };
+    }
+  },
   getTasksCountForProject: async (project_id: number): Promise<types.QueryResponse<number>> => {
     try {
       // Get the project lists

@@ -1,11 +1,17 @@
 "use server";
 
-import { TaskSelect } from "@/types";
+import { TaskSelect, UserSelect } from "@/types";
 import { ServerActionResponse } from "./actions-types";
 import { queries } from "@/lib/db/queries/queries";
 import { taskSchemaDB, taskSchemaForm } from "../lib/validations/validations";
 import z from "zod";
 import { revalidatePath } from "next/cache";
+
+export async function getTaskMembersAction(task_id: number): Promise<ServerActionResponse<UserSelect[]>> {
+  const res = await queries.tasks.getTaskMembers(task_id);
+
+  return res.success ? res : res;
+}
 
 export async function getTasksCountForProjectAction(project_id: number): Promise<ServerActionResponse<number>> {
   const res = await queries.tasks.getTasksCountForProject(project_id);
