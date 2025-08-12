@@ -3,7 +3,7 @@
 import AddKanbanBoard from "./add-kanban-board";
 import { useLists } from "@/hooks/use-lists";
 import SkeletonKanbanBoard from "./skeleton-kanban-board";
-import KanbanLists from "./kanban-lists";
+import KanbanSection from "./kanban-section"
 
 // TODO: Task 5.1 - Design responsive Kanban board layout
 // TODO: Task 5.2 - Implement drag-and-drop functionality with dnd-kit
@@ -59,7 +59,7 @@ export function KanbanBoard({ projectId }: { projectId: string }) {
           )
         ) : (
           <>
-            <KanbanLists project_id={Number(projectId)} lists={lists} />
+            <KanbanSection project_id={Number(projectId)} lists={lists} />
             <AddKanbanBoard project_id={Number(projectId)} position={lists.length} />
           </>
         )}

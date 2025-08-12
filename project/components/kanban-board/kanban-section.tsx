@@ -4,12 +4,12 @@ import { FC, useEffect, useState } from "react";
 import UpdateKanbanModal from "../modals/update-kanban-list-modal";
 import KanbanList from "./kanban-list";
 
-type KanbanListsProps = {
+type KanbanSectionProps = {
   lists: ListSelect[];
   project_id: number;
 };
 
-const KanbanLists: FC<KanbanListsProps> = ({ project_id, lists }) => {
+const KanbanSection: FC<KanbanSectionProps> = ({ project_id, lists }) => {
   const [sortedLists, setSortedList] = useState<ListSelect[]>([]);
   const [editTarget, setEditTarget] = useState<{ id: number; name: string } | null>(null);
 
@@ -41,4 +41,4 @@ const KanbanLists: FC<KanbanListsProps> = ({ project_id, lists }) => {
   );
 };
 
-export default KanbanLists;
+export default KanbanSection;
