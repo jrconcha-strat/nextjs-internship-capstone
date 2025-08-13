@@ -5,6 +5,7 @@ import {
   checkUserIsLeaderAction,
   deleteTeamAction,
   getProjectsForTeamAction,
+  getTeamByIdAction,
   getTeamsForUser,
   getUsersForTeam,
   reassignTeamLeaderAction,
@@ -27,6 +28,18 @@ export function useTeams(team_id?: number) {
       const me = await getUserId();
       if (!me.success) throw new Error(me.message);
       const res = await getTeamsForUser(me.data.id);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+  });
+
+  // Get team by Id
+  const getTeamById = useQuery({
+    queryKey: ["team", team_id],
+    enabled: typeof team_id === "number",
+    queryFn: async ({ queryKey }) => {
+      const [, team_id] = queryKey as ["team", number];
+      const res = await getTeamByIdAction(team_id);
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
@@ -177,6 +190,11 @@ export function useTeams(team_id?: number) {
     userTeams: teams,
     isUserTeamsLoading: teams.isLoading,
     getUserTeamsError: teams.error,
+
+    // team by Id
+    team: getTeamById.data,
+    isTeamLoading: getTeamById.isLoading,
+    teamError: getTeamById.error,
 
     // leader boolean (current user)
     isTeamLeader: checkTeamLeader.data,

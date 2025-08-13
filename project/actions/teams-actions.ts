@@ -7,6 +7,12 @@ import { ServerActionResponse } from "./actions-types";
 import { teamSchemaForm } from "@/lib/validations/validations";
 import z from "zod";
 
+export async function getTeamByIdAction(team_id: number): Promise<ServerActionResponse<types.TeamsSelect>> {
+  const getTeamByIDResult = await queries.teams.getById(team_id);
+
+  return getTeamByIDResult.success ? getTeamByIDResult : getTeamByIDResult;
+}
+
 export async function updateTeamAction(
   team_id: number,
   newData: z.infer<typeof teamSchemaForm>,
