@@ -1,7 +1,9 @@
 "use client";
 import AddTeamMembersModal from "@/components/modals/add-team-members-modal";
 import AddMembersButton from "@/components/teams/teams-slug/add-members-button";
+import LeaveTeamButton from "@/components/teams/teams-slug/leave-team-button";
 import MemberCard, { SkeletonMemberCard } from "@/components/teams/teams-slug/member-card";
+import { Button } from "@/components/ui/button";
 import LoadingUI from "@/components/ui/loading-ui";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTeams } from "@/hooks/use-teams";
@@ -75,15 +77,24 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
               )}
             </div>
           </div>
-          {/* Add Member Button - Displays only if user is Team Leader */}
-          {isTeamLeader && <AddMembersButton onClick={() => setAddMemberModalOpen(true)} />}
+          <div className="flex flex-col mt-4 md:flex-row md:mt-0 gap-2">
+            <LeaveTeamButton team_id={team_id} />
+            {/* Add Member Button - Displays only if user is Team Leader */}
+            {isTeamLeader && <AddMembersButton onClick={() => setAddMemberModalOpen(true)} />}
+          </div>
         </div>
 
         {/* Team Members Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {teamMembers && isTeamLeader !== undefined && teamLeaderUser ? (
             teamMembers.map((member) => (
-              <MemberCard key={member.id} member={member} team_id={team_id} isTeamLeader={isTeamLeader} teamLeaderData={teamLeaderUser} />
+              <MemberCard
+                key={member.id}
+                member={member}
+                team_id={team_id}
+                isTeamLeader={isTeamLeader}
+                teamLeaderData={teamLeaderUser}
+              />
             ))
           ) : (
             <SkeletonMemberCard />
