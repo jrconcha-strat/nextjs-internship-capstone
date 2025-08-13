@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { createListAction, deleteListAction, getAllListsAction, updateListAction } from "@/actions/list-actions";
 import { listSchemaForm } from "@/lib/validations/validations";
 import z from "zod";
+import { ListSelect } from "@/types";
 
 export function useLists(project_id?: number) {
   const queryClient = useQueryClient();
@@ -24,12 +25,45 @@ export function useLists(project_id?: number) {
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
-    onSuccess: () => {
+
+    onMutate: async ({ project_id, position }) => {
+      await queryClient.cancelQueries({ queryKey: ["lists"] });
+
+      const previousLists = queryClient.getQueryData<ListSelect[]>(["lists"]);
+
+      const tempId = -Math.floor(Math.random() * 1e9); // negative temp id to avoid collisions
+
+      // Build an optimistic list
+      const now = new Date();
+      const optimisticList: ListSelect = {
+        id: tempId,
+        name: "New Board", // Same as createListAction
+        projectId: project_id,
+        createdAt: now,
+        updatedAt: now,
+        position: position + 1,
+      };
+
+      queryClient.setQueryData<ListSelect[]>(["lists"], (old) => (old ? [...old, optimisticList] : old));
+
+      return { previousLists, tempId };
+    },
+    onSuccess: (createdList, variables, context) => {
       queryClient.invalidateQueries({ queryKey: ["lists"] });
       toast.success("Success", { description: "Successfully created the list." });
+
+      // We replace optimistic list with the tempId with the server-sourced list with actual id
+      queryClient.setQueryData<ListSelect[]>(
+        ["lists"],
+        (old) => old?.map((l) => (l.id === context.tempId ? createdList : l)) ?? old,
+      );
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["lists"], context?.previousLists);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["lists"] });
     },
   });
 
@@ -39,12 +73,24 @@ export function useLists(project_id?: number) {
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
+    onMutate: async ({ list_id }) => {
+      await queryClient.cancelQueries({ queryKey: ["lists"] });
+
+      const previousLists = queryClient.getQueryData<ListSelect[]>(["lists"]);
+
+      queryClient.setQueryData<ListSelect[]>(["lists"], (old) => (old ? old.filter((l) => l.id != list_id) : old));
+
+      return { previousLists };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["lists"] });
       toast.success("Success", { description: "Successfully deleted the list." });
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["lists"], context?.previousLists);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["lists"] });
     },
   });
 
@@ -62,25 +108,54 @@ export function useLists(project_id?: number) {
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
+    onMutate: async ({ list_id, listFormData }) => {
+      await queryClient.cancelQueries({ queryKey: ["lists"] });
+
+      const previousLists = queryClient.getQueryData<ListSelect[]>(["lists"]);
+
+      // Optimistically update the team with the inputted listFormData
+      queryClient.setQueryData<ListSelect[]>(["lists"], (old) =>
+        old
+          ? old.map((l) =>
+              l.id === list_id
+                ? {
+                    ...l,
+                    ...listFormData,
+                  }
+                : l,
+            )
+          : old,
+      );
+
+      return { previousLists };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["lists"] });
       toast.success("Success", { description: "Successfully updated the list." });
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["projects"], context?.previousLists);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["lists"] });
     },
   });
 
   return {
+    // Get Lists for a project
     lists: list.data,
     isLoadingLists: list.isLoading,
     loadingListError: list.isError,
+
+    // Mutations
     createList: createList.mutate,
     isListCreateLoading: createList.isPending,
     createListError: createList.error,
+
     deleteList: deleteList.mutate,
     isListDeleteLoading: deleteList.isPending,
     deleteListError: deleteList.error,
+
     updateList: updateList.mutate,
     isListUpdateLoading: updateList.isPending,
     updateListError: updateList.error,
