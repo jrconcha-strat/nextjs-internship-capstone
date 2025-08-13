@@ -3,13 +3,16 @@ import AddTeamMembersModal from "@/components/modals/add-team-members-modal";
 import ReassignLeaderModal from "@/components/modals/reassign-leader-modal";
 import AddMembersButton from "@/components/teams/teams-slug/add-members-button";
 import LeaveTeamButton from "@/components/teams/teams-slug/leave-team-button";
-import MemberCard, { SkeletonMemberCard } from "@/components/teams/teams-slug/member-card";
 import LoadingUI from "@/components/ui/loading-ui";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTeams } from "@/hooks/use-teams";
-import { ArrowLeft, Loader2Icon } from "lucide-react";
+import { ArrowLeft, Loader2Icon, Settings, Users } from "lucide-react";
 import Link from "next/link";
 import { use, useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import TeamMembersGrid from "@/components/teams/teams-slug/team-members-grid";
+import { SkeletonMemberCard } from "@/components/teams/teams-slug/member-card";
+import { Separator } from "@/components/ui/separator";
 
 export default function TeamPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params); // Unwrap the promise as per Nextjs 15 recommendation
@@ -101,33 +104,62 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
             {isTeamLeader && <AddMembersButton onClick={() => setAddMemberModalOpen(true)} />}
           </div>
         </div>
+        <Tabs defaultValue="members" className="w-full">
+          <TabsList className="w-full flex justify-center md:w-max md:block">
+            <TabsTrigger value="members" asChild className="p-4">
+              <div className="flex gap-2">
+                {" "}
+                <Users size={20} />
+                Members
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="settings" asChild className="p-4">
+              <div className="flex gap-2">
+                {" "}
+                <Settings size={20} />
+                Settings
+              </div>
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Team Members Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {teamMembers && isTeamLeader !== undefined && teamLeaderUser ? (
-            teamMembers.map((member) => (
-              <MemberCard
-                key={member.id}
-                member={member}
-                team_id={team_id}
+          <TabsContent value="members" className="mt-6">
+            {/* Team Members Grid */}
+            {teamMembers && isTeamLeader !== undefined && !!teamLeaderUser ? (
+              <TeamMembersGrid
+                teamMembers={teamMembers}
                 isTeamLeader={isTeamLeader}
-                teamLeaderData={teamLeaderUser}
+                teamLeaderUser={teamLeaderUser}
+                team_id={team_id}
                 openReassignModal={() => setReassignModalOpen(true)}
-                isReassignLoading={isReassignTeamLeaderLoading}
+                isReassignLoading={isReassignModalOpen}
                 setNewLeaderId={setNewLeaderId}
               />
-            ))
-          ) : (
-            <SkeletonMemberCard />
-          )}
-        </div>
-
-        {/* Loading Spinner */}
-        <div
-          className={`flex w-full justify-center ${teamMembers ? "opacity-0" : "opacity-100"} transition-opacity duration-150 `}
-        >
-          <Loader2Icon className="animate-spin text-white-smoke-200" />
-        </div>
+            ) : (
+              <>
+                <SkeletonMemberCard />
+                {/* Loading Spinner */}
+                <div
+                  className={`flex w-full justify-center ${teamMembers ? "opacity-0" : "opacity-100"} transition-opacity duration-150 `}
+                >
+                  <Loader2Icon className="animate-spin text-white-smoke-200" />
+                </div>
+              </>
+            )}
+          </TabsContent>
+          <TabsContent value="settings" className="mt-6">
+            <div>
+              {/* General Settings */}
+              {team ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-xl">General</p>
+                  <Separator className="mb-4" />
+                </div>
+              ) : (
+                <></>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </>
   );
