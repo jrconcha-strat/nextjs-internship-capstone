@@ -9,7 +9,7 @@ import {
   getTeamsForUser,
   getUsersForTeam,
   reassignTeamLeaderAction,
-  removeUsersFromTeamAction,
+  removeUserFromTeamAction,
   updateTeamAction,
 } from "@/actions/teams-actions";
 import { getTeamLeaderAction } from "@/actions/teams-actions";
@@ -121,9 +121,9 @@ export function useTeams(team_id?: number) {
     onError: (error) => toast.error("Error", { description: error.message }),
   });
 
-  const removeUsersFromTeam = useMutation({
-    mutationFn: async ({ user_ids, team_id }: { user_ids: number[]; team_id: number }) => {
-      const res = await removeUsersFromTeamAction(user_ids, team_id);
+  const removeUserFromTeam = useMutation({
+    mutationFn: async ({ user_id, team_id }: { user_id: number; team_id: number }) => {
+      const res = await removeUserFromTeamAction(user_id, team_id);
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
@@ -139,7 +139,7 @@ export function useTeams(team_id?: number) {
     mutationFn: async (team_id: number) => {
       const me = await getUserId();
       if (!me.success) throw new Error(me.message);
-      const res = await removeUsersFromTeamAction([me.data.id], team_id);
+      const res = await removeUserFromTeamAction(me.data.id, team_id);
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
@@ -222,9 +222,9 @@ export function useTeams(team_id?: number) {
     isAddingUsersToTeamLoading: addUsersToTeam.isPending,
     addUsersToTeamError: addUsersToTeam.error,
 
-    removeUsersFromTeam: removeUsersFromTeam.mutate,
-    isRemoveUsersFromTeamLoading: removeUsersFromTeam.isPending,
-    removeUsersFromTeamError: removeUsersFromTeam.error,
+    removeUserFromTeam: removeUserFromTeam.mutate,
+    isRemoveUserFromTeamLoading: removeUserFromTeam.isPending,
+    removeUserFromTeamError: removeUserFromTeam.error,
 
     leaveTeam: leaveTeam.mutate,
     isLeaveTeamLoading: leaveTeam.isPending,

@@ -31,7 +31,7 @@ export async function reassignTeamLeaderAction(
 ): Promise<ServerActionResponse<types.UserSelect>> {
   const reassignTeamLeaderResponse = await queries.teams.reassignTeamLeader(old_leader_id, new_leader_id, team_id);
 
-    revalidatePath(`/team/${team_id}`);
+  revalidatePath(`/team/${team_id}`);
 
   return reassignTeamLeaderResponse.success ? reassignTeamLeaderResponse : reassignTeamLeaderResponse;
 }
@@ -91,17 +91,15 @@ export async function addUsersToTeamAction(
   };
 }
 
-export async function removeUsersFromTeamAction(
-  users_ids: number[],
+export async function removeUserFromTeamAction(
+  user_id: number,
   team_id: number,
 ): Promise<ServerActionResponse<boolean>> {
-  for (const user_id of users_ids) {
-    // remove current user from team
-    const removeUserFromTeamResponse = await queries.teams.removeUserFromTeam(user_id, team_id);
-    if (!removeUserFromTeamResponse.success) {
-      return removeUserFromTeamResponse;
-    }
+  const removeUserFromTeamResponse = await queries.teams.removeUserFromTeam(user_id, team_id);
+  if (!removeUserFromTeamResponse.success) {
+    return removeUserFromTeamResponse;
   }
+
   revalidatePath("/teams");
   revalidatePath(`/teams/${team_id}`);
   // Return success response

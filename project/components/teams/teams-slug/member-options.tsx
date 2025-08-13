@@ -14,10 +14,10 @@ type MemberOptionsProps = {
 };
 
 const MemberOptions: FC<MemberOptionsProps> = ({ team_id, user_id, isReassignLoading, openModal, setNewLeaderId }) => {
-  const { removeUsersFromTeam, isRemoveUsersFromTeamLoading } = useTeams();
+  const { removeUserFromTeam, isRemoveUserFromTeamLoading } = useTeams();
 
   function onRemoveClick() {
-    removeUsersFromTeam({ user_ids: [user_id], team_id }); // We structure user_id into an array here.
+    removeUserFromTeam({ user_id, team_id });
   }
 
   function onAssignClick() {
@@ -37,7 +37,7 @@ const MemberOptions: FC<MemberOptionsProps> = ({ team_id, user_id, isReassignLoa
           Assign as Leader
         </DropdownMenuItem>
 
-        <DropdownMenuItem disabled={isRemoveUsersFromTeamLoading} variant="destructive" onClick={onRemoveClick}>
+        <DropdownMenuItem disabled={isRemoveUserFromTeamLoading} variant="destructive" onClick={onRemoveClick}>
           Remove Member
         </DropdownMenuItem>
       </DropdownMenuContent>
