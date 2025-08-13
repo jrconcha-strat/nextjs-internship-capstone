@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Users } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { FC } from "react";
 
 type AddMembersButtonProps = {
@@ -13,7 +13,7 @@ const AddMembersButton: FC<AddMembersButtonProps> = ({ onClick }) => {
       onClick={onClick}
       className="inline-flex gap-4 items-center bg-emerald-600 hover:bg-emerald-400 transition-colors duration-150"
     >
-      <Users size={20} />
+      <UserPlus size={20} />
       Add a Member
     </Button>
   );
