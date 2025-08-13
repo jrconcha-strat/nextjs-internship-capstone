@@ -17,6 +17,7 @@ import { getUserId } from "@/actions/user-actions";
 import { toast } from "sonner";
 import z from "zod";
 import { teamSchemaForm } from "@/lib/validations/validations";
+import { TeamsSelect, UserSelect } from "@/types";
 
 export function useTeams(team_id?: number) {
   const queryClient = useQueryClient();
@@ -95,11 +96,37 @@ export function useTeams(team_id?: number) {
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
+    onMutate: async ({ team_id, teamFormData }) => {
+      await queryClient.cancelQueries({ queryKey: ["teams", "mine"] });
+      const previousTeams = queryClient.getQueryData<TeamsSelect[]>(["teams", "mine"]);
+      // Return teams with updated team
+      // Optimistically update the team with the inputted teamFormData
+      queryClient.setQueryData<TeamsSelect[]>(["teams", "mine"], (old) =>
+        old
+          ? old.map((t) =>
+              t.id === team_id
+                ? {
+                    ...t,
+                    ...teamFormData,
+                  }
+                : t,
+            )
+          : old,
+      );
+
+      return { previousTeams };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
       toast.success("Success", { description: "Successfully updated the team." });
     },
-    onError: (error) => toast.error("Error", { description: error.message }),
+    onError: (error, variables, context) => {
+      toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["teams", "mine"], context?.previousTeams);
+    },
+    onSettled: (data, error, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
+      queryClient.invalidateQueries({ queryKey: ["team", { id: variables.team_id }] });
+    },
   });
 
   const deleteTeam = useMutation({
@@ -114,11 +141,24 @@ export function useTeams(team_id?: number) {
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["teams", "mine"] });
+      const previousTeams = queryClient.getQueryData<TeamsSelect[]>(["teams", "mine"]);
+      // Return Teams except removed team
+      queryClient.setQueryData<TeamsSelect[]>(["teams", "mine"], (old) => old?.filter((team) => team.id !== team_id));
+
+      return { previousTeams };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
       toast.success("Success", { description: "Successfully deleted the team." });
     },
-    onError: (error) => toast.error("Error", { description: error.message }),
+    onError: (error, variables, context) => {
+      toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["teams", "mine"], context?.previousTeams);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
+    },
   });
 
   const removeUserFromTeam = useMutation({
@@ -127,12 +167,28 @@ export function useTeams(team_id?: number) {
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
+    onMutate: async ({ user_id, team_id }) => {
+      await queryClient.cancelQueries({ queryKey: ["team_members", { teamId: team_id }] });
+      const previousTeamMembers = queryClient.getQueryData<UserSelect[]>(["team_members", { teamId: team_id }]);
+      // Return Members except for the removed member.
+      queryClient.setQueryData<UserSelect[]>(["team_members", { teamId: team_id }], (old) =>
+        old?.filter((member) => member.id !== user_id),
+      );
+
+      return { previousTeamMembers };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
-      queryClient.invalidateQueries({ queryKey: ["team_members", { teamId: team_id }] });
       toast.success("Success", { description: "Successfully removed from the team." });
     },
-    onError: (error) => toast.error("Error", { description: error.message }),
+    onError: (error, variables, context) => {
+      toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["team_members"], context?.previousTeamMembers);
+    },
+    onSettled: () => {
+      // Refetch
+      queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
+      queryClient.invalidateQueries({ queryKey: ["team_members", { teamId: team_id }] });
+    },
   });
 
   const leaveTeam = useMutation({
@@ -143,11 +199,26 @@ export function useTeams(team_id?: number) {
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["teams", "mine"] });
+      const previousTeams = queryClient.getQueryData<TeamsSelect[]>(["teams", "mine"]);
+      // Return Teams except left team
+      queryClient.setQueryData<TeamsSelect[]>(["teams", "mine"], (old) => old?.filter((team) => team.id !== team_id));
+
+      return { previousTeams };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
       toast.success("Success", { description: "Successfully left the team" });
     },
-    onError: (error) => toast.error("Error", { description: error.message }),
+    onError: (error, variables, context) => {
+      toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["teams", "mine"], context?.previousTeams);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
+      queryClient.invalidateQueries({ queryKey: ["team", { id: team_id }] });
+      queryClient.invalidateQueries({ queryKey: ["team_members", { teamId: team_id }] });
+    },
   });
 
   const addUsersToTeam = useMutation({
@@ -156,12 +227,39 @@ export function useTeams(team_id?: number) {
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
+    onMutate: async ({ user_ids, team_id }) => {
+      await queryClient.cancelQueries({ queryKey: ["team_members", { teamId: team_id }] });
+
+      const previousTeamMembers = queryClient.getQueryData<UserSelect[]>(["team_members", { teamId: team_id }]);
+
+      const allUsers = queryClient.getQueryData<UserSelect[]>(["users"]) ?? [];
+
+      // Get the user objects of those users that we will add
+      const adds = allUsers.filter((u) => user_ids.includes(u.id));
+
+      // Here we append the new user objects to the current team members (we also de-dupe by id)
+      queryClient.setQueryData<UserSelect[]>(["team_members", { teamId: team_id }], (old) => {
+        const base = old ?? [];
+        const existing = new Set(base.map((m) => m.id)); // Set of ids of existing team members
+        const toAdd = adds.filter((m) => !existing.has(m.id)); // Return user objects that is not yet in the array, ensures no duplicates
+        return [...base, ...toAdd]; // Append new team members to existing team members
+      });
+
+      return { previousTeamMembers };
+    },
+
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
-      queryClient.invalidateQueries({ queryKey: ["team_members", { teamId: team_id }] });
       toast.success("Success", { description: "Successfully added to the team." });
     },
-    onError: (error) => toast.error("Error", { description: error.message }),
+    onError: (error, variables, context) => {
+      toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["team_members"], context?.previousTeamMembers);
+    },
+    onSettled: () => {
+      // Refetch
+      queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
+      queryClient.invalidateQueries({ queryKey: ["team_members", { teamId: team_id }] });
+    },
   });
 
   const reassignTeamLeader = useMutation({
@@ -178,13 +276,37 @@ export function useTeams(team_id?: number) {
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["team_leader", { teamId: variables.team_id }] });
-      queryClient.invalidateQueries({ queryKey: ["is_team_leader", { teamId: variables.team_id }] });
-      queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
+    onMutate: async ({ old_leader_id, new_leader_id, team_id }) => {
+      await queryClient.cancelQueries({ queryKey: ["team_leader", { teamId: team_id }] });
+
+      const previousTeamMembers = queryClient.getQueryData<UserSelect[]>(["team_leader", { teamId: team_id }]);
+
+      // Just Optimistically set the isLeader flag for the old leader and new leader for team members cached data
+      queryClient.setQueryData<UserSelect[]>(["team_members", { teamId: team_id }], (old) => {
+        if (!old) return old;
+        return old.map((m) => {
+          if (m.id === old_leader_id) return { ...m, isLeader: false };
+          if (m.id === new_leader_id) return { ...m, isLeader: true };
+          return m;
+        });
+      });
+
+      return { previousTeamMembers };
+    },
+
+    onSuccess: () => {
       toast.success("Success", { description: "Successfully reassigned leaders." });
     },
-    onError: (error) => toast.error("Error", { description: error.message }),
+    onError: (error, variables, context) => {
+      toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["team_members"], context?.previousTeamMembers);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["team_members", { teamId: team_id }] });
+      queryClient.invalidateQueries({ queryKey: ["team_leader", { teamId: team_id }] });
+      queryClient.invalidateQueries({ queryKey: ["is_team_leader", { teamId: team_id }] });
+      queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
+    },
   });
 
   return {
