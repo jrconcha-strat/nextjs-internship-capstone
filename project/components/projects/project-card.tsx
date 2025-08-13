@@ -196,7 +196,7 @@ const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
               {project.status}
             </span>
             {isMembersLoading ? (
-              <Skeleton className="w-20 h-6 rounded-md" />
+              <Skeleton height="6" width="20" />
             ) : members && !membersError ? (
               <MembersAvatars members={members} max_visible={5} size={6} />
             ) : (

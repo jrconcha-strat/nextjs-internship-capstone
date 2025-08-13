@@ -68,7 +68,7 @@ const TaskCard: FC<TaskCardProps> = ({ task, list_id }) => {
       <div className="flex items-center justify-between">
         <Badge className={`${taskPriorityColor[task.priority]}`}>{capitalize(task.priority)}</Badge>
         {isTaskMembersLoading ? (
-          <Skeleton className="w-24 h-5 rounded-md" />
+          <Skeleton height="5" width="24" />
         ) : taskMembers && !getTaskMembersError ? (
           taskMembers.length === 0 ? (
             <p className="text-xs text-dark-grey-100">None Assigned</p>

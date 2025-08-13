@@ -2,9 +2,11 @@
 import { FC } from "react";
 
 type SkeletonProps = {
-  className: string; // Allow dynamic class names to adjust size and shape
+  height: string;
+  width: string;
+  className?: string;
 };
 
-export const Skeleton: FC<SkeletonProps> = ({ className }) => {
-  return <div className={`${className} bg-gray-300 dark:bg-gray-600 animate-pulse`} />;
+export const Skeleton: FC<SkeletonProps> = ({ height, width, className }) => {
+  return <div className={`${className} h-${height} w-${width} bg-white-smoke-200 rounded-md animate-pulse`} />;
 };
