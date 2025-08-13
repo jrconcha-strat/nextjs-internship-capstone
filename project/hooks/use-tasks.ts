@@ -70,7 +70,9 @@ import {
   getTaskMembersAction,
   getTasksByListIdAction,
 } from "@/actions/task-actions";
+import { getTempId } from "@/lib/utils";
 import { taskSchemaForm } from "@/lib/validations/validations";
+import { TaskSelect } from "@/types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import z from "zod";
@@ -113,16 +115,52 @@ export function useTasks({ list_id, task_id }: { list_id?: number; task_id?: num
       taskFormData: z.infer<typeof taskSchemaForm>;
     }) => {
       const res = await createTaskAction(project_id, list_id, position, taskFormData);
-      console.log(res)
+      console.log(res);
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Success", { description: "Successfully created the task." });
+    onMutate: async ({ list_id, position, taskFormData }) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+
+      const previousLists = queryClient.getQueryData<TaskSelect[]>(["tasks"]);
+
+      const tempId = getTempId();
+
+      // Build an optimistic task
+      const now = new Date();
+
+      // Same as server action createTask
+      const optimisticTask: TaskSelect = {
+        id: tempId,
+        title: taskFormData.title,
+        description: taskFormData.description,
+        listId: list_id,
+        priority: taskFormData.priority,
+        dueDate: taskFormData.dueDate,
+        position: position,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      queryClient.setQueryData<TaskSelect[]>(["tasks"], (old) => (old ? [...old, optimisticTask] : old));
+
+      return { previousLists, tempId };
     },
-    onError: (error) => {
+    onSuccess: (createdList, variables, context) => {
+      toast.success("Success", { description: "Successfully created the task." });
+
+      // We replace optimistic task with the tempId with the server-sourced task with actual id
+      queryClient.setQueryData<TaskSelect[]>(
+        ["tasks"],
+        (old) => old?.map((t) => (t.id === context.tempId ? createdList : t)) ?? old,
+      );
+    },
+    onError: (error, variables, context) => {
       toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["tasks"], context?.previousLists);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
 
@@ -132,12 +170,24 @@ export function useTasks({ list_id, task_id }: { list_id?: number; task_id?: num
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
+    onMutate: async ({ task_id }) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+
+      const previousTasks = queryClient.getQueryData<TaskSelect[]>(["tasks"]);
+
+      queryClient.setQueryData<TaskSelect[]>(["tasks"], (old) => (old ? old.filter((t) => t.id != task_id) : old));
+
+      return { previousTasks };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast.success("Success", { description: "Successfully deleted the task." });
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["tasks"], context?.previousTasks);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
 
