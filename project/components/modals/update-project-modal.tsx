@@ -1,8 +1,8 @@
 "use client";
 import { checkProjectNameUnique } from "@/actions/project-actions";
 import { useProjects } from "@/hooks/use-projects";
-import { projectSchemaForm } from "@/lib/validations/validations";
-import { ProjectFormInput, ProjectFormOutput, ProjectSelect } from "@/types";
+import { projectSchemaUpdateForm } from "@/lib/validations/validations";
+import { ProjectFormInputUpdate, ProjectFormOutputUpdate, ProjectSelect } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon, X } from "lucide-react";
 import { FC, useEffect } from "react";
@@ -38,8 +38,8 @@ const UpdateProjectModal: FC<UpdateProjectModalProps> = ({ projectData, isModalO
     handleSubmit,
     setError,
     formState: { errors },
-  } = useForm<ProjectFormInput, never, ProjectFormOutput>({
-    resolver: zodResolver(projectSchemaForm),
+  } = useForm<ProjectFormInputUpdate, never, ProjectFormOutputUpdate>({
+    resolver: zodResolver(projectSchemaUpdateForm),
     defaultValues: {
       name: projectData.name,
       description: projectData.description,
@@ -49,7 +49,7 @@ const UpdateProjectModal: FC<UpdateProjectModalProps> = ({ projectData, isModalO
 
   const { updateProject, isProjectUpdateLoading } = useProjects();
 
-  const onSubmit = async (values: ProjectFormOutput) => {
+  const onSubmit = async (values: ProjectFormOutputUpdate) => {
     // Check if name values has changed.
     if (values.name !== projectData.name) {
       // Check if project name is unique.

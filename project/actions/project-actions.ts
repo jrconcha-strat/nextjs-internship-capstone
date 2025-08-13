@@ -1,6 +1,6 @@
 "use server";
 
-import { projectSchemaForm } from "@/lib/validations/validations";
+import { projectSchemaForm, projectSchemaUpdateForm } from "@/lib/validations/validations";
 import z from "zod";
 import { queries } from "@/lib/db/queries/queries";
 import { projectSchemaDB } from "../lib/validations/validations";
@@ -16,7 +16,7 @@ export async function getProjectsForUserAction(user_id: number): Promise<ServerA
 
 export async function updateProjectAction(
   project_id: number,
-  projectFormData: z.infer<typeof projectSchemaForm>,
+  projectFormData: z.infer<typeof projectSchemaUpdateForm>,
 ): Promise<ServerActionResponse<types.ProjectSelect>> {
   // Get existing project
   const getExistingProjectResponse = await queries.projects.getById(project_id);

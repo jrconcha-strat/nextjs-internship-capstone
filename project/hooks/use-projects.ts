@@ -67,7 +67,7 @@ import {
   updateProjectAction,
 } from "@/actions/project-actions";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { projectSchemaForm } from "../lib/validations/validations";
+import { projectSchemaForm, projectSchemaUpdateForm } from "../lib/validations/validations";
 import z from "zod";
 import { toast } from "sonner";
 import { getUserId } from "@/actions/user-actions";
@@ -206,7 +206,7 @@ export function useProjects(project_id?: number) {
       projectFormData,
     }: {
       project_id: number;
-      projectFormData: z.infer<typeof projectSchemaForm>;
+      projectFormData: z.infer<typeof projectSchemaUpdateForm>;
     }) => {
       const res = await updateProjectAction(project_id, projectFormData);
       if (!res.success) throw new Error(res.message);

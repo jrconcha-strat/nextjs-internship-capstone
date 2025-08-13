@@ -117,6 +117,14 @@ export const projectSchemaForm = projectSchema
     teamIds: z.array(z.int()).min(1, "Select at least one team"), // Because on project creation, we must have a team assigned.
   });
 
+export const projectSchemaUpdateForm = projectSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  ownerId: true,
+  status: true,
+});
+
 export const listSchema = z
   .object({
     id: z.int().min(1, errorTemplates.idMinError),
