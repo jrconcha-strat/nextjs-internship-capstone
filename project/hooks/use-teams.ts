@@ -72,7 +72,7 @@ export function useTeams(team_id?: number) {
   });
 
   const teamMembers = useQuery({
-    queryKey: ["team_members", { teamId: team_id ?? null }],
+    queryKey: ["team_members", { teamId: team_id }],
     enabled: typeof team_id === "number",
     staleTime: 60_000,
     queryFn: async () => {
@@ -157,6 +157,7 @@ export function useTeams(team_id?: number) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
+      queryClient.invalidateQueries({ queryKey: ["team_members", { teamId: team_id }] });
       toast.success("Success", { description: "Successfully added users to the team." });
     },
     onError: (error) => toast.error("Error", { description: error.message }),

@@ -80,6 +80,7 @@ export async function addUsersToTeamAction(
     }
   }
   revalidatePath("/teams");
+  revalidatePath(`teams/${team_id}`)
   // Return success response
   return {
     success: true,

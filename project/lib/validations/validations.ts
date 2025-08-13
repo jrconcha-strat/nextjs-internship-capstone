@@ -208,13 +208,15 @@ export const taskSchemaDB = taskSchema.omit({
   id: true,
 });
 
-export const taskSchemaForm = taskSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  position: true,
-  listId: true,
-}).extend({ assigneeIds: z.array(z.int()).nullable()}); // Because on task creation, we can assign zero, one or more members.
+export const taskSchemaForm = taskSchema
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    position: true,
+    listId: true,
+  })
+  .extend({ assigneeIds: z.array(z.int()).nullable() }); // Because on task creation, we can assign zero, one or more members.
 
 export const commentSchema = z
   .object({
@@ -341,3 +343,7 @@ export const usersToTeamsSchema = z
       });
     }
   });
+
+export const addMembersSchemaForm = z.object({
+  user_Ids: z.array(z.int()).min(1, "Select at least one member."),
+});

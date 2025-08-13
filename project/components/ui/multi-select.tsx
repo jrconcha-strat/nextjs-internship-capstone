@@ -70,7 +70,7 @@ const MultiSelect: FC<MultiSelectProps> = ({
         </PopoverTrigger>
         <PopoverContent className="p-0">
           <Command>
-            <CommandInput placeholder="Search teams..." />
+            <CommandInput placeholder="Search..." />
             <CommandList>
               <CommandEmpty>{emptyText}</CommandEmpty>
               <CommandGroup>
