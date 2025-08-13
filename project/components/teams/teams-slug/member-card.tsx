@@ -10,9 +10,20 @@ type MemberCardProps = {
   team_id: number;
   isTeamLeader: boolean;
   teamLeaderData: UserSelect;
+  openReassignModal: () => void;
+  isReassignLoading: boolean;
+  setNewLeaderId: (val: number) => void;
 };
 
-const MemberCard: FC<MemberCardProps> = ({ member, team_id, isTeamLeader, teamLeaderData }) => {
+const MemberCard: FC<MemberCardProps> = ({
+  member,
+  team_id,
+  isTeamLeader,
+  teamLeaderData,
+  openReassignModal,
+  isReassignLoading,
+  setNewLeaderId
+}) => {
   return (
     <div className="bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 p-6">
       <div className="flex items-start justify-between mb-4">
@@ -36,9 +47,17 @@ const MemberCard: FC<MemberCardProps> = ({ member, team_id, isTeamLeader, teamLe
           </div>
         </div>
         {/* Dropdown - Do not show for Team Members. Do not show for team leader's card */}
-        {isTeamLeader && member.id !== teamLeaderData.id && <MemberOptions team_id={team_id} user_id={member.id} />}
+        {isTeamLeader && member.id !== teamLeaderData.id && (
+          <MemberOptions
+            team_id={team_id}
+            user_id={member.id}
+            isReassignLoading={isReassignLoading}
+            openModal={openReassignModal}
+            setNewLeaderId={setNewLeaderId}
+          />
+        )}
       </div>
-      
+
       {/* Email */}
       <div className="flex items-center text-sm text-payne's_gray-500 dark:text-french_gray-400 mb-4">
         <Mail size={16} className="mr-2" />

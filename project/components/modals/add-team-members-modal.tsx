@@ -46,8 +46,7 @@ const AddTeamMembersModal: FC<AddTeamMembersModalProps> = ({ isModalOpen, closeM
   });
 
   const { users, isUsersLoading, getUsersError } = useUsers();
-  const { addUsersToTeam, isAddingUsersToTeamLoading, teamMembers, isTeamMembersLoading, teamMembersError } =
-    useTeams(team_id);
+  const { addUsersToTeam, isAddingUsersToTeamLoading, teamMembers } = useTeams(team_id);
 
   // This just returns a set of user ids.
   const memberIds = useMemo(() => new Set((teamMembers ?? []).map((m) => m.id ?? m.id)), [teamMembers]);

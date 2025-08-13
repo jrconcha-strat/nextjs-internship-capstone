@@ -1,13 +1,12 @@
 "use client";
 import AddTeamMembersModal from "@/components/modals/add-team-members-modal";
+import ReassignLeaderModal from "@/components/modals/reassign-leader-modal";
 import AddMembersButton from "@/components/teams/teams-slug/add-members-button";
 import LeaveTeamButton from "@/components/teams/teams-slug/leave-team-button";
 import MemberCard, { SkeletonMemberCard } from "@/components/teams/teams-slug/member-card";
-import { Button } from "@/components/ui/button";
 import LoadingUI from "@/components/ui/loading-ui";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTeams } from "@/hooks/use-teams";
-import { useUsers } from "@/hooks/use-users";
 import { ArrowLeft, Loader2Icon } from "lucide-react";
 import Link from "next/link";
 import { use, useState } from "react";
@@ -16,6 +15,8 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
   const { id } = use(params); // Unwrap the promise as per Nextjs 15 recommendation
   const team_id = Number(id);
   const [isAddMemberModalOpen, setAddMemberModalOpen] = useState(false);
+  const [isReassignModalOpen, setReassignModalOpen] = useState(false);
+  const [newLeaderId, setNewLeaderId] = useState<number>(-1);
 
   // Retrieve team data and its members
   const {
@@ -31,6 +32,8 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
     isTeamLeader,
     isTeamLeaderCheckLoading,
     teamLeaderCheckError,
+    reassignTeamLeader,
+    isReassignTeamLeaderLoading,
   } = useTeams(team_id);
 
   // If error, throw error
@@ -45,11 +48,26 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
 
   return (
     <>
+      {/* Modals */}
       {isAddMemberModalOpen && (
         <AddTeamMembersModal
           isModalOpen={isAddMemberModalOpen}
           closeModal={() => setAddMemberModalOpen(false)}
           team_id={team_id}
+        />
+      )}
+
+      {isReassignModalOpen && teamLeaderUser && teamMembers && (
+        <ReassignLeaderModal
+          isOpen={isReassignModalOpen}
+          onClose={() => setReassignModalOpen(false)}
+          team_id={team_id}
+          new_leader_id={newLeaderId}
+          current_leader_id={teamLeaderUser.id}
+          reAssignLeader={({ old_leader_id, new_leader_id, team_id }) =>
+            reassignTeamLeader({ old_leader_id: old_leader_id, new_leader_id: new_leader_id, team_id: team_id })
+          }
+          isReassignLoading={isReassignTeamLeaderLoading}
         />
       )}
       <div className="space-y-6">
@@ -94,6 +112,9 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
                 team_id={team_id}
                 isTeamLeader={isTeamLeader}
                 teamLeaderData={teamLeaderUser}
+                openReassignModal={() => setReassignModalOpen(true)}
+                isReassignLoading={isReassignTeamLeaderLoading}
+                setNewLeaderId={setNewLeaderId}
               />
             ))
           ) : (

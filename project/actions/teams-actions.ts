@@ -31,6 +31,8 @@ export async function reassignTeamLeaderAction(
 ): Promise<ServerActionResponse<types.UserSelect>> {
   const reassignTeamLeaderResponse = await queries.teams.reassignTeamLeader(old_leader_id, new_leader_id, team_id);
 
+    revalidatePath(`/team/${team_id}`);
+
   return reassignTeamLeaderResponse.success ? reassignTeamLeaderResponse : reassignTeamLeaderResponse;
 }
 

@@ -8,13 +8,21 @@ import { useTeams } from "@/hooks/use-teams";
 type MemberOptionsProps = {
   team_id: number;
   user_id: number;
+  isReassignLoading: boolean;
+  openModal: () => void;
+  setNewLeaderId: (val: number) => void;
 };
 
-const MemberOptions: FC<MemberOptionsProps> = ({ team_id, user_id }) => {
+const MemberOptions: FC<MemberOptionsProps> = ({ team_id, user_id, isReassignLoading, openModal, setNewLeaderId }) => {
   const { removeUsersFromTeam, isRemoveUsersFromTeamLoading } = useTeams();
 
-  function onClick() {
+  function onRemoveClick() {
     removeUsersFromTeam({ user_ids: [user_id], team_id }); // We structure user_id into an array here.
+  }
+
+  function onAssignClick() {
+    setNewLeaderId(user_id);
+    openModal();
   }
 
   return (
@@ -25,7 +33,11 @@ const MemberOptions: FC<MemberOptionsProps> = ({ team_id, user_id }) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem disabled={isRemoveUsersFromTeamLoading} variant="destructive" onClick={onClick}>
+        <DropdownMenuItem disabled={isReassignLoading} variant="default" onClick={onAssignClick}>
+          Assign as Leader
+        </DropdownMenuItem>
+
+        <DropdownMenuItem disabled={isRemoveUsersFromTeamLoading} variant="destructive" onClick={onRemoveClick}>
           Remove Member
         </DropdownMenuItem>
       </DropdownMenuContent>
