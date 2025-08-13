@@ -5,6 +5,7 @@ import { createListAction, deleteListAction, getAllListsAction, updateListAction
 import { listSchemaForm } from "@/lib/validations/validations";
 import z from "zod";
 import { ListSelect } from "@/types";
+import { getTempId } from "@/lib/utils";
 
 export function useLists(project_id?: number) {
   const queryClient = useQueryClient();
@@ -31,7 +32,7 @@ export function useLists(project_id?: number) {
 
       const previousLists = queryClient.getQueryData<ListSelect[]>(["lists"]);
 
-      const tempId = -Math.floor(Math.random() * 1e9); // negative temp id to avoid collisions
+      const tempId = getTempId();
 
       // Build an optimistic list
       const now = new Date();
@@ -49,7 +50,6 @@ export function useLists(project_id?: number) {
       return { previousLists, tempId };
     },
     onSuccess: (createdList, variables, context) => {
-      queryClient.invalidateQueries({ queryKey: ["lists"] });
       toast.success("Success", { description: "Successfully created the list." });
 
       // We replace optimistic list with the tempId with the server-sourced list with actual id

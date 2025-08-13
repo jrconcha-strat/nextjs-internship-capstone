@@ -9,11 +9,10 @@ export const projectStatusColor = {
   Review: "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300",
 } as const;
 
-
 export const taskPriorityColor = {
   low: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
-  medium: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300", 
-  high: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300", 
+  medium: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300",
+  high: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
 } as const;
 
 export function cn(...inputs: ClassValue[]) {
@@ -38,6 +37,11 @@ export function formatDate(date: Date | string): string {
 export function capitalize(string: string): string {
   if (string.length === 0) return string;
   return string[0].toUpperCase() + string.slice(1);
+}
+
+export function getTempId(): number {
+  const tempId = -Math.floor(Math.random() * 1e9); // negative temp id to avoid collisions
+  return tempId;
 }
 
 // Perform shallow comparison. Does not handle nested comparisons like for objects or arrays.

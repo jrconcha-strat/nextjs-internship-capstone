@@ -73,6 +73,7 @@ import { toast } from "sonner";
 import { getUserId } from "@/actions/user-actions";
 import { getTasksCountForProjectAction } from "@/actions/task-actions";
 import { ProjectSelect } from "@/types";
+import { getTempId } from "@/lib/utils";
 
 // Projects list
 export function useProjects(project_id?: number) {
@@ -126,7 +127,7 @@ export function useProjects(project_id?: number) {
 
       const previousProjects = queryClient.getQueryData<ProjectSelect[]>(["projects"]);
 
-      const tempId = -Math.floor(Math.random() * 1e9); // negative temp id to avoid collisions
+      const tempId = getTempId();
 
       const res = await getUserId(); // Retrieve user's id
       if (!res.success) throw new Error(res.message);
