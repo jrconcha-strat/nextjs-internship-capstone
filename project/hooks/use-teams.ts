@@ -123,9 +123,9 @@ export function useTeams(team_id?: number) {
       toast.error("Error", { description: error.message });
       queryClient.setQueryData(["teams", "mine"], context?.previousTeams);
     },
-    onSettled: (data, error, variables) => {
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
-      queryClient.invalidateQueries({ queryKey: ["team", { id: variables.team_id }] });
+      queryClient.invalidateQueries({ queryKey: ["team", team_id] });
     },
   });
 
@@ -216,7 +216,7 @@ export function useTeams(team_id?: number) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
-      queryClient.invalidateQueries({ queryKey: ["team", { id: team_id }] });
+      queryClient.invalidateQueries({ queryKey: ["team", team_id] });
       queryClient.invalidateQueries({ queryKey: ["team_members", { teamId: team_id }] });
     },
   });

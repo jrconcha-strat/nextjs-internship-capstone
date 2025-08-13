@@ -72,6 +72,7 @@ import z from "zod";
 import { toast } from "sonner";
 import { getUserId } from "@/actions/user-actions";
 import { getTasksCountForProjectAction } from "@/actions/task-actions";
+import { ProjectSelect } from "@/types";
 
 // Projects list
 export function useProjects(project_id?: number) {
@@ -120,12 +121,52 @@ export function useProjects(project_id?: number) {
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-      toast.success("Success", { description: "Successfully created the project." });
+    onMutate: async (projectFormData: z.infer<typeof projectSchemaForm>) => {
+      await queryClient.cancelQueries({ queryKey: ["projects"] });
+
+      const previousProjects = queryClient.getQueryData<ProjectSelect[]>(["projects"]);
+
+      const tempId = -Math.floor(Math.random() * 1e9); // negative temp id to avoid collisions
+
+      const res = await getUserId(); // Retrieve user's id
+      if (!res.success) throw new Error(res.message);
+      const ownerId = res.data.id;
+
+      if (ownerId === undefined) throw new Error("Unable to get current user."); // Guard against undefined ownerId
+
+      // Build an optimistic project
+      const now = new Date();
+      const optimisticProject: ProjectSelect = {
+        id: tempId,
+        name: projectFormData.name,
+        description: projectFormData.description,
+        ownerId: ownerId,
+        dueDate: projectFormData.dueDate,
+        status: "Planning",
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      queryClient.setQueryData<ProjectSelect[]>(["projects"], (old) => (old ? [...old, optimisticProject] : old));
+
+      return { previousProjects, tempId };
     },
-    onError: (error) => {
+    onSuccess: (createdProject, _vars, context) => {
+      toast.success("Success", { description: "Successfully created the project." });
+
+      // We replace optimistic project with the tempId with the server-sourced project with actual id
+      queryClient.setQueryData<ProjectSelect[]>(
+        ["projects"],
+        (old) => old?.map((p) => (p.id === context.tempId ? createdProject : p)) ?? old,
+      );
+    },
+    onError: (error, variables, context) => {
       toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["projects"], context?.previousProjects);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["project", project_id] });
     },
   });
 
@@ -135,12 +176,27 @@ export function useProjects(project_id?: number) {
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
+    onMutate: async (project_id: number) => {
+      await queryClient.cancelQueries({ queryKey: ["projects"] });
+
+      const previousProjects = queryClient.getQueryData<ProjectSelect[]>(["projects"]);
+
+      queryClient.setQueryData<ProjectSelect[]>(["projects"], (old) =>
+        old ? old.filter((p) => p.id != project_id) : old,
+      );
+
+      return { previousProjects };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Success", { description: "Successfully deleted the project." });
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["projects"], context?.previousProjects);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["project", project_id] });
     },
   });
 
@@ -156,12 +212,37 @@ export function useProjects(project_id?: number) {
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
+    onMutate: async ({ project_id, projectFormData }) => {
+      await queryClient.cancelQueries({ queryKey: ["projects"] });
+
+      const previousProjects = queryClient.getQueryData<ProjectSelect[]>(["projects"]);
+
+      // Optimistically update the team with the inputted projectFormData
+      queryClient.setQueryData<ProjectSelect[]>(["projects"], (old) =>
+        old
+          ? old.map((p) =>
+              p.id === project_id
+                ? {
+                    ...p,
+                    ...projectFormData,
+                  }
+                : p,
+            )
+          : old,
+      );
+
+      return { previousProjects };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Success", { description: "Successfully updated the project." });
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["projects"], context?.previousProjects);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["project", project_id] });
     },
   });
 
