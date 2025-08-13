@@ -2,7 +2,6 @@
 import CreateTeamButton from "@/components/teams/create-team-button";
 import TeamsSection from "@/components/teams/teams-section";
 import { useTeams } from "@/hooks/use-teams";
-import { Mail, MoreHorizontal } from "lucide-react";
 
 export default function TeamPage() {
   const { userTeams, isUserTeamsLoading, getUserTeamsError } = useTeams();
