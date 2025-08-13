@@ -1,5 +1,5 @@
 "use client";
-import { getAllUsers } from "@/actions/user-actions";
+import { getAllUsers, getUserId } from "@/actions/user-actions";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useUsers() {
@@ -14,9 +14,24 @@ export function useUsers() {
     },
   });
 
+  const user = useQuery({
+    queryKey: ["user"],
+    queryFn: async () => {
+      const res = await getUserId();
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+  });
+
   return {
+    // Get all users
     users: users.data,
     isUsersLoading: users.isLoading,
     getUsersError: users.isError,
+
+    // Get current user
+    user: user.data,
+    isUserLoading: user.isLoading,
+    getUserError: user.isError,
   };
 }

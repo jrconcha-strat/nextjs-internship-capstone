@@ -129,7 +129,8 @@ export function useTeams(team_id?: number) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
-      toast.success("Success", { description: "Successfully removed users from the team." });
+      queryClient.invalidateQueries({ queryKey: ["team_members", { teamId: team_id }] });
+      toast.success("Success", { description: "Successfully removed from the team." });
     },
     onError: (error) => toast.error("Error", { description: error.message }),
   });
@@ -158,7 +159,7 @@ export function useTeams(team_id?: number) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams", "mine"] });
       queryClient.invalidateQueries({ queryKey: ["team_members", { teamId: team_id }] });
-      toast.success("Success", { description: "Successfully added users to the team." });
+      toast.success("Success", { description: "Successfully added to the team." });
     },
     onError: (error) => toast.error("Error", { description: error.message }),
   });

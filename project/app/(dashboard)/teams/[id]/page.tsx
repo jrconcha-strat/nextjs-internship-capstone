@@ -5,6 +5,7 @@ import MemberCard, { SkeletonMemberCard } from "@/components/teams/teams-slug/me
 import LoadingUI from "@/components/ui/loading-ui";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTeams } from "@/hooks/use-teams";
+import { useUsers } from "@/hooks/use-users";
 import { ArrowLeft, Loader2Icon } from "lucide-react";
 import Link from "next/link";
 import { use, useState } from "react";
@@ -80,8 +81,10 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
 
         {/* Team Members Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {teamMembers ? (
-            teamMembers.map((member) => <MemberCard key={member.id} member={member} />)
+          {teamMembers && isTeamLeader !== undefined && teamLeaderUser ? (
+            teamMembers.map((member) => (
+              <MemberCard key={member.id} member={member} team_id={team_id} isTeamLeader={isTeamLeader} teamLeaderData={teamLeaderUser} />
+            ))
           ) : (
             <SkeletonMemberCard />
           )}

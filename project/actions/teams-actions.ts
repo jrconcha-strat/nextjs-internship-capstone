@@ -80,11 +80,11 @@ export async function addUsersToTeamAction(
     }
   }
   revalidatePath("/teams");
-  revalidatePath(`teams/${team_id}`)
+  revalidatePath(`/teams/${team_id}`);
   // Return success response
   return {
     success: true,
-    message: "Successfully added users as members.",
+    message: "Successfully added as members.",
     data: true,
   };
 }
@@ -101,10 +101,11 @@ export async function removeUsersFromTeamAction(
     }
   }
   revalidatePath("/teams");
+  revalidatePath(`/teams/${team_id}`);
   // Return success response
   return {
     success: true,
-    message: "Successfully removed users as members.",
+    message: "Successfully removed as members.",
     data: true,
   };
 }

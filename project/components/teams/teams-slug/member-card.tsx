@@ -1,16 +1,22 @@
+"use client";
 import { UserSelect } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Mail, MoreHorizontal } from "lucide-react";
+import { Mail } from "lucide-react";
 import { FC } from "react";
+import MemberOptions from "./member-options";
 
 type MemberCardProps = {
   member: UserSelect;
+  team_id: number;
+  isTeamLeader: boolean;
+  teamLeaderData: UserSelect;
 };
 
-const MemberCard: FC<MemberCardProps> = ({ member }) => {
+const MemberCard: FC<MemberCardProps> = ({ member, team_id, isTeamLeader, teamLeaderData }) => {
   return (
     <div className="bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 p-6">
       <div className="flex items-start justify-between mb-4">
+        {/* Image, Name, Role */}
         <div className="flex items-center space-x-3">
           <Avatar>
             <AvatarImage
@@ -29,16 +35,17 @@ const MemberCard: FC<MemberCardProps> = ({ member }) => {
             <p className="text-sm text-payne's_gray-500 dark:text-french_gray-400">Role</p>
           </div>
         </div>
-        <button className="p-1 hover:bg-platinum-500 dark:hover:bg-payne's_gray-400 rounded">
-          <MoreHorizontal size={16} />
-        </button>
+        {/* Dropdown - Do not show for Team Members. Do not show for team leader's card */}
+        {isTeamLeader && member.id !== teamLeaderData.id && <MemberOptions team_id={team_id} user_id={member.id} />}
       </div>
-
+      
+      {/* Email */}
       <div className="flex items-center text-sm text-payne's_gray-500 dark:text-french_gray-400 mb-4">
         <Mail size={16} className="mr-2" />
         {member.email}
       </div>
 
+      {/* Status, and Active Projects count */}
       <div className="flex items-center justify-between">
         <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
           Active
