@@ -22,7 +22,7 @@ const MemberCard: FC<MemberCardProps> = ({
   teamLeaderData,
   openReassignModal,
   isReassignLoading,
-  setNewLeaderId
+  setNewLeaderId,
 }) => {
   return (
     <div className="bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 p-6">
@@ -43,7 +43,9 @@ const MemberCard: FC<MemberCardProps> = ({
 
           <div>
             <h3 className="font-semibold text-outer_space-500 dark:text-platinum-500">{member.name}</h3>
-            <p className="text-sm text-payne's_gray-500 dark:text-french_gray-400">Role</p>
+            <p className="text-sm text-payne's_gray-500 dark:text-french_gray-400">
+              {member.id === teamLeaderData.id ? "Team Leader" : "Team Member"}
+            </p>
           </div>
         </div>
         {/* Dropdown - Do not show for Team Members. Do not show for team leader's card */}
