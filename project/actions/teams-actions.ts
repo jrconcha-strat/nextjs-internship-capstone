@@ -20,6 +20,7 @@ export async function updateTeamAction(
   const updateTeamResponse = await queries.teams.updateTeam(team_id, newData.teamName);
 
   revalidatePath("/teams");
+  revalidatePath(`/teams/${team_id}`);
 
   return updateTeamResponse.success ? updateTeamResponse : updateTeamResponse;
 }

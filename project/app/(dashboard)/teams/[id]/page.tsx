@@ -12,7 +12,7 @@ import { use, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TeamMembersGrid from "@/components/teams/teams-slug/team-members-grid";
 import { SkeletonMemberCard } from "@/components/teams/teams-slug/member-card";
-import { Separator } from "@/components/ui/separator";
+import TeamSettings from "@/components/teams/teams-slug/team-settings";
 
 export default function TeamPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params); // Unwrap the promise as per Nextjs 15 recommendation
@@ -147,17 +147,17 @@ export default function TeamPage({ params }: { params: Promise<{ id: string }> }
             )}
           </TabsContent>
           <TabsContent value="settings" className="mt-6">
-            <div>
-              {/* General Settings */}
-              {team ? (
-                <div className="flex flex-col gap-2">
-                  <p className="text-xl">General</p>
-                  <Separator className="mb-4" />
-                </div>
-              ) : (
-                <></>
-              )}
-            </div>
+            {/* Settings */}
+            {team && isTeamLeader !== undefined ? (
+              <div className="flex flex-col gap-12">
+                <TeamSettings team={team} />
+              </div>
+            ) : (
+              <div className="flex justify-center gap-2 items-center h-full text-white-smoke-200">
+                <Loader2Icon className="animate-spin" size={24} />
+                <p> Loading... </p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
