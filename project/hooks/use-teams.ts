@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   addUsersToTeamAction,
   checkUserIsLeaderAction,
+  createTeamAction,
   deleteTeamAction,
   getProjectsForTeamAction,
   getTeamByIdAction,
@@ -18,6 +19,7 @@ import { toast } from "sonner";
 import z from "zod";
 import { teamSchemaForm } from "@/lib/validations/validations";
 import { TeamsSelect, UserSelect } from "@/types";
+import { getTempId } from "@/lib/utils";
 
 export function useTeams(team_id?: number) {
   const queryClient = useQueryClient();
@@ -81,6 +83,51 @@ export function useTeams(team_id?: number) {
       const res = await getUsersForTeam(team_id);
       if (!res.success) throw new Error(res.message);
       return res.data; // types.UserSelect[]
+    },
+  });
+
+  const createTeam = useMutation({
+    mutationFn: async (teamName: string) => {
+      const res = await createTeamAction(teamName);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+
+    onMutate: async (teamName) => {
+      await queryClient.cancelQueries({ queryKey: ["teams"] });
+
+      const previousTeams = queryClient.getQueryData<TeamsSelect[]>(["teams"]);
+
+      const tempId = getTempId();
+
+      // Build an optimistic team
+      const now = new Date();
+      const optimisticTeam: TeamsSelect = {
+        id: tempId,
+        teamName: teamName,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      queryClient.setQueryData<TeamsSelect[]>(["teams"], (old) => (old ? [...old, optimisticTeam] : old));
+
+      return { previousTeams, tempId };
+    },
+    onSuccess: (createdTeam, variables, context) => {
+      toast.success("Success", { description: "Successfully created the team." });
+
+      // We replace optimistic team with the tempId with the server-sourced team with actual id
+      queryClient.setQueryData<TeamsSelect[]>(
+        ["teams"],
+        (old) => old?.map((t) => (t.id === context.tempId ? createdTeam : t)) ?? old,
+      );
+    },
+    onError: (error, variables, context) => {
+      toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["teams"], context?.previousTeams);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
     },
   });
 
@@ -355,6 +402,10 @@ export function useTeams(team_id?: number) {
     updateTeam: updateTeam.mutate,
     isTeamUpdateLoading: updateTeam.isPending,
     updateTeamError: updateTeam.error,
+
+    createTeam: createTeam.mutate,
+    isTeamCreateLoading: createTeam.isPending,
+    createTeamError: createTeam.error,
 
     reassignTeamLeader: reassignTeamLeader.mutate,
     isReassignTeamLeaderLoading: reassignTeamLeader.isPending,

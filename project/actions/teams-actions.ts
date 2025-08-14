@@ -6,6 +6,7 @@ import * as types from "../types/index";
 import { ServerActionResponse } from "./actions-types";
 import { teamSchemaForm } from "@/lib/validations/validations";
 import z from "zod";
+import { getUserId } from "./user-actions";
 
 export async function getTeamByIdAction(team_id: number): Promise<ServerActionResponse<types.TeamsSelect>> {
   const getTeamByIDResult = await queries.teams.getById(team_id);
@@ -129,16 +130,10 @@ export async function getTeamsForUser(user_id: number): Promise<ServerActionResp
   return getTeamsForUserResponse.success ? getTeamsForUserResponse : getTeamsForUserResponse;
 }
 
-export async function createTeam(
-  teamName: string,
-  currentUserClerkId: string,
-): Promise<ServerActionResponse<types.TeamsSelect>> {
-  // Get current user by Clerk ID
-  const getByClerkIdResponse = await queries.users.getByClerkId(currentUserClerkId);
-
-  if (!getByClerkIdResponse.success) {
-    return getByClerkIdResponse;
-  }
+export async function createTeamAction(teamName: string): Promise<ServerActionResponse<types.TeamsSelect>> {
+  // Get current user
+  const user = await getUserId();
+  if (!user.success) return user;
 
   // Create team
   const teamCreationResponse = await queries.teams.createTeam(teamName);
@@ -147,11 +142,7 @@ export async function createTeam(
   }
 
   // Add current user to team
-  const addUsertoTeamResponse = await queries.teams.addUserToTeam(
-    getByClerkIdResponse.data.id,
-    teamCreationResponse.data.id,
-    true,
-  );
+  const addUsertoTeamResponse = await queries.teams.addUserToTeam(user.data.id, teamCreationResponse.data.id, true);
   if (!addUsertoTeamResponse.success) {
     return addUsertoTeamResponse;
   }

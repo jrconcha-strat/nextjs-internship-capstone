@@ -6,8 +6,8 @@ import { teamSchemaForm } from "@/lib/validations/validations";
 import z from "zod";
 import { Loader2Icon, XIcon } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
-import { checkTeamNameUnique, createTeam } from "@/actions/teams-actions";
-import { toast } from "sonner";
+import { checkTeamNameUnique } from "@/actions/teams-actions";
+import { useTeams } from "@/hooks/use-teams";
 
 type TeamModalProps = {
   isModalOpen: boolean;
@@ -43,15 +43,13 @@ const CreateTeamModal: FC<TeamModalProps> = ({ isModalOpen, setIsModalOpen }) =>
     resolver: zodResolver(teamSchemaForm),
   });
 
-  const [isLoading, setIsLoading] = useState(false);
+  const { createTeam, isTeamCreateLoading } = useTeams();
   const { user } = useUser();
 
   if (!user) return null;
 
   // Will only run if there is no zod validation errors.
   const onSubmit = async (values: z.infer<typeof teamSchemaForm>) => {
-    setIsLoading(true);
-
     // Check if Team name is unique among active teams.
     const result = await checkTeamNameUnique(values.teamName);
     // Unable to check for uniqueness | Team name is not unique
@@ -60,17 +58,10 @@ const CreateTeamModal: FC<TeamModalProps> = ({ isModalOpen, setIsModalOpen }) =>
         type: "manual",
         message: result.message,
       });
-      setIsLoading(false);
       return;
     }
 
-    const response = await createTeam(values.teamName, user.id);
-    if (!response.success) {
-      toast.error("Error", { description: response.message });
-    }
-
-    toast.success("Success", { description: response.message });
-    setIsLoading(false);
+    createTeam(values.teamName);
     setIsModalOpen(false);
   };
 
@@ -101,7 +92,7 @@ const CreateTeamModal: FC<TeamModalProps> = ({ isModalOpen, setIsModalOpen }) =>
               <input id="teamName" className="outline-1 px-2 rounded-sm " {...register("teamName")}></input>
               {errors.teamName && <p className="text-red-500 text-sm mt-1">{errors.teamName.message}</p>}
               <div className="w-full flex justify-end mt-4">
-                {isLoading ? (
+                {isTeamCreateLoading ? (
                   <div className="bg-emerald-400 rounded-sm text-white w-[100px] flex items-center justify-center px-2 py-1 gap-2 ">
                     {" "}
                     <Loader2Icon className="animate-spin" /> Loading{" "}
