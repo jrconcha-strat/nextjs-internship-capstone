@@ -48,7 +48,7 @@ const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit }) => {
 
           {listTasks ? (
             <div className="p-4 min-h-[400px]">
-              <div className=" p-4 space-y-3 max-h-[400px] overflow-y-auto">
+              <div className="mb-4 space-y-3 max-h-[400px] overflow-y-auto">
                 {listTasks.map((task) => (
                   <TaskCard key={task.id} task={task} list_id={list.id} />
                 ))}
