@@ -17,7 +17,7 @@ const TeamsCard: FC<TeamsCardProps> = ({ teamData }) => {
 
   return (
     <Link href={`/teams/${teamData.id}`}>
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className=" bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 shadow hover:shadow-md p-4">
         {/* Team Information */}
         <h3 className="text-lg font-semibold overflow-hidden text-ellipsis whitespace-nowrap">{teamData.teamName}</h3>
         <p className="text-xs text-muted-foreground">
