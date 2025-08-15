@@ -7,8 +7,10 @@ import { ServerActionResponse } from "./actions-types";
 import { teamSchemaForm } from "@/lib/validations/validations";
 import z from "zod";
 import { getUserId } from "./user-actions";
+import { checkAuthenticationStatus } from "./actions-utils";
 
 export async function getTeamByIdAction(team_id: number): Promise<ServerActionResponse<types.TeamsSelect>> {
+  checkAuthenticationStatus();
   const getTeamByIDResult = await queries.teams.getById(team_id);
 
   return getTeamByIDResult.success ? getTeamByIDResult : getTeamByIDResult;
@@ -18,6 +20,7 @@ export async function updateTeamAction(
   team_id: number,
   newData: z.infer<typeof teamSchemaForm>,
 ): Promise<ServerActionResponse<types.TeamsSelect>> {
+  checkAuthenticationStatus();
   const updateTeamResponse = await queries.teams.updateTeam(team_id, newData.teamName);
 
   revalidatePath("/teams");
@@ -31,6 +34,7 @@ export async function reassignTeamLeaderAction(
   new_leader_id: number,
   team_id: number,
 ): Promise<ServerActionResponse<types.UserSelect>> {
+  checkAuthenticationStatus();
   const reassignTeamLeaderResponse = await queries.teams.reassignTeamLeader(old_leader_id, new_leader_id, team_id);
 
   revalidatePath(`/team/${team_id}`);
@@ -39,6 +43,7 @@ export async function reassignTeamLeaderAction(
 }
 
 export async function getTeamLeaderAction(team_id: number): Promise<ServerActionResponse<types.UserSelect>> {
+  checkAuthenticationStatus();
   const getTeamLeaderResponse = await queries.teams.getTeamLeader(team_id);
 
   return getTeamLeaderResponse.success ? getTeamLeaderResponse : getTeamLeaderResponse;
@@ -48,27 +53,25 @@ export async function checkUserIsLeaderAction(
   user_id: number,
   team_id: number,
 ): Promise<ServerActionResponse<boolean>> {
+  checkAuthenticationStatus();
   const userIsLeaderResponse = await queries.teams.checkUserIsLeader(user_id, team_id);
 
   return userIsLeaderResponse.success ? userIsLeaderResponse : userIsLeaderResponse;
 }
 
 export async function checkTeamNameUnique(teamName: string): Promise<ServerActionResponse<boolean>> {
-  // call utility function to check teamname uniqueness.
+  checkAuthenticationStatus();
   const nameIsUniqueResponse = await queries.teams.checkTeamNameUnique(teamName);
 
-  // Ternary to narrow the response type.
   return nameIsUniqueResponse.success ? nameIsUniqueResponse : nameIsUniqueResponse;
 }
 
 export async function deleteTeamAction(team_id: number): Promise<ServerActionResponse<types.TeamsSelect>> {
-  // call utility function to delete team.
+  checkAuthenticationStatus();
   const deleteTeamResponse = await queries.teams.deleteTeam(team_id);
 
-  // Revalidation to purge stale data from teams page.
   revalidatePath("/teams");
 
-  // Ternary to narrow the response type.
   return deleteTeamResponse.success ? deleteTeamResponse : deleteTeamResponse;
 }
 
@@ -76,6 +79,8 @@ export async function addUsersToTeamAction(
   users_ids: number[],
   team_id: number,
 ): Promise<ServerActionResponse<boolean>> {
+  checkAuthenticationStatus();
+
   for (const user_id of users_ids) {
     // Add current user to team
     const addUsertoTeamResponse = await queries.teams.addUserToTeam(user_id, team_id, false);
@@ -83,9 +88,10 @@ export async function addUsersToTeamAction(
       return addUsertoTeamResponse;
     }
   }
+
   revalidatePath("/teams");
   revalidatePath(`/teams/${team_id}`);
-  // Return success response
+
   return {
     success: true,
     message: "Successfully added as members.",
@@ -97,6 +103,7 @@ export async function removeUserFromTeamAction(
   user_id: number,
   team_id: number,
 ): Promise<ServerActionResponse<boolean>> {
+  checkAuthenticationStatus();
   const removeUserFromTeamResponse = await queries.teams.removeUserFromTeam(user_id, team_id);
   if (!removeUserFromTeamResponse.success) {
     return removeUserFromTeamResponse;
@@ -113,24 +120,28 @@ export async function removeUserFromTeamAction(
 }
 
 export async function getProjectsForTeamAction(team_id: number): Promise<ServerActionResponse<types.ProjectSelect[]>> {
+  checkAuthenticationStatus();
   const getProjectsForTeamResponse = await queries.teams.getProjectsForTeam(team_id);
 
   return getProjectsForTeamResponse.success ? getProjectsForTeamResponse : getProjectsForTeamResponse;
 }
 
 export async function getUsersForTeam(team_id: number): Promise<ServerActionResponse<types.UserSelect[]>> {
+  checkAuthenticationStatus();
   const getUsersForTeamResponse = await queries.teams.getAllTeamMembers(team_id);
 
   return getUsersForTeamResponse.success ? getUsersForTeamResponse : getUsersForTeamResponse;
 }
 
 export async function getTeamsForUser(user_id: number): Promise<ServerActionResponse<types.TeamsSelect[]>> {
+  checkAuthenticationStatus();
   // Retrieve teams of user.
   const getTeamsForUserResponse = await queries.teams.getTeamsForUser(user_id);
   return getTeamsForUserResponse.success ? getTeamsForUserResponse : getTeamsForUserResponse;
 }
 
 export async function createTeamAction(teamName: string): Promise<ServerActionResponse<types.TeamsSelect>> {
+  checkAuthenticationStatus();
   // Get current user
   const user = await getUserId();
   if (!user.success) return user;

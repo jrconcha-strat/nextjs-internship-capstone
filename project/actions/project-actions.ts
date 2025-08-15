@@ -8,8 +8,10 @@ import { auth } from "@clerk/nextjs/server";
 import { ServerActionResponse } from "./actions-types";
 import * as types from "@/types";
 import { revalidatePath } from "next/cache";
+import { checkAuthenticationStatus } from "./actions-utils";
 
 export async function getProjectsForUserAction(user_id: number): Promise<ServerActionResponse<types.ProjectSelect[]>> {
+  checkAuthenticationStatus();
   const getProjectsForUserResponse = await queries.projects.getProjectsForUser(user_id);
   return getProjectsForUserResponse.success ? getProjectsForUserResponse : getProjectsForUserResponse;
 }
@@ -18,6 +20,7 @@ export async function updateProjectAction(
   project_id: number,
   projectFormData: z.infer<typeof projectSchemaUpdateForm>,
 ): Promise<ServerActionResponse<types.ProjectSelect>> {
+  checkAuthenticationStatus();
   // Get existing project
   const getExistingProjectResponse = await queries.projects.getById(project_id);
   if (!getExistingProjectResponse.success) {
@@ -43,6 +46,7 @@ export async function updateProjectAction(
 }
 
 export async function deleteProjectAction(project_id: number): Promise<ServerActionResponse<types.ProjectSelect>> {
+  checkAuthenticationStatus();
   const deleteProjectResponse = await queries.projects.delete(project_id);
 
   revalidatePath("/projects");
@@ -53,6 +57,8 @@ export async function deleteProjectAction(project_id: number): Promise<ServerAct
 export async function createProjectAction(
   projectFormData: z.infer<typeof projectSchemaForm>,
 ): Promise<ServerActionResponse<types.ProjectSelect>> {
+  checkAuthenticationStatus();
+
   // Retrieve project creator's clerkId
   const { userId } = await auth();
   if (!userId) {
@@ -93,25 +99,27 @@ export async function createProjectAction(
 }
 
 export async function checkProjectNameUnique(ProjectName: string): Promise<ServerActionResponse<boolean>> {
-  // call utility function to check project nameuniqueness.
+  checkAuthenticationStatus();
   const nameIsUniqueResponse = await queries.projects.checkProjectNameUnique(ProjectName);
 
-  // Ternary to narrow the response type.
   return nameIsUniqueResponse.success ? nameIsUniqueResponse : nameIsUniqueResponse;
 }
 
 export async function getProjectByIdAction(project_id: number): Promise<ServerActionResponse<types.ProjectSelect>> {
+  checkAuthenticationStatus();
   const getProjectByIDResult = await queries.projects.getById(project_id);
 
   return getProjectByIDResult.success ? getProjectByIDResult : getProjectByIDResult;
 }
 export async function getAllProjects(): Promise<ServerActionResponse<types.ProjectSelect[]>> {
+  checkAuthenticationStatus();
   const getAllProjectsResult = await queries.projects.getAll();
 
   return getAllProjectsResult.success ? getAllProjectsResult : getAllProjectsResult;
 }
 
 export async function getAllMembersForProject(project_id: number): Promise<ServerActionResponse<types.UserSelect[]>> {
+  checkAuthenticationStatus();
   const getAllMembersForProjectResult = await queries.projects.getAllMembersForProject(project_id);
 
   return getAllMembersForProjectResult.success ? getAllMembersForProjectResult : getAllMembersForProjectResult;
