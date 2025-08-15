@@ -3,7 +3,7 @@ import { db } from "../db-index";
 import { getAllObject, getObjectById, deleteObject, getBaseFields } from "./query_utils";
 import * as schema from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { teams, teams as teamsQuery } from "@/lib/db/queries/teams-queries";
+import { teams } from "@/lib/db/queries/teams-queries";
 
 export const projects = {
   getAll: async (): Promise<types.QueryResponse<Array<types.ProjectSelect>>> => {
@@ -201,17 +201,23 @@ export const projects = {
       const result = await db
         .select()
         .from(schema.teams)
-        .innerJoin(schema.teams_to_projects, eq(schema.teams_to_projects.team_id, schema.teams.id))
-        .where(eq(schema.teams_to_projects.project_id, project_id));
+        .innerJoin(schema.project_members, eq(schema.project_members.team_id, schema.teams.id))
+        .where(eq(schema.project_members.project_id, project_id));
 
       // Extract the teams
-      const teams = result.map((row) => row.teams);
+      const teamsForProject = result.map((row) => row.teams);
 
-      const memberTeams = await teams.reduce(
+      // Deduplicate teams
+      const uniqueTeamsId = Array.from(new Set(teamsForProject.map((t) => t.id)));
+      const uniqueTeamsForProject = uniqueTeamsId
+        .map((id) => teamsForProject.find((t) => t.id === id))
+        .filter((t) => t !== undefined);
+
+      const memberTeams = await uniqueTeamsForProject.reduce(
         async (accPromise, cv) => {
           const acc = await accPromise;
 
-          const teamMembers = await teamsQuery.getAllTeamMembers(cv.id);
+          const teamMembers = await teams.getAllTeamMembers(cv.id);
 
           if (!teamMembers.success) {
             throw new Error("Unable to get members of teams");
@@ -223,7 +229,13 @@ export const projects = {
         Promise.resolve([] as types.UserSelect[]),
       );
 
-      if (!memberTeams) {
+      // Deduplicate members
+      const uniqueMembersId = Array.from(new Set(memberTeams.map((t) => t.id)));
+      const uniqueMembersForProject = uniqueMembersId
+        .map((id) => memberTeams.find((m) => m.id === id))
+        .filter((m) => m !== undefined);
+
+      if (!uniqueMembersForProject) {
         return {
           success: false,
           message: "Unable to retrieve the members of the project.",
@@ -234,7 +246,7 @@ export const projects = {
       return {
         success: true,
         message: "Successfully retrieved members of the project.",
-        data: memberTeams,
+        data: uniqueMembersForProject,
       };
     } catch (e) {
       return {

@@ -31,9 +31,7 @@ const MembersAvatars: FC<MembersAvatarsProps> = ({ members, max_visible, size })
         </Avatar>
       ))}
       {remaining > 0 && (
-        <Avatar
-          className={`bg-muted text-xs font-medium text-muted-foreground ${`h-${size} w-${size}`}`}
-        >
+        <Avatar className={`bg-muted text-xs font-medium text-muted-foreground ${`h-${size} w-${size}`}`}>
           <AvatarFallback>+{remaining}</AvatarFallback>
         </Avatar>
       )}

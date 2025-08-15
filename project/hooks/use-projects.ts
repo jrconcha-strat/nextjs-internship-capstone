@@ -280,11 +280,7 @@ export function useProjects(project_id?: number) {
 
 // Members for *one* project
 export function useProjectMembers(projectId: number) {
-  const {
-    data: members,
-    isLoading: isMembersLoading,
-    error: membersError,
-  } = useQuery({
+  const projectMembers = useQuery({
     queryKey: ["project_members", projectId],
     enabled: typeof projectId === "number",
     queryFn: async ({ queryKey }) => {
@@ -295,5 +291,9 @@ export function useProjectMembers(projectId: number) {
     },
   });
 
-  return { members, isMembersLoading, membersError };
+  return {
+    projectMembers: projectMembers.data,
+    isProjectMembersLoading: projectMembers.isLoading,
+    projectMembersError: projectMembers.error,
+  };
 }

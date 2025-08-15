@@ -81,13 +81,13 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
     formState: { errors },
   } = useForm<z.infer<typeof taskSchemaForm>>({
     resolver: zodResolver(taskSchemaForm),
-    defaultValues:{
-      assigneeIds: []
-    }
+    defaultValues: {
+      assigneeIds: [],
+    },
   });
 
   const { createTask, isCreateTaskLoading } = useTasks({ list_id: list_id });
-  const { members, isMembersLoading, membersError } = useProjectMembers(project_id);
+  const { projectMembers, isProjectMembersLoading, projectMembersError } = useProjectMembers(project_id);
 
   const onSubmit = async (values: z.infer<typeof taskSchemaForm>) => {
     createTask({ project_id, list_id, position, taskFormData: values });
@@ -193,12 +193,14 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
                   control={control}
                   render={({ field }) => (
                     <MultiSelect
-                      options={(members ?? []).map((m) => ({ label: m.name, value: m.id }))}
+                      options={(projectMembers ?? []).map((m) => ({ label: m.name, value: m.id }))}
                       value={field.value ?? []}
                       onChange={field.onChange}
-                      disabled={isMembersLoading || isCreateTaskLoading}
-                      placeholder={isMembersLoading ? "Loading project members..." : "Select Members to Assign"}
-                      emptyText={membersError ? "Failed to load members" : "This project doesn't have any members yet."}
+                      disabled={isProjectMembersLoading || isCreateTaskLoading}
+                      placeholder={isProjectMembersLoading ? "Loading project members..." : "Select Members to Assign"}
+                      emptyText={
+                        projectMembersError ? "Failed to load members" : "This project doesn't have any members yet."
+                      }
                     />
                   )}
                 />

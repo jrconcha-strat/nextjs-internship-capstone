@@ -117,7 +117,9 @@ interface ProjectCardProps {
 }
 
 const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
-  const { members, isMembersLoading, membersError } = useProjectMembers(project.id);
+  const { projectMembers, isProjectMembersLoading, projectMembersError } = useProjectMembers(
+    project.id,
+  );
   const { taskCount, isTaskCountLoading, taskCountError } = useProjects(project.id);
 
   const [isEditModalOpen, setIsModalOpen] = useState(false);
@@ -146,10 +148,10 @@ const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
             <div className="flex items-center">
               <Users size={16} className="mr-1" />
 
-              {isMembersLoading
+              {isProjectMembersLoading
                 ? "Loading"
-                : !membersError && members
-                  ? `${members.length === 0 ? "No" : members.length} members`
+                : !projectMembersError && projectMembers
+                  ? `${projectMembers.length === 0 ? "No" : projectMembers.length} members`
                   : "Unable to load members."}
             </div>
             <div className="flex items-center">
@@ -195,10 +197,10 @@ const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
             <span className={`px-2 py-1 text-xs font-medium rounded-full ${projectStatusColor[project.status]}`}>
               {project.status}
             </span>
-            {isMembersLoading ? (
+            {isProjectMembersLoading ? (
               <Skeleton height="6" width="20" />
-            ) : members && !membersError ? (
-              <MembersAvatars members={members} max_visible={5} size={6} />
+            ) : projectMembers && !projectMembersError ? (
+              <MembersAvatars members={projectMembers} max_visible={5} size={6} />
             ) : (
               <p>Unable to load members.</p>
             )}
