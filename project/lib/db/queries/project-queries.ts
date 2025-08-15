@@ -256,7 +256,15 @@ export const projects = {
 
       const userProjects = result.map((row) => row.project);
 
-      if (!userProjects) {
+      // De-duplicate projects of user, necessary as a user can be assigned to multiple teams which may be assigned to the same project.
+      // Retrieve unique project ids
+      const userProjectsId = Array.from(new Set(userProjects.map((p) => p.id)));
+      // Retrieve project objects with ids, undefined if not found.
+      const uniqueProjectsWithUndefined = userProjectsId.map((id) => userProjects.find((project) => project.id === id));
+      // Remove any undefineds
+      const uniqueProjects = uniqueProjectsWithUndefined.filter((project) => project !== undefined);
+
+      if (uniqueProjects === undefined) {
         return {
           success: false,
           message: `Unable to retrieve user projects.`,
@@ -267,7 +275,7 @@ export const projects = {
       return {
         success: true,
         message: `Successfully retrieved user projects.`,
-        data: userProjects,
+        data: uniqueProjects,
       };
     } catch (e) {
       return {
