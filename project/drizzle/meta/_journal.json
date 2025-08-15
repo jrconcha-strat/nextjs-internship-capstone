@@ -57,6 +57,20 @@
       "when": 1754969895916,
       "tag": "0007_thin_swordsman",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1755222821476,
+      "tag": "0008_flawless_clea",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1755225826130,
+      "tag": "0009_exotic_madame_masque",
+      "breakpoints": true
     }
   ]
 }

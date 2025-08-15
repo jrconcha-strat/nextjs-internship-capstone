@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { lists, tasks, users, comments, projects, task_labels as taskLabels, users_to_tasks as usersToTasks, teams, teams_to_projects as teamsToProjects, users_to_teams as usersToTeams, project_members as projectMembers, roles } from "./schema";
+import { lists, tasks, users, comments, projects, taskLabels, usersToTasks, teams, teamsToProjects, usersToTeams, projectMembers, roles } from "./schema";
 
 export const tasksRelations = relations(tasks, ({one, many}) => ({
 	list: one(lists, {
@@ -65,22 +65,22 @@ export const taskLabelsRelations = relations(taskLabels, ({one}) => ({
 
 export const usersToTasksRelations = relations(usersToTasks, ({one}) => ({
 	task: one(tasks, {
-		fields: [usersToTasks.task_id],
+		fields: [usersToTasks.taskId],
 		references: [tasks.id]
 	}),
 	user: one(users, {
-		fields: [usersToTasks.user_id],
+		fields: [usersToTasks.userId],
 		references: [users.id]
 	}),
 }));
 
 export const teamsToProjectsRelations = relations(teamsToProjects, ({one}) => ({
 	team: one(teams, {
-		fields: [teamsToProjects.team_id],
+		fields: [teamsToProjects.teamId],
 		references: [teams.id]
 	}),
 	project: one(projects, {
-		fields: [teamsToProjects.project_id],
+		fields: [teamsToProjects.projectId],
 		references: [projects.id]
 	}),
 }));
@@ -93,26 +93,26 @@ export const teamsRelations = relations(teams, ({many}) => ({
 
 export const usersToTeamsRelations = relations(usersToTeams, ({one}) => ({
 	team: one(teams, {
-		fields: [usersToTeams.team_id],
+		fields: [usersToTeams.teamId],
 		references: [teams.id]
 	}),
 	user: one(users, {
-		fields: [usersToTeams.user_id],
+		fields: [usersToTeams.userId],
 		references: [users.id]
 	}),
 }));
 
 export const projectMembersRelations = relations(projectMembers, ({one}) => ({
 	team: one(teams, {
-		fields: [projectMembers.team_id],
+		fields: [projectMembers.teamId],
 		references: [teams.id]
 	}),
 	project: one(projects, {
-		fields: [projectMembers.project_id],
+		fields: [projectMembers.projectId],
 		references: [projects.id]
 	}),
 	user: one(users, {
-		fields: [projectMembers.user_id],
+		fields: [projectMembers.userId],
 		references: [users.id]
 	}),
 	role: one(roles, {

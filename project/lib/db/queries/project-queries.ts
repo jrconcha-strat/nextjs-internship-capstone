@@ -3,7 +3,7 @@ import { db } from "../db-index";
 import { getAllObject, getObjectById, deleteObject, getBaseFields } from "./query_utils";
 import * as schema from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { teams as teamsQuery } from "@/lib/db/queries/teams-queries";
+import { teams, teams as teamsQuery } from "@/lib/db/queries/teams-queries";
 
 export const projects = {
   getAll: async (): Promise<types.QueryResponse<Array<types.ProjectSelect>>> => {
@@ -24,7 +24,7 @@ export const projects = {
           throw new Error(`Database did not return a project. Check connection.`);
         }
 
-        // Assign teams
+        // Create an entry to insert for each team
         const teamsToAssign: types.TeamsToProjectsInsert[] = teamIds.map((id) => ({
           team_id: id,
           project_id: insertedProject.id,
@@ -32,9 +32,34 @@ export const projects = {
           updatedAt: now,
         }));
 
+        // Assign the teams
         const assignedTeams = await tx.insert(schema.teams_to_projects).values(teamsToAssign).returning();
         if (assignedTeams.length !== teamIds.length) {
           throw new Error("Not all teams were assigned.");
+        }
+
+        // Create Project Members Entries
+        for (const assignedTeam of assignedTeams) {
+          // Get all team members of this team
+          const res = await teams.getAllTeamMembers(assignedTeam.team_id);
+          if (!res.success) throw new Error(res.message);
+
+          // Create an entry to insert for each team member
+          const teamMembers = res.data;
+          const membersToAssign: types.ProjectMembersInsert[] = teamMembers.map((teamMember) => ({
+            team_id: assignedTeam.team_id,
+            project_id: insertedProject.id,
+            user_id: teamMember.id,
+            role: 1, // Default
+            createdAt: now,
+            updatedAt: now,
+          }));
+
+          // Assign the members of this team.
+          const assignedMembers = await tx.insert(schema.project_members).values(membersToAssign).returning();
+          if (assignedMembers.length !== teamMembers.length) {
+            throw new Error("Not all members were assigned.");
+          }
         }
 
         // Insert default columns

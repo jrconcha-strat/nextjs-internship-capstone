@@ -1,7 +1,7 @@
 import { pgTable, foreignKey, integer, varchar, text, timestamp, unique, boolean, primaryKey, pgEnum } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
-export const priority = pgEnum("priority", ['unselected', 'low', 'medium', 'high'])
+export const priority = pgEnum("priority", ['low', 'medium', 'high'])
 export const roleName = pgEnum("role_name", ['No Role Yet', 'Project Manager', 'Developer', 'QA Engineer', 'Designer'])
 export const status = pgEnum("status", ['Completed', 'On-hold', 'In Progress', 'Planning', 'Review'])
 
@@ -11,7 +11,7 @@ export const tasks = pgTable("tasks", {
 	title: varchar().notNull(),
 	description: text(),
 	listId: integer().notNull(),
-	priority: priority().default('unselected').notNull(),
+	priority: priority().notNull(),
 	dueDate: timestamp({ mode: 'string' }),
 	position: integer().notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
@@ -65,6 +65,7 @@ export const projects = pgTable("projects", {
 			foreignColumns: [users.id],
 			name: "projects_ownerId_users_id_fk"
 		}).onDelete("restrict"),
+	unique("projects_name_unique").on(table.name),
 ]);
 
 export const lists = pgTable("lists", {
@@ -128,6 +129,25 @@ export const teams = pgTable("teams", {
 	unique("teams_teamName_unique").on(table.teamName),
 ]);
 
+export const usersToTasks = pgTable("users_to_tasks", {
+	taskId: integer("task_id").notNull(),
+	userId: integer("user_id").notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.taskId],
+			foreignColumns: [tasks.id],
+			name: "users_to_tasks_task_id_tasks_id_fk"
+		}).onDelete("cascade"),
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "users_to_tasks_user_id_users_id_fk"
+		}).onDelete("cascade"),
+	primaryKey({ columns: [table.taskId, table.userId], name: "users_to_tasks_task_id_user_id_pk"}),
+]);
+
 export const teamsToProjects = pgTable("teams_to_projects", {
 	teamId: integer("team_id").notNull(),
 	projectId: integer("project_id").notNull(),
@@ -147,31 +167,10 @@ export const teamsToProjects = pgTable("teams_to_projects", {
 	primaryKey({ columns: [table.teamId, table.projectId], name: "teams_to_projects_team_id_project_id_pk"}),
 ]);
 
-export const usersToTasks = pgTable("users_to_tasks", {
-	taskId: integer("task_id").notNull(),
-	userId: integer("user_id").notNull(),
-	isTaskOwner: boolean().default(false).notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
-}, (table) => [
-	foreignKey({
-			columns: [table.taskId],
-			foreignColumns: [tasks.id],
-			name: "users_to_tasks_task_id_tasks_id_fk"
-		}).onDelete("cascade"),
-	foreignKey({
-			columns: [table.userId],
-			foreignColumns: [users.id],
-			name: "users_to_tasks_user_id_users_id_fk"
-		}).onDelete("cascade"),
-	primaryKey({ columns: [table.taskId, table.userId], name: "users_to_tasks_task_id_user_id_pk"}),
-]);
-
 export const usersToTeams = pgTable("users_to_teams", {
 	teamId: integer("team_id").notNull(),
 	userId: integer("user_id").notNull(),
-	role: integer().default(1).notNull(),
-	isCreator: boolean().default(false).notNull(),
+	isLeader: boolean().default(false).notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
 }, (table) => [
@@ -185,10 +184,36 @@ export const usersToTeams = pgTable("users_to_teams", {
 			foreignColumns: [users.id],
 			name: "users_to_teams_user_id_users_id_fk"
 		}).onDelete("cascade"),
+	primaryKey({ columns: [table.teamId, table.userId], name: "users_to_teams_team_id_user_id_pk"}),
+]);
+
+export const projectMembers = pgTable("project_members", {
+	teamId: integer("team_id").notNull(),
+	projectId: integer("project_id").notNull(),
+	userId: integer("user_id").notNull(),
+	role: integer().default(1).notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.teamId],
+			foreignColumns: [teams.id],
+			name: "project_members_team_id_teams_id_fk"
+		}).onDelete("cascade"),
+	foreignKey({
+			columns: [table.projectId],
+			foreignColumns: [projects.id],
+			name: "project_members_project_id_projects_id_fk"
+		}).onDelete("cascade"),
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "project_members_user_id_users_id_fk"
+		}).onDelete("cascade"),
 	foreignKey({
 			columns: [table.role],
 			foreignColumns: [roles.id],
-			name: "users_to_teams_role_roles_id_fk"
+			name: "project_members_role_roles_id_fk"
 		}).onDelete("restrict"),
-	primaryKey({ columns: [table.teamId, table.userId], name: "users_to_teams_team_id_user_id_pk"}),
+	primaryKey({ columns: [table.teamId, table.projectId, table.userId], name: "project_members_team_id_project_id_user_id_pk"}),
 ]);

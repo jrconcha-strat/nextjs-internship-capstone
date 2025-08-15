@@ -191,30 +191,60 @@ export const teams = {
     isLeader: boolean,
   ): Promise<types.QueryResponse<types.UsersToTeamsInsert>> => {
     try {
-      // Construct the users to teams object to be inserted
-      const usersToTeamsObject: types.UsersToTeamsInsert = {
-        team_id: teamId,
-        user_id: userId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        role: 1,
-        isLeader: isLeader,
-      };
+      const txResult = await db.transaction(async (tx): Promise<types.QueryResponse<types.UsersToTeamsInsert>> => {
+        // Construct the users to teams object to be inserted
+        const usersToTeamsObject: types.UsersToTeamsInsert = {
+          team_id: teamId,
+          user_id: userId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isLeader: isLeader,
+        };
+        const usersToTeamsEntry = await tx.insert(schema.users_to_teams).values(usersToTeamsObject).returning();
+        if (!usersToTeamsEntry) {
+          throw new Error("Unable to create users to teams entry.");
+        }
 
-      const response = await db.insert(schema.users_to_teams).values(usersToTeamsObject);
-      if (response.rowCount === 1) {
+        // Create a project member entry for all assigned projects of the team.
+        const res = await teams.getProjectsForTeam(teamId);
+        if (!res.success) throw new Error(res.message);
+
+        const projectsOfTeam = res.data;
+        const now = new Date();
+
+        for (const project of projectsOfTeam) {
+          // Construct a project member entry for this project
+          const memberToAssign: types.ProjectMembersInsert = {
+            team_id: teamId,
+            project_id: project.id,
+            user_id: userId,
+            role: 1,
+            createdAt: now,
+            updatedAt: now,
+          };
+
+          // Assign this team member to the project.
+          const assignedMember = await tx.insert(schema.project_members).values(memberToAssign).returning();
+          if (!assignedMember) {
+            throw new Error(`Unable to assign user as member of project ${project.name}.`);
+          }
+        }
         return {
           success: true,
           message: `Successfully added user ${userId} to team ${teamId}.`,
           data: usersToTeamsObject,
         };
-      } else {
+      });
+
+      // Check if the transaction is successful
+      if (txResult.success) {
         return {
-          success: false,
-          message: `Unable to add user ${userId} to team ${teamId}`,
-          error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
+          success: true,
+          message: `Successfully created new project.`,
+          data: txResult.data,
         };
       }
+      throw new Error("Adding user to team database creation transaction failed.");
     } catch (e) {
       return {
         success: false,
@@ -228,23 +258,56 @@ export const teams = {
     teamId: number,
   ): Promise<types.QueryResponse<types.UsersToTeamsSelect>> => {
     try {
-      const [response] = await db
-        .delete(schema.users_to_teams)
-        .where(and(eq(schema.users_to_teams.user_id, userId), eq(schema.users_to_teams.team_id, teamId)))
-        .returning();
-      if (response) {
+      const txResult = await db.transaction(async (tx): Promise<types.QueryResponse<types.UsersToTeamsSelect>> => {
+        // Remove users to team entries.
+        const [response] = await tx
+          .delete(schema.users_to_teams)
+          .where(and(eq(schema.users_to_teams.user_id, userId), eq(schema.users_to_teams.team_id, teamId)))
+          .returning();
+
+        if (!response) {
+          throw new Error("Unable to delete users to teams entry.");
+        }
+
+        // Remove user's project member entries for all assigned projects of the team.
+        const res = await teams.getProjectsForTeam(teamId);
+        if (!res.success) throw new Error(res.message);
+
+        const projectsOfTeam = res.data;
+
+        for (const project of projectsOfTeam) {
+
+          // Remove this user from the project
+          const removedMember = await tx
+            .delete(schema.project_members)
+            .where(
+              and(
+                eq(schema.project_members.user_id, userId),
+                eq(schema.project_members.team_id, teamId),
+                eq(schema.project_members.project_id, project.id),
+              ),
+            )
+            .returning();
+          if (!removedMember) {
+            throw new Error(`Unable to remove user as member of project ${project.name}.`);
+          }
+        }
         return {
           success: true,
           message: `Successfully removed user ${userId} from team ${teamId}.`,
           data: response,
         };
-      } else {
+      });
+
+      // Check if the transaction is successful
+      if (txResult.success) {
         return {
-          success: false,
-          message: `Unable to remove user ${userId} from team ${teamId}`,
-          error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
+          success: true,
+          message: `Successfully created new project.`,
+          data: txResult.data,
         };
       }
+      throw new Error("Removing user from team database creation transaction failed.");
     } catch (e) {
       return {
         success: false,

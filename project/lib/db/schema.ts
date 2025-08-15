@@ -36,7 +36,17 @@
     3. (comments) authorId	Must be a member of the team assigned to the project
 */
 
-import { pgTable, varchar, timestamp, integer, boolean, text, primaryKey, foreignKey } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  varchar,
+  timestamp,
+  integer,
+  boolean,
+  text,
+  primaryKey,
+  foreignKey,
+  unique,
+} from "drizzle-orm/pg-core";
 import { priorityEnum, rolesEnum, statusEnum } from "./db-enums";
 export { priorityEnum, rolesEnum, statusEnum } from "./db-enums";
 
@@ -149,10 +159,6 @@ export const users_to_teams = pgTable(
     user_id: integer("user_id")
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
-    role: integer("role")
-      .references(() => roles.id, { onDelete: "restrict" })
-      .notNull()
-      .default(1), // "No Role Yet" default
     isLeader: boolean("isLeader").notNull().default(false),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -189,4 +195,28 @@ export const teams_to_projects = pgTable(
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [primaryKey({ columns: [table.team_id, table.project_id] })],
+);
+
+export const project_members = pgTable(
+  "project_members",
+  {
+    team_id: integer("team_id")
+      .references(() => teams.id, { onDelete: "cascade" })
+      .notNull(),
+    project_id: integer("project_id")
+      .references(() => projects.id, { onDelete: "cascade" })
+      .notNull(),
+    user_id: integer("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    role: integer("role")
+      .references(() => roles.id, { onDelete: "restrict" })
+      .notNull()
+      .default(1), // "No Role Yet" default
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.team_id, table.project_id, table.user_id] }),
+  ],
 );
