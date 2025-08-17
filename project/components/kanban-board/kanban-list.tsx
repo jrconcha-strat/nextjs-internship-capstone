@@ -60,13 +60,6 @@ const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit, searchTerm 
                   <TaskCard key={task.id} task={task} list_id={list.id} />
                 ))}
               </div>
-              <button
-                type="button"
-                onClick={openModal}
-                className="w-full p-3 border-2 border-dashed border-french_gray-300 dark:border-payne's_gray-400 rounded-lg text-payne's_gray-500 dark:text-french_gray-400 hover:border-blue_munsell-500 hover:text-blue_munsell-500 transition-colors"
-              >
-                + Add task
-              </button>
             </div>
           ) : isListTasksLoading && !getListTasksError ? (
             <div className="p-4 text-center w-full h-full flex justify-center items-center gap-x-2">
@@ -81,6 +74,14 @@ const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit, searchTerm 
               </div>
             )
           )}
+
+          <button
+            type="button"
+            onClick={openModal}
+            className="w-full p-3 rounded-lg text-foreground/50 hover:bg-primary/8 hover:text-primary/90 transition-colors"
+          >
+            + Add task
+          </button>
         </div>
       </div>
     </>
