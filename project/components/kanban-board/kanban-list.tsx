@@ -1,5 +1,5 @@
 "use client";
-import { FC, useState } from "react";
+import { FC, useMemo, useState } from "react";
 import KanbanListOptions from "./kanban-list-options";
 import { ListSelect } from "@/types";
 import { useTasks } from "@/hooks/use-tasks";
@@ -11,11 +11,18 @@ type KanbanListProps = {
   list: ListSelect;
   project_id: number;
   onEdit: () => void;
+  searchTerm: string;
 };
 
-const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit }) => {
+const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit, searchTerm }) => {
   const { listTasks, isListTasksLoading, getListTasksError } = useTasks({ list_id: list.id });
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
+
+  const filteredTasks = useMemo(() => {
+    const filtered = listTasks?.filter((task) => task.title.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    return filtered;
+  }, [searchTerm, listTasks]);
 
   function openModal() {
     setCreateModalOpen(true);
@@ -46,10 +53,10 @@ const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit }) => {
             </div>
           </div>
 
-          {listTasks ? (
+          {filteredTasks ? (
             <div className="p-4 min-h-[400px]">
               <div className="mb-4 space-y-3 max-h-[400px] overflow-y-auto">
-                {listTasks.map((task) => (
+                {filteredTasks.map((task) => (
                   <TaskCard key={task.id} task={task} list_id={list.id} />
                 ))}
               </div>

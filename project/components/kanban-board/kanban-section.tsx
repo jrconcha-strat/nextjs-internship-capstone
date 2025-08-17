@@ -7,15 +7,17 @@ import KanbanList from "./kanban-list";
 type KanbanSectionProps = {
   lists: ListSelect[];
   project_id: number;
+  searchTerm: string;
 };
 
-const KanbanSection: FC<KanbanSectionProps> = ({ project_id, lists }) => {
+const KanbanSection: FC<KanbanSectionProps> = ({ project_id, lists, searchTerm }) => {
   const [sortedLists, setSortedList] = useState<ListSelect[]>([]);
   const [editTarget, setEditTarget] = useState<{ id: number; name: string } | null>(null);
 
   useEffect(() => {
     const positionSortedList = [...lists].sort((a, b) => a.position - b.position);
     setSortedList(positionSortedList);
+    
   }, [lists]);
 
   return (
@@ -35,6 +37,7 @@ const KanbanSection: FC<KanbanSectionProps> = ({ project_id, lists }) => {
           list={list}
           project_id={project_id}
           onEdit={() => setEditTarget({ id: list.id, name: list.name })}
+          searchTerm={searchTerm}
         />
       ))}
     </>

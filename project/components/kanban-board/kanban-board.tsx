@@ -3,7 +3,9 @@
 import AddKanbanBoard from "./add-kanban-board";
 import { useLists } from "@/hooks/use-lists";
 import SkeletonKanbanBoard from "./skeleton-kanban-board";
-import KanbanSection from "./kanban-section"
+import KanbanSection from "./kanban-section";
+import TasksSearch from "../tasks/tasks-search";
+import { useState } from "react";
 
 // TODO: Task 5.1 - Design responsive Kanban board layout
 // TODO: Task 5.2 - Implement drag-and-drop functionality with dnd-kit
@@ -42,9 +44,13 @@ State management:
 
 export function KanbanBoard({ projectId }: { projectId: string }) {
   const { lists, isLoadingLists } = useLists(Number(projectId));
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   return (
-    <div className="bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 p-6">
+    <div className="flex flex-col bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 p-6 space-y-6">
+      {/* Task Search */}
+      <TasksSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+
       <div className="flex gap-x-3 overflow-x-auto">
         {!lists ? (
           isLoadingLists ? (
@@ -59,7 +65,7 @@ export function KanbanBoard({ projectId }: { projectId: string }) {
           )
         ) : (
           <>
-            <KanbanSection project_id={Number(projectId)} lists={lists} />
+            <KanbanSection project_id={Number(projectId)} lists={lists} searchTerm={searchTerm} />
             <AddKanbanBoard project_id={Number(projectId)} position={lists.length} />
           </>
         )}
