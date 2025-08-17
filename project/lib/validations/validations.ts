@@ -375,10 +375,6 @@ export const assignTeamLeaderSchema = z.object({
   team_id: z.int().min(1, errorTemplates.idMinError),
 });
 
-export const updateTeamSchema = teamSchemaForm.extend({
-  team_id: z.int().min(1, errorTemplates.idMinError),
-});
-
 export const deleteTaskSchema = taskSchema.pick({
   id: true,
 });

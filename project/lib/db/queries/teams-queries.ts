@@ -44,16 +44,16 @@ export const teams = {
       return failResponse(`Unable to retrieve user's teams`, e);
     }
   },
-  updateTeam: async (teamId: number, newTeamName: string): Promise<types.QueryResponse<types.TeamsSelect>> => {
+  updateTeam: async (teamId: number, incomingTeamData: types.TeamsInsert): Promise<types.QueryResponse<types.TeamsSelect>> => {
     try {
       const res = await teams.getById(teamId);
-      if (res.success === false) throw new Error(res.message);
+      if (!res.success) throw new Error(res.message);
 
       const existingTeamData = res.data;
 
       const changed: Partial<types.TeamsInsert> = {};
 
-      if (existingTeamData.teamName !== newTeamName) changed.teamName = newTeamName;
+      if (existingTeamData.teamName !== incomingTeamData.teamName) changed.teamName = incomingTeamData.teamName;
 
       const finalUpdatedTeamData = {
         ...getBaseFields(existingTeamData),
@@ -75,14 +75,8 @@ export const teams = {
       return failResponse(`Unable to update team.`, e);
     }
   },
-  createTeam: async (teamName: string): Promise<types.QueryResponse<types.TeamsSelect>> => {
+  createTeam: async (teamObject: types.TeamsInsert): Promise<types.QueryResponse<types.TeamsSelect>> => {
     try {
-      const teamObject: types.TeamsInsert = {
-        teamName,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
       const [team] = await db.insert(schema.teams).values(teamObject).returning();
 
       if (team) return successResponse(`Created team successfully`, team);

@@ -28,7 +28,7 @@ export async function getTasksByListIdAction(project_id: number): Promise<Server
 export async function deleteTaskAction(task_id: number): Promise<ServerActionResponse<TaskSelect>> {
   await checkAuthenticationStatus();
 
-  const parsed = deleteTaskSchema.safeParse(task_id);
+  const parsed = deleteTaskSchema.safeParse({ id: task_id });
   if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
 
   return await queries.tasks.delete(task_id);
@@ -49,6 +49,7 @@ export async function createTaskAction(
     updatedAt: new Date(),
   };
 
+  // Zod strips unknown keys.
   const parsed = taskSchemaDB.safeParse(taskDBData);
   if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
 

@@ -8,8 +8,8 @@ import {
   assignTeamLeaderSchema,
   deleteTeamSchema,
   removeUsersFromTeamSchema,
+  teamSchemaDB,
   teamSchemaForm,
-  updateTeamSchema,
 } from "@/lib/validations/validations";
 import z from "zod";
 import { getUserId } from "./user-actions";
@@ -67,10 +67,18 @@ export async function updateTeamAction(
 ): Promise<ServerActionResponse<types.TeamsSelect>> {
   await checkAuthenticationStatus();
 
-  const parsed = updateTeamSchema.safeParse({ newData: newData.teamName, team_id });
+  const res = await queries.teams.getById(team_id);
+  if (!res.success) return res;
+
+  const teamDBData: z.infer<typeof teamSchemaDB> = {
+    ...res.data,
+    ...newData,
+  };
+
+  const parsed = teamSchemaDB.safeParse(teamDBData);
   if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
 
-  return await queries.teams.updateTeam(team_id, newData.teamName);
+  return await queries.teams.updateTeam(team_id, teamDBData);
 }
 
 export async function reassignTeamLeaderAction(
@@ -133,10 +141,16 @@ export async function createTeamAction(teamName: string): Promise<ServerActionRe
   const user = await getUserId();
   if (!user.success) return user;
 
-  const parsed = teamSchemaForm.safeParse({ teamName });
+  const teamObject: types.TeamsInsert = {
+    teamName,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  const parsed = teamSchemaDB.safeParse(teamObject);
   if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
 
-  const createResponse = await queries.teams.createTeam(teamName);
+  const createResponse = await queries.teams.createTeam(teamObject);
   if (!createResponse.success) return createResponse;
 
   const res = await queries.teams.addUserToTeam(user.data.id, createResponse.data.id, true);

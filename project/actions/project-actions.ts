@@ -73,7 +73,6 @@ export async function updateProjectAction(
   const projectDBData: z.infer<typeof projectSchemaDB> = {
     ...res.data,
     ...projectFormData,
-    updatedAt: new Date(),
   };
 
   const parsed = projectSchemaDB.safeParse(projectDBData);

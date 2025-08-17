@@ -85,7 +85,7 @@ export const projects = {
   ): Promise<types.QueryResponse<types.ProjectSelect>> => {
     try {
       const response = await projects.getById(project_id);
-      if (response.success === false) throw new Error(response.message);
+      if (!response.success) throw new Error(response.message);
 
       const existingProject = response.data;
 

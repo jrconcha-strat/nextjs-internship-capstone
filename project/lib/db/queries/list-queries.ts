@@ -24,7 +24,7 @@ export const lists = {
   update: async (id: number, incomingListData: types.ListInsert): Promise<types.QueryResponse<types.ListSelect>> => {
     try {
       const response = await lists.getById(id);
-      if (response.success === false) throw new Error(response.message);
+      if (!response.success) throw new Error(response.message);
 
       const existingListData = response.data;
 
