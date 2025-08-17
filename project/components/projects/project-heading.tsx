@@ -70,7 +70,7 @@ const ProjectHeading: FC<ProjectHeadingProps> = ({ project }) => {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:gap-0 md:flex-row items-center justify-between">
         <div className="flex items-center space-x-4">
           <Link
             href="/projects"
@@ -86,7 +86,7 @@ const ProjectHeading: FC<ProjectHeadingProps> = ({ project }) => {
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="bg-primary/20 rounded-md px-1 md:bg-transparent flex items-center space-x-2">
           {navItems.map((itm, idx) => {
             return (
               <Link

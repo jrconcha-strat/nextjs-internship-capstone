@@ -7,8 +7,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-linear-to-br from-platinum-900 to-platinum-800 dark:from-outer_space-500 dark:to-payne's_gray-500">
       {/* Header */}
-      <Header/>
-      
+      <Header />
 
       {/* Hero Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
@@ -19,8 +18,8 @@ export default function HomePage() {
           </h1>
 
           <p className="text-xl text-payne's_gray-500 dark:text-french_gray-500 mb-8 max-w-2xl mx-auto">
-            Organize tasks, collaborate with teams, and track progress with our
-            intuitive drag-and-drop project management platform.
+            Organize tasks, collaborate with teams, and track progress with our intuitive drag-and-drop project
+            management platform.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -64,8 +63,7 @@ export default function HomePage() {
             🚀 Navigate the Mock Site
           </h2>
           <p className="text-lg text-payne's_gray-500 dark:text-french_gray-500 mb-8">
-            All pages are accessible without authentication for development
-            purposes
+            All pages are accessible without authentication for development purposes
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
@@ -73,48 +71,32 @@ export default function HomePage() {
               href="/dashboard"
               className="p-4 bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 hover:shadow-lg transition-shadow"
             >
-              <h3 className="font-semibold text-outer_space-500 dark:text-platinum-500 mb-2">
-                Dashboard
-              </h3>
-              <p className="text-sm text-payne's_gray-500 dark:text-french_gray-400">
-                Main dashboard view
-              </p>
+              <h3 className="font-semibold text-outer_space-500 dark:text-platinum-500 mb-2">Dashboard</h3>
+              <p className="text-sm text-payne's_gray-500 dark:text-french_gray-400">Main dashboard view</p>
             </Link>
 
             <Link
               href="/projects"
               className="p-4 bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 hover:shadow-lg transition-shadow"
             >
-              <h3 className="font-semibold text-outer_space-500 dark:text-platinum-500 mb-2">
-                Projects
-              </h3>
-              <p className="text-sm text-payne's_gray-500 dark:text-french_gray-400">
-                Projects listing page
-              </p>
+              <h3 className="font-semibold text-outer_space-500 dark:text-platinum-500 mb-2">Projects</h3>
+              <p className="text-sm text-payne's_gray-500 dark:text-french_gray-400">Projects listing page</p>
             </Link>
 
             <Link
               href="/projects/1"
               className="p-4 bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 hover:shadow-lg transition-shadow"
             >
-              <h3 className="font-semibold text-outer_space-500 dark:text-platinum-500 mb-2">
-                Kanban Board
-              </h3>
-              <p className="text-sm text-payne's_gray-500 dark:text-french_gray-400">
-                Project board view
-              </p>
+              <h3 className="font-semibold text-outer_space-500 dark:text-platinum-500 mb-2">Kanban Board</h3>
+              <p className="text-sm text-payne's_gray-500 dark:text-french_gray-400">Project board view</p>
             </Link>
 
             <Link
               href="/sign-in"
               className="p-4 bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 hover:shadow-lg transition-shadow"
             >
-              <h3 className="font-semibold text-outer_space-500 dark:text-platinum-500 mb-2">
-                Auth Pages
-              </h3>
-              <p className="text-sm text-payne's_gray-500 dark:text-french_gray-400">
-                Sign in/up placeholders
-              </p>
+              <h3 className="font-semibold text-outer_space-500 dark:text-platinum-500 mb-2">Auth Pages</h3>
+              <p className="text-sm text-payne's_gray-500 dark:text-french_gray-400">Sign in/up placeholders</p>
             </Link>
           </div>
         </div>
@@ -177,15 +159,9 @@ export default function HomePage() {
                 key={item.phase}
                 className="bg-white dark:bg-outer_space-500 p-6 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400"
               >
-                <div className="text-sm text-blue_munsell-500 font-semibold mb-2">
-                  Phase {item.phase}
-                </div>
-                <h3 className="font-semibold text-outer_space-500 dark:text-platinum-500 mb-2">
-                  {item.title}
-                </h3>
-                <div className="text-sm text-payne's_gray-500 dark:text-french_gray-400 mb-3">
-                  {item.tasks} tasks
-                </div>
+                <div className="text-sm text-blue_munsell-500 font-semibold mb-2">Phase {item.phase}</div>
+                <h3 className="font-semibold text-outer_space-500 dark:text-platinum-500 mb-2">{item.title}</h3>
+                <div className="text-sm text-payne's_gray-500 dark:text-french_gray-400 mb-3">{item.tasks} tasks</div>
                 <div className="flex items-center">
                   <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
                   <span className="text-sm text-payne's_gray-500 dark:text-french_gray-400 capitalize">
@@ -197,7 +173,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      <Footer/>
+      <Footer />
     </div>
   );
 }
