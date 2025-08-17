@@ -2,110 +2,54 @@ import * as types from "../../../types/index";
 import { db } from "../db-index";
 import * as schema from "../schema";
 import { and, eq } from "drizzle-orm";
-import { getBaseFields } from "./query_utils";
+import { failResponse, getBaseFields, successResponse } from "./query_utils";
 
 export const teams = {
   getById: async (teamId: number): Promise<types.QueryResponse<types.TeamsSelect>> => {
     try {
       const [team] = await db.select().from(schema.teams).limit(1).where(eq(schema.teams.id, teamId));
 
-      // Check if team exists.
-      if (team) {
-        return {
-          success: true,
-          message: `Team retrieved using id: ${teamId}.`,
-          data: team,
-        };
-      }
-      throw new Error(`Team does not exist.`);
+      if (team) return successResponse(`Team retrieved successfully.`, team);
+      throw new Error(`Team not found.`);
     } catch (e) {
-      return {
-        success: false,
-        message: `Unable to retrieve team using id: ${teamId}.`,
-        error: e,
-      };
+      return failResponse(`Unable to retrieve team.`, e);
     }
   },
   deleteTeam: async (teamId: number): Promise<types.QueryResponse<types.TeamsSelect>> => {
     try {
-      // Check if the team exists
-      const response = await teams.getById(teamId);
-      if (response.success === false) {
-        // Failed to retrieve, throw error.
-        throw new Error(response.message);
-      }
+      const res = await teams.getById(teamId);
+      if (res.success === false) throw new Error(res.message);
 
-      // Retrieve the data of the team to be deleted
-      const existingTeamData = response.data;
+      const [result] = await db.delete(schema.teams).where(eq(schema.teams.id, teamId)).returning();
 
-      const result = await db.delete(schema.teams).where(eq(schema.teams.id, teamId));
-
-      if (result.rowCount === 1) {
-        return {
-          success: true,
-          message: `Successfully deleted team ${existingTeamData.teamName}.`,
-          data: existingTeamData,
-        };
-      } else {
-        return {
-          success: false,
-          message: `Unable to delete team ${existingTeamData.teamName}`,
-          error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
-        };
-      }
+      if (result) return successResponse(`Team deleted successfully.`, result);
+      else return failResponse(`Unable to delete team`, `Database returned no result.`);
     } catch (e) {
-      console.log(e);
-      return {
-        success: false,
-        message: `Unable to delete team with id: ${teamId}.`,
-        error: e,
-      };
+      return failResponse(`Unable to delete team`, e);
     }
   },
   getTeamsForUser: async (userId: number): Promise<types.QueryResponse<types.TeamsSelect[]>> => {
     try {
-      // SQL that retrieves the user's teams with their usertoTeamEntries using their id.
       const result = await db
         .select()
         .from(schema.teams)
         .innerJoin(schema.users_to_teams, eq(schema.users_to_teams.team_id, schema.teams.id))
         .where(eq(schema.users_to_teams.user_id, userId));
 
-      // Extract the teams of the user
       const teams = result.map((row) => row.teams);
 
-      if (teams) {
-        return {
-          success: true,
-          message: `Successfully retrieved user teams of ${userId}.`,
-          data: teams,
-        };
-      } else {
-        return {
-          success: false,
-          message: `Unable to retrieve user teams of ${userId}.`,
-          error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
-        };
-      }
+      if (teams) return successResponse(`Successfully retrieved user's teams.`, teams);
+      else return failResponse(`Unable to retrieve user's teams`, `Database returned no result.`);
     } catch (e) {
-      return {
-        success: false,
-        message: `Unable to retrieve user teams of ${userId} .`,
-        error: e,
-      };
+      return failResponse(`Unable to retrieve user's teams`, e);
     }
   },
   updateTeam: async (teamId: number, newTeamName: string): Promise<types.QueryResponse<types.TeamsSelect>> => {
     try {
-      // Retrieve existing team data. Check if team exists.
-      const response = await teams.getById(teamId);
-      if (response.success === false) {
-        // Failed to retrieve, throw error.
-        throw new Error(response.message);
-      }
+      const res = await teams.getById(teamId);
+      if (res.success === false) throw new Error(res.message);
 
-      // Determine which fields have changed.
-      const existingTeamData = response.data;
+      const existingTeamData = res.data;
 
       const changed: Partial<types.TeamsInsert> = {};
 
@@ -117,13 +61,7 @@ export const teams = {
         ...(Object.keys(changed).length > 0 ? { updatedAt: new Date() } : {}),
       };
 
-      if (Object.keys(changed).length === 0) {
-        return {
-          success: true,
-          message: `No changes detected for this team..`,
-          data: existingTeamData,
-        };
-      }
+      if (Object.keys(changed).length === 0) return successResponse(`No changes detected.`, existingTeamData);
 
       const [result] = await db
         .update(schema.teams)
@@ -131,58 +69,26 @@ export const teams = {
         .where(eq(schema.teams.id, teamId))
         .returning();
 
-      // Check if update is successful.
-      if (result) {
-        return {
-          success: true,
-          message: `Updated team successfully.`,
-          data: existingTeamData,
-        };
-      } else {
-        return {
-          success: false,
-          message: `Unable to update team.`,
-          error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
-        };
-      }
+      if (result) return successResponse(`Updated team successfully.`, existingTeamData);
+      else return failResponse(`Unable to update team.`, `Database returned no result.`);
     } catch (e) {
-      return {
-        success: false,
-        message: `Unable to update team`,
-        error: e,
-      };
+      return failResponse(`Unable to update team.`, e);
     }
   },
   createTeam: async (teamName: string): Promise<types.QueryResponse<types.TeamsSelect>> => {
     try {
-      // Construct the team object to be inserted
       const teamObject: types.TeamsInsert = {
         teamName,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      const [response] = await db.insert(schema.teams).values(teamObject).returning();
+      const [team] = await db.insert(schema.teams).values(teamObject).returning();
 
-      if (response) {
-        return {
-          success: true,
-          message: `Successfully created team ${teamName}.`,
-          data: response,
-        };
-      } else {
-        return {
-          success: false,
-          message: `Unable to create team ${teamName}`,
-          error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
-        };
-      }
+      if (team) return successResponse(`Created team successfully`, team);
+      else return failResponse(`Unable to create team.`, `Database returned no result.`);
     } catch (e) {
-      return {
-        success: false,
-        message: `Unable to create team ${teamName}.`,
-        error: e,
-      };
+      return failResponse(`Unable to create team.`, e);
     }
   },
   addUserToTeam: async (
@@ -201,9 +107,7 @@ export const teams = {
           isLeader: isLeader,
         };
         const usersToTeamsEntry = await tx.insert(schema.users_to_teams).values(usersToTeamsObject).returning();
-        if (!usersToTeamsEntry) {
-          throw new Error("Unable to create users to teams entry.");
-        }
+        if (!usersToTeamsEntry) throw new Error("Unable to create users to teams entry.");
 
         // Create a project member entry for all assigned projects of the team.
         const res = await teams.getProjectsForTeam(teamId);
@@ -225,32 +129,15 @@ export const teams = {
 
           // Assign this team member to the project.
           const assignedMember = await tx.insert(schema.project_members).values(memberToAssign).returning();
-          if (!assignedMember) {
-            throw new Error(`Unable to assign user as member of project ${project.name}.`);
-          }
+          if (!assignedMember) throw new Error(`Unable to assign user as member of project ${project.name}.`);
         }
-        return {
-          success: true,
-          message: `Successfully added user ${userId} to team ${teamId}.`,
-          data: usersToTeamsObject,
-        };
+        return successResponse(`Successfully added user ${userId} to team ${teamId}`, usersToTeamsObject);
       });
 
-      // Check if the transaction is successful
-      if (txResult.success) {
-        return {
-          success: true,
-          message: `Successfully created new project.`,
-          data: txResult.data,
-        };
-      }
-      throw new Error("Adding user to team database creation transaction failed.");
+      if (txResult.success) return successResponse(`Successfully added user to the team.`, txResult.data);
+      return failResponse(`Unable to add user to the team`, `Adding user to team database transaction failed`);
     } catch (e) {
-      return {
-        success: false,
-        message: `Unable to add user ${userId} to team ${teamId}`,
-        error: e,
-      };
+      return failResponse(`Unable to add user to the team`, e);
     }
   },
   removeUserFromTeam: async (
@@ -265,9 +152,7 @@ export const teams = {
           .where(and(eq(schema.users_to_teams.user_id, userId), eq(schema.users_to_teams.team_id, teamId)))
           .returning();
 
-        if (!response) {
-          throw new Error("Unable to delete users to teams entry.");
-        }
+        if (!response) throw new Error("Unable to delete users to teams entry.");
 
         // Remove user's project member entries for all assigned projects of the team.
         const res = await teams.getProjectsForTeam(teamId);
@@ -276,7 +161,6 @@ export const teams = {
         const projectsOfTeam = res.data;
 
         for (const project of projectsOfTeam) {
-
           // Remove this user from the project
           const removedMember = await tx
             .delete(schema.project_members)
@@ -288,32 +172,16 @@ export const teams = {
               ),
             )
             .returning();
-          if (!removedMember) {
-            throw new Error(`Unable to remove user as member of project ${project.name}.`);
-          }
+          if (!removedMember) throw new Error(`Unable to remove user as member of project ${project.name}.`);
         }
-        return {
-          success: true,
-          message: `Successfully removed user ${userId} from team ${teamId}.`,
-          data: response,
-        };
+        return successResponse(`Successfully removed user ${userId} from team ${teamId}`, response);
       });
 
       // Check if the transaction is successful
-      if (txResult.success) {
-        return {
-          success: true,
-          message: `Successfully created new project.`,
-          data: txResult.data,
-        };
-      }
-      throw new Error("Removing user from team database creation transaction failed.");
+      if (txResult.success) return successResponse(`Successfully removed user from the team.`, txResult.data);
+      return failResponse(`Unable to remove user from the team`, `Removing user to team database transaction failed`);
     } catch (e) {
-      return {
-        success: false,
-        message: `Unable to add user ${userId} to team ${teamId}`,
-        error: e,
-      };
+      return failResponse(`Unable to remove user from the team`, e);
     }
   },
 
@@ -329,25 +197,10 @@ export const teams = {
       // Extract the users of the teams
       const users = result.map((row) => row.users);
 
-      if (users) {
-        return {
-          success: true,
-          message: `Successfully retrieved team members of ${team_id}.`,
-          data: users,
-        };
-      } else {
-        return {
-          success: false,
-          message: `Unable to retrieve team members of ${team_id}`,
-          error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
-        };
-      }
+      if (users) return successResponse(`Successfully retrieved team members.`, users);
+      else return failResponse(`Unable to retrieve team members.`, `Database returned no result.`);
     } catch (e) {
-      return {
-        success: false,
-        message: `Unable to retrieve team members of ${team_id}.`,
-        error: e,
-      };
+      return failResponse(`Unable to retrieve team members.`, e);
     }
   },
   checkTeamNameUnique: async (team_name: string): Promise<types.QueryResponse<boolean>> => {
@@ -361,18 +214,9 @@ export const teams = {
         ? "There exists no team with this name. You are free to use this name."
         : "There exists a team with this name. Please choose another name.";
 
-      return {
-        success: true,
-        message,
-        data: isUnique,
-      };
+      return successResponse(message, isUnique);
     } catch (e) {
-      // Attempt to check uniqueness fails.
-      return {
-        success: false,
-        message: "Unable to check if team name is unique.",
-        error: e,
-      };
+      return failResponse(`Unable to check team name uniqueness.`, e);
     }
   },
   checkUserIsLeader: async (user_id: number, team_id: number): Promise<types.QueryResponse<boolean>> => {
@@ -388,23 +232,14 @@ export const teams = {
           ),
         )
         .limit(1);
-      if (!result) {
-        throw new Error("Unable to find user to teams row of user id.");
-      }
+      if (!result) throw new Error("Unable to find a user to team entry with the user and team id given.");
+
       const isLeader = result.length === 1;
       const message = isLeader ? "User is team leader." : "User is a team member";
 
-      return {
-        success: true,
-        message,
-        data: isLeader,
-      };
+      return successResponse(message, isLeader);
     } catch (e) {
-      return {
-        success: false,
-        message: "Unable to check if user is team leader.",
-        error: e,
-      };
+      return failResponse(`Unable to check if user is team leader.`, e);
     }
   },
   getTeamLeader: async (team_id: number): Promise<types.QueryResponse<types.UserSelect>> => {
@@ -419,21 +254,11 @@ export const teams = {
       // Retrieve team Leader
       const [teamLeaderUser] = result.map((entry) => entry.users);
 
-      if (!teamLeaderUser) {
-        throw new Error("Unable to retrieve team leader for that team.");
-      }
+      if (!teamLeaderUser) throw new Error("Unable to retrieve team leader for that team.");
 
-      return {
-        success: true,
-        message: "Successfully retrieved team leader of that team.",
-        data: teamLeaderUser,
-      };
+      return successResponse(`Successfully retrieved team leader.`, teamLeaderUser);
     } catch (e) {
-      return {
-        success: false,
-        message: "Unable to retrieve team leader for that team.",
-        error: e,
-      };
+      return failResponse(`Unable to retrieve team leader.`, e);
     }
   },
   reassignTeamLeader: async (
@@ -442,7 +267,7 @@ export const teams = {
     team_id: number,
   ): Promise<types.QueryResponse<types.UserSelect>> => {
     try {
-      await db.transaction(async (trx) => {
+      const txResult = await db.transaction(async (trx) => {
         // This sets old leader (userToTeams entry) flag to false.
         const [demoted] = await trx
           .update(schema.users_to_teams)
@@ -456,9 +281,7 @@ export const teams = {
           )
           .returning();
 
-        if (!demoted) {
-          throw new Error("Failed to set old leader's isLeader flag to false.");
-        }
+        if (!demoted) throw new Error("Failed to set old leader's isLeader flag to false.");
 
         // This sets new leader (userToTeams entry) flag to true
         const [promoted] = await trx
@@ -473,29 +296,20 @@ export const teams = {
           )
           .returning();
 
-        if (!promoted) {
-          throw new Error("Failed to set new leader's isLeader flag to true.");
-        }
+        if (!promoted) throw new Error("Failed to set new leader's isLeader flag to true.");
+
+        return successResponse(`Successfully reassigned team leader.`, promoted);
       });
 
       // Return the new leader's info
       const [newLeaderUser] = await db.select().from(schema.users).where(eq(schema.users.id, new_leader_id)).limit(1);
 
-      if (!newLeaderUser) {
-        throw new Error("Unable to fetch new leader user.");
-      }
+      if (!newLeaderUser) throw new Error("Unable to fetch new leader user.");
 
-      return {
-        success: true,
-        message: "Successfully reassigned team leader.",
-        data: newLeaderUser,
-      };
+      if (txResult.success) return successResponse(`Successfully reassigned team leader.`, newLeaderUser);
+      return failResponse(`Unable to reassign team leader.`, `Reassignment of team leader database transaction failed`);
     } catch (e) {
-      return {
-        success: false,
-        message: "Unable to reassign team leader.",
-        error: e,
-      };
+      return failResponse(`Unable to reassign team leader`, e);
     }
   },
   getProjectsForTeam: async (team_id: number): Promise<types.QueryResponse<types.ProjectSelect[]>> => {
@@ -506,28 +320,14 @@ export const teams = {
         .innerJoin(schema.teams_to_projects, eq(schema.teams_to_projects.project_id, schema.projects.id))
         .where(eq(schema.teams_to_projects.team_id, team_id));
 
-      if (result.length === 0) {
-        return {
-          success: true,
-          message: "Team has no assigned projects.",
-          data: [],
-        };
-      }
+      if (result.length === 0) return successResponse(`Team has no assigned projects.`, []);
 
       // Unwrapping
       const projects = result.map((r) => r.project);
 
-      return {
-        success: true,
-        message: "Successfully retrieved team's projects",
-        data: projects,
-      };
+      return successResponse(`Successfully retrieved team's projects`, projects);
     } catch (e) {
-      return {
-        success: false,
-        message: "Unable to retrieve team's projects",
-        error: e,
-      };
+      return failResponse(`Unable to retrieve team's projects`, e);
     }
   },
 };

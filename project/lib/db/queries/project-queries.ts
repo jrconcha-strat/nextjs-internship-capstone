@@ -1,6 +1,6 @@
 import * as types from "../../../types/index";
 import { db } from "../db-index";
-import { getAllObject, getObjectById, deleteObject, getBaseFields } from "./query_utils";
+import { getAllObject, getObjectById, deleteObject, getBaseFields, successResponse, failResponse } from "./query_utils";
 import * as schema from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { teams } from "@/lib/db/queries/teams-queries";
@@ -20,9 +20,7 @@ export const projects = {
       const txResult = await db.transaction(async (tx): Promise<types.QueryResponse<types.ProjectSelect>> => {
         // Insert project
         const [insertedProject] = await tx.insert(schema.projects).values(newProject).returning();
-        if (!insertedProject) {
-          throw new Error(`Database did not return a project. Check connection.`);
-        }
+        if (!insertedProject) throw new Error(`Database did not return a project. Check connection.`);
 
         // Create an entry to insert for each team
         const teamsToAssign: types.TeamsToProjectsInsert[] = teamIds.map((id) => ({
@@ -34,9 +32,7 @@ export const projects = {
 
         // Assign the teams
         const assignedTeams = await tx.insert(schema.teams_to_projects).values(teamsToAssign).returning();
-        if (assignedTeams.length !== teamIds.length) {
-          throw new Error("Not all teams were assigned.");
-        }
+        if (assignedTeams.length !== teamIds.length) throw new Error("Not all teams were assigned.");
 
         // Create Project Members Entries
         for (const assignedTeam of assignedTeams) {
@@ -57,9 +53,7 @@ export const projects = {
 
           // Assign the members of this team.
           const assignedMembers = await tx.insert(schema.project_members).values(membersToAssign).returning();
-          if (assignedMembers.length !== teamMembers.length) {
-            throw new Error("Not all members were assigned.");
-          }
+          if (assignedMembers.length !== teamMembers.length) throw new Error("Not all members were assigned.");
         }
 
         // Insert default columns
@@ -74,32 +68,15 @@ export const projects = {
         }));
 
         const insertedLists = await tx.insert(schema.lists).values(listsToInsert).returning();
-        if (insertedLists.length !== defaultColumns.length) {
-          throw new Error("Not all default columns were created.");
-        }
+        if (insertedLists.length !== defaultColumns.length) throw new Error("Not all default columns were created.");
 
-        return {
-          success: true,
-          message: "Created project successfully.",
-          data: insertedProject,
-        };
+        return successResponse(`Created project successfully.`, insertedProject);
       });
 
-      // Check if the transaction is successful
-      if (txResult.success) {
-        return {
-          success: true,
-          message: `Successfully created new project.`,
-          data: txResult.data,
-        };
-      }
+      if (txResult.success) return successResponse(txResult.message, txResult.data);
       throw new Error("Project database creation transaction failed.");
     } catch (e) {
-      return {
-        success: false,
-        message: `Unable to create the project.`,
-        error: e,
-      };
+      return failResponse(`Unable to create the project.`, e);
     }
   },
   update: async (
@@ -107,14 +84,9 @@ export const projects = {
     incomingProject: types.ProjectInsert,
   ): Promise<types.QueryResponse<types.ProjectSelect>> => {
     try {
-      // Retrieve existing object data. Check if object exists.
       const response = await projects.getById(project_id);
-      if (response.success === false) {
-        // Failed to retrieve, throw error.
-        throw new Error(response.message);
-      }
+      if (response.success === false) throw new Error(response.message);
 
-      // Determine which fields have changed.
       const existingProject = response.data;
 
       const changed: Partial<types.ProjectInsert> = {};
@@ -131,13 +103,7 @@ export const projects = {
         ...(Object.keys(changed).length > 0 ? { updatedAt: new Date() } : {}),
       };
 
-      if (Object.keys(changed).length === 0) {
-        return {
-          success: true,
-          message: `No changes detected for this project.`,
-          data: existingProject,
-        };
-      }
+      if (Object.keys(changed).length === 0) return successResponse(`No changes detected.`, existingProject);
 
       const [result] = await db
         .update(schema.projects)
@@ -146,54 +112,27 @@ export const projects = {
         .returning();
 
       // Check if update is successful.
-      if (result) {
-        return {
-          success: true,
-          message: `Updated project successfully.`,
-          data: result,
-        };
-      } else {
-        return {
-          success: false,
-          message: `Unable to update project.`,
-          error: `Error: Database returned nothing. Check database connection.`,
-        };
-      }
+      if (result) return successResponse(`Updated project successfully.`, result);
+      else return failResponse(`Unable to update project.`, `Database returned no result.`);
     } catch (e) {
-      return {
-        success: false,
-        message: `Unable to update project.`,
-        error: e,
-      };
+      return failResponse(`Unable to update project.`, e);
     }
   },
   delete: async (id: number): Promise<types.QueryResponse<types.ProjectSelect>> => {
-    // Call Generic function to delete object
     return deleteObject<types.ProjectSelect>(id, "projects");
   },
   checkProjectNameUnique: async (project_name: string): Promise<types.QueryResponse<boolean>> => {
     try {
-      // Check if the team name is unique.
       const result = await db.select().from(schema.projects).where(eq(schema.projects.name, project_name));
 
-      // Return appropriate response based on the result length
       const isUnique = result.length === 0;
       const message = isUnique
         ? "There exists no project with this name. You are free to use this name."
         : "There exists a project with this name. Please choose another name.";
 
-      return {
-        success: true,
-        message,
-        data: isUnique,
-      };
+      return successResponse(message, isUnique);
     } catch (e) {
-      // Attempt to check uniqueness fails.
-      return {
-        success: false,
-        message: "Unable to check if project name is unique.",
-        error: e,
-      };
+      return failResponse(`Unable to check if project name is unique.`, e);
     }
   },
   getAllMembersForProject: async (project_id: number): Promise<types.QueryResponse<types.UserSelect[]>> => {
@@ -219,9 +158,8 @@ export const projects = {
 
           const teamMembers = await teams.getAllTeamMembers(cv.id);
 
-          if (!teamMembers.success) {
-            throw new Error("Unable to get members of teams");
-          }
+          if (!teamMembers.success) throw new Error("Unable to get members of teams");
+
           acc.push(...teamMembers.data);
 
           return acc;
@@ -235,25 +173,12 @@ export const projects = {
         .map((id) => memberTeams.find((m) => m.id === id))
         .filter((m) => m !== undefined);
 
-      if (!uniqueMembersForProject) {
-        return {
-          success: false,
-          message: "Unable to retrieve the members of the project.",
-          error: "No results returned.",
-        };
-      }
+      if (!uniqueMembersForProject)
+        return failResponse(`Unable to retrieve the members of the project.`, `Database returned no results`);
 
-      return {
-        success: true,
-        message: "Successfully retrieved members of the project.",
-        data: uniqueMembersForProject,
-      };
+      return successResponse("Successfully retrieved members of the project.", uniqueMembersForProject);
     } catch (e) {
-      return {
-        success: false,
-        message: "Unable to retrieve the members of the project.",
-        error: e,
-      };
+      return failResponse(`Unable to retrieve the members of the project.`, e);
     }
   },
   getProjectsForUser: async (userId: number): Promise<types.QueryResponse<types.ProjectSelect[]>> => {
@@ -276,25 +201,12 @@ export const projects = {
       // Remove any undefineds
       const uniqueProjects = uniqueProjectsWithUndefined.filter((project) => project !== undefined);
 
-      if (uniqueProjects === undefined) {
-        return {
-          success: false,
-          message: `Unable to retrieve user projects.`,
-          error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
-        };
-      }
+      if (uniqueProjects === undefined)
+        return failResponse(`Unable to retrieve user projects.`, `Database returned no result.`);
 
-      return {
-        success: true,
-        message: `Successfully retrieved user projects.`,
-        data: uniqueProjects,
-      };
+      return successResponse(`Successfully retrieved user projects.`, uniqueProjects);
     } catch (e) {
-      return {
-        success: false,
-        message: `Unable to retrieve user projects.`,
-        error: e,
-      };
+      return failResponse(`Unable to retrieve user projects.`, e);
     }
   },
 };

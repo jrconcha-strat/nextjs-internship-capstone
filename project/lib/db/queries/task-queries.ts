@@ -2,7 +2,7 @@ import * as types from "../../../types/index";
 import { db } from "../db-index";
 import * as schema from "../schema";
 import { lists } from "./list-queries";
-import { getObjectById, updateObject, getByParentObject } from "./query_utils";
+import { getObjectById, updateObject, getByParentObject, successResponse, failResponse } from "./query_utils";
 import { inArray, eq, sql, and, gt } from "drizzle-orm";
 
 export const tasks = {
@@ -18,31 +18,20 @@ export const tasks = {
       // Unwrap
       const taskMembers = res.map((r) => r.users);
 
-      // Return the count of tasks
-      return {
-        success: true,
-        message: "Task members retrieve successfully.",
-        data: taskMembers,
-      };
+      return successResponse(`Task members retrieved successfully.`, taskMembers);
     } catch (e) {
-      return {
-        success: false,
-        message: `Unable to retrieve task members.`,
-        error: e,
-      };
+      return failResponse(`Unable to task members.`, e);
     }
   },
   getTasksCountForProject: async (project_id: number): Promise<types.QueryResponse<number>> => {
     try {
-      // Get the project lists
-      const projectLists = await lists.getByProject(project_id);
+      const res = await lists.getByProject(project_id);
+      if (!res.success) return res;
 
-      if (!projectLists.success) {
-        return projectLists;
-      }
+      const projectLists = res.data;
 
       // Extract the list IDs
-      const projectListIds: number[] = projectLists.data.map((list) => list.id);
+      const projectListIds: number[] = projectLists.map((list) => list.id);
 
       // Retrieve tasks where the listId is in projectListIds
       const tasksOfProject = await db
@@ -50,18 +39,9 @@ export const tasks = {
         .from(schema.tasks)
         .where(inArray(schema.tasks.listId, projectListIds)); // Filter tasks if they're in this project through the list.
 
-      // Return the count of tasks
-      return {
-        success: true,
-        message: "Task count retrieved successfully.",
-        data: tasksOfProject.length,
-      };
+      return successResponse(`Task count retrieved successfully.`, tasksOfProject.length);
     } catch (e) {
-      return {
-        success: false,
-        message: `Unable to get task count for project.`,
-        error: e,
-      };
+      return failResponse(`Unable to get task count for project.`, e);
     }
   },
   getByList: async (listId: number): Promise<types.QueryResponse<Array<types.TaskSelect>>> => {
@@ -80,9 +60,7 @@ export const tasks = {
 
       const txResult = await db.transaction(async (tx): Promise<types.QueryResponse<types.TaskSelect>> => {
         const [insertedTask] = await tx.insert(schema.tasks).values(newTask).returning();
-        if (!insertedTask) {
-          throw new Error(`Database did not return a task. Check connection.`);
-        }
+        if (!insertedTask) throw new Error(`Database did not a result.`);
 
         // Assign members, if any.
         if (assignedIds && assignedIds.length > 0) {
@@ -94,33 +72,16 @@ export const tasks = {
           }));
 
           const assignedMembers = await tx.insert(schema.users_to_tasks).values(membersToAssign).returning();
-          if (assignedMembers.length !== assignedIds.length) {
-            throw new Error("Not all members were assigned.");
-          }
+          if (assignedMembers.length !== assignedIds.length) throw new Error("Not all members were assigned.");
         }
 
-        return {
-          success: true,
-          message: "Created task successfully.",
-          data: insertedTask,
-        };
+        return successResponse(`Created task successfully.`, insertedTask);
       });
 
-      // Check if the transaction is successful
-      if (txResult.success) {
-        return {
-          success: true,
-          message: `Successfully created new Task.`,
-          data: txResult.data,
-        };
-      }
-      throw new Error("Task database creation transaction failed.");
+      if (txResult.success) return successResponse(txResult.message, txResult.data);
+      return failResponse(`Unable to create task.`, `Task database creation transaction failed.`);
     } catch (e) {
-      return {
-        success: false,
-        message: `Unable to create the task.`,
-        error: e,
-      };
+      return failResponse(`Unable to create task.`, e);
     }
   },
   update: async (id: number, data: types.TaskInsert): Promise<types.QueryResponse<types.TaskInsert>> => {
@@ -147,33 +108,21 @@ export const tasks = {
   },
   delete: async (id: number): Promise<types.QueryResponse<types.TaskSelect>> => {
     try {
-      const result = await db.transaction<types.QueryResponse<types.TaskSelect>>(async (tx) => {
+      const txResult = await db.transaction<types.QueryResponse<types.TaskSelect>>(async (tx) => {
         // 1) Re-fetch inside the transaction to ensure consistency
         const toDelete = await tx.query.tasks.findFirst({
           where: eq(schema.tasks.id, id),
           columns: { id: true, position: true, listId: true },
         });
 
-        if (!toDelete) {
-          return {
-            success: false,
-            message: "Unable to delete task.",
-            error: "Task not found.",
-          };
-        }
+        if (!toDelete) throw new Error("Task not found.");
 
         const { position: deletedPos, listId } = toDelete;
 
         // 2) Delete the row
         const [deleted] = await tx.delete(schema.tasks).where(eq(schema.tasks.id, id)).returning();
 
-        if (!deleted) {
-          return {
-            success: false,
-            message: "Unable to delete task.",
-            error: "Database return no result. Check database connection.",
-          };
-        }
+        if (!deleted) throw new Error("Database returned no result.");
 
         // 3) Close the gap: shift positions > deletedPos down by 1 (same project only)
         await tx
@@ -182,20 +131,13 @@ export const tasks = {
           .where(and(eq(schema.tasks.listId, listId), gt(schema.tasks.position, deletedPos)));
 
         // 4) Return.
-        return {
-          success: true,
-          message: "Deleted task successfully.",
-          data: deleted,
-        };
+        return successResponse(`Deleted task successfully.`, deleted);
       });
 
-      return result;
+      if (txResult.success) return successResponse(txResult.message, txResult.data);
+      return failResponse(`Unable to delete task.`, `Task database creation transaction failed.`);
     } catch (e) {
-      return {
-        success: false,
-        message: "Unable to delete task.",
-        error: e,
-      };
+      return failResponse(`Unable to delete task.`, e);
     }
   },
 };
