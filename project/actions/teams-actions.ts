@@ -7,6 +7,7 @@ import { teamSchemaForm } from "@/lib/validations/validations";
 import z from "zod";
 import { getUserId } from "./user-actions";
 import { checkAuthenticationStatus } from "./actions-utils";
+import { successResponse } from "@/lib/db/queries/query_utils";
 
 // Utilities
 export async function checkUserIsLeaderAction(
@@ -86,11 +87,7 @@ export async function addUsersToTeamAction(
     if (!res.success) return res;
   }
 
-  return {
-    success: true,
-    message: "Successfully added as members.",
-    data: true,
-  };
+  return successResponse("Successfully added users as members", true);
 }
 
 export async function removeUserFromTeamAction(
@@ -101,11 +98,7 @@ export async function removeUserFromTeamAction(
   const res = await queries.teams.removeUserFromTeam(user_id, team_id);
   if (!res.success) return res;
 
-  return {
-    success: true,
-    message: "Successfully removed as members.",
-    data: true,
-  };
+  return successResponse("Successfully removed users as members", true);
 }
 
 export async function createTeamAction(teamName: string): Promise<ServerActionResponse<types.TeamsSelect>> {
@@ -120,9 +113,5 @@ export async function createTeamAction(teamName: string): Promise<ServerActionRe
   const res = await queries.teams.addUserToTeam(user.data.id, createResponse.data.id, true);
   if (!res.success) return res;
 
-  return {
-    success: true,
-    message: "Team creation success! Invite people to your team!",
-    data: createResponse.data,
-  };
+  return successResponse("Team creation success! Invite people to your team", createResponse.data);
 }
