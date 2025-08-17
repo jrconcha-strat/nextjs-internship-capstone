@@ -1,3 +1,4 @@
+import { RecentProjectsCard } from "@/components/projects/recent-projects"
 import { TrendingUp, Users, CheckCircle, Clock, Plus } from "lucide-react"
 
 export default function DashboardPage() {
@@ -72,32 +73,7 @@ export default function DashboardPage() {
         {/* Recent Activity & Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Projects */}
-          <div className="bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 p-6">
-            <h3 className="text-lg font-semibold text-outer_space-500 dark:text-platinum-500 mb-4">Recent Projects</h3>
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between p-3 bg-platinum-800 dark:bg-outer_space-400 rounded-lg"
-                >
-                  <div>
-                    <div className="font-medium text-outer_space-500 dark:text-platinum-500">Project {i}</div>
-                    <div className="text-sm text-payne's_gray-500 dark:text-french_gray-400">
-                      Last updated 2 hours ago
-                    </div>
-                  </div>
-                  <div className="w-12 h-2 bg-french_gray-300 dark:bg-payne's_gray-400 rounded-full">
-                    <div className="w-8 h-2 bg-blue_munsell-500 rounded-full"></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-800">
-              <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                📋 <strong>Task 4.1:</strong> Implement project CRUD operations
-              </p>
-            </div>
-          </div>
+         <RecentProjectsCard/>
 
           {/* Quick Actions */}
           <div className="bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 p-6">
@@ -115,11 +91,6 @@ export default function DashboardPage() {
                 <Plus size={20} className="mr-2" />
                 Create Task
               </button>
-            </div>
-            <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-800">
-              <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                📋 <strong>Task 4.4:</strong> Build task creation and editing functionality
-              </p>
             </div>
           </div>
         </div>
