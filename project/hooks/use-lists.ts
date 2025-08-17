@@ -68,8 +68,8 @@ export function useLists(project_id?: number) {
   });
 
   const deleteList = useMutation({
-    mutationFn: async ({ project_id, list_id }: { project_id: number; list_id: number }) => {
-      const res = await deleteListAction(project_id, list_id);
+    mutationFn: async ({ list_id }: { list_id: number }) => {
+      const res = await deleteListAction(list_id);
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
@@ -96,15 +96,13 @@ export function useLists(project_id?: number) {
 
   const updateList = useMutation({
     mutationFn: async ({
-      project_id,
       list_id,
       listFormData,
     }: {
-      project_id: number;
       list_id: number;
       listFormData: z.infer<typeof listSchemaForm>;
     }) => {
-      const res = await updateListAction(project_id, list_id, listFormData);
+      const res = await updateListAction(list_id, listFormData);
       if (!res.success) throw new Error(res.message);
       return res.data;
     },

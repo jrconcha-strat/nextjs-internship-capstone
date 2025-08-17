@@ -5,46 +5,40 @@ import { ServerActionResponse } from "./actions-types";
 import { queries } from "@/lib/db/queries/queries";
 import { taskSchemaDB, taskSchemaForm } from "../lib/validations/validations";
 import z from "zod";
-import { revalidatePath } from "next/cache";
 import { checkAuthenticationStatus } from "./actions-utils";
 
-export async function deleteTaskAction(task_id: number, project_id: number): Promise<ServerActionResponse<TaskSelect>> {
-  checkAuthenticationStatus();
-  const res = await queries.tasks.delete(task_id);
-
-  revalidatePath(`/projects/${project_id}`);
-  return res.success ? res : res;
-}
-
+// Fetches
 export async function getTaskMembersAction(task_id: number): Promise<ServerActionResponse<UserSelect[]>> {
-  checkAuthenticationStatus();
-  const res = await queries.tasks.getTaskMembers(task_id);
-
-  return res.success ? res : res;
+  await checkAuthenticationStatus();
+  return await queries.tasks.getTaskMembers(task_id);
 }
 
 export async function getTasksCountForProjectAction(project_id: number): Promise<ServerActionResponse<number>> {
-  checkAuthenticationStatus();
-  const res = await queries.tasks.getTasksCountForProject(project_id);
+  await checkAuthenticationStatus();
+  return await queries.tasks.getTasksCountForProject(project_id);
+}
 
-  return res.success ? res : res;
+export async function getTasksByListIdAction(project_id: number): Promise<ServerActionResponse<TaskSelect[]>> {
+  await checkAuthenticationStatus();
+  return await queries.tasks.getByList(project_id);
+}
+
+// Mutations
+export async function deleteTaskAction(task_id: number): Promise<ServerActionResponse<TaskSelect>> {
+  await checkAuthenticationStatus();
+  return await queries.tasks.delete(task_id);
 }
 
 export async function createTaskAction(
-  project_id: number,
   list_id: number,
   position: number,
   taskFormData: z.infer<typeof taskSchemaForm>,
 ): Promise<ServerActionResponse<TaskSelect>> {
-  checkAuthenticationStatus();
-  // Construct the data object to be inserted to the database
+  await checkAuthenticationStatus();
 
   const taskDBData: z.infer<typeof taskSchemaDB> = {
-    title: taskFormData.title,
-    description: taskFormData.description,
+    ...taskFormData,
     listId: list_id,
-    priority: taskFormData.priority,
-    dueDate: taskFormData.dueDate,
     position: position,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -52,16 +46,5 @@ export async function createTaskAction(
 
   const assignedIds = taskFormData.assigneeIds;
 
-  const res = await queries.tasks.create(taskDBData, assignedIds);
-
-  revalidatePath(`/projects/${project_id}`);
-
-  return res.success ? res : res;
-}
-
-export async function getTasksByListIdAction(project_id: number): Promise<ServerActionResponse<TaskSelect[]>> {
-  checkAuthenticationStatus();
-  const res = await queries.tasks.getByList(project_id);
-
-  return res.success ? res : res;
+  return await queries.tasks.create(taskDBData, assignedIds);
 }

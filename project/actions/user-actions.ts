@@ -6,21 +6,18 @@ import { ServerActionResponse } from "./actions-types";
 import * as types from "../types/index";
 import { checkAuthenticationStatus } from "./actions-utils";
 
+// Fetches
 export async function getAllUsers(): Promise<ServerActionResponse<types.UserSelect[]>> {
-  checkAuthenticationStatus();
-  const response = await queries.users.getAll();
-
-  return response.success ? response : response;
+  await checkAuthenticationStatus();
+  return await queries.users.getAll();
 }
 
 export async function getUserId(): Promise<ServerActionResponse<types.UserSelect>> {
-  checkAuthenticationStatus();
+  await checkAuthenticationStatus();
+
   const { userId } = await auth();
 
-  if (!userId || userId === null) {
-    throw new Error("Unable to get logged in user's id from Clerk.");
-  }
+  if (!userId || userId === null) throw new Error("Unable to get logged in user's id from Clerk.");
 
-  const getUserByClerkIdResponse = await queries.users.getByClerkId(userId);
-  return getUserByClerkIdResponse.success ? getUserByClerkIdResponse : getUserByClerkIdResponse;
+  return await queries.users.getByClerkId(userId);
 }

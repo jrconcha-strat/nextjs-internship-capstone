@@ -104,18 +104,15 @@ export function useTasks({ list_id, task_id }: { list_id?: number; task_id?: num
 
   const createTask = useMutation({
     mutationFn: async ({
-      project_id,
       list_id,
       position,
       taskFormData,
     }: {
-      project_id: number;
       list_id: number;
       position: number;
       taskFormData: z.infer<typeof taskSchemaForm>;
     }) => {
-      const res = await createTaskAction(project_id, list_id, position, taskFormData);
-      console.log(res);
+      const res = await createTaskAction(list_id, position, taskFormData);
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
@@ -165,8 +162,8 @@ export function useTasks({ list_id, task_id }: { list_id?: number; task_id?: num
   });
 
   const deleteTask = useMutation({
-    mutationFn: async ({ task_id, list_id }: { task_id: number; list_id: number }) => {
-      const res = await deleteTaskAction(task_id, list_id);
+    mutationFn: async ({ task_id }: { task_id: number }) => {
+      const res = await deleteTaskAction(task_id);
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
