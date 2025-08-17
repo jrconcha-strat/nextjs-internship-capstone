@@ -71,6 +71,13 @@
       "when": 1755225826130,
       "tag": "0009_exotic_madame_masque",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1755414964523,
+      "tag": "0010_needy_master_chief",
+      "breakpoints": true
     }
   ]
 }

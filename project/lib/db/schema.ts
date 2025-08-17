@@ -45,70 +45,111 @@ import {
   text,
   primaryKey,
   foreignKey,
-  unique,
+  uniqueIndex,
+  index,
 } from "drizzle-orm/pg-core";
 import { priorityEnum, rolesEnum, statusEnum } from "./db-enums";
+import { sql } from "drizzle-orm";
 export { priorityEnum, rolesEnum, statusEnum } from "./db-enums";
 
-export const users = pgTable("users", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
-  clerkId: varchar("clerk_id").notNull().unique(),
-  email: varchar("email").notNull().unique(),
-  name: varchar("name").notNull(),
-  image_url: varchar("image_url").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const users = pgTable(
+  "users",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
+    clerkId: varchar("clerk_id").notNull().unique(),
+    email: varchar("email").notNull().unique(),
+    name: varchar("name").notNull(),
+    image_url: varchar("image_url").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    idxNameLower: index("idx_users_name_lower").on(sql`lower(${t.name})`), // for member searches
+  }),
+);
 
-export const teams = pgTable("teams", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
-  teamName: varchar("teamName").notNull().unique(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const teams = pgTable(
+  "teams",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
+    teamName: varchar("teamName").notNull().unique(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    idxTeamNameLower: index("idx_teams_teamname_lower").on(sql`lower(${t.teamName})`), // for team name searches
+  }),
+);
 
 export const roles = pgTable("roles", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
   role_name: rolesEnum("role_name").notNull().unique().default("No Role Yet"),
 });
 
-export const projects = pgTable("projects", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
-  name: varchar("name").notNull().unique(),
-  description: text("description"),
-  status: statusEnum().notNull().default("Planning"),
-  ownerId: integer("ownerId")
-    .references(() => users.id, { onDelete: "restrict" })
-    .notNull(),
-  dueDate: timestamp("dueDate"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const projects = pgTable(
+  "projects",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
+    name: varchar("name").notNull().unique(),
+    description: text("description"),
+    status: statusEnum().notNull().default("Planning"),
+    ownerId: integer("ownerId")
+      .references(() => users.id, { onDelete: "restrict" })
+      .notNull(),
+    dueDate: timestamp("dueDate"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    idxOwner: index("idx_projects_owner").on(t.ownerId), // In case of my projects
+    idxStatus: index("idx_projects_status").on(t.status), // filters
+    idxDue: index("idx_projects_due").on(t.dueDate), // filters
+    idxStatusDue: index("idx_projects_status_due").on(t.status, t.dueDate), // filters
+  }),
+);
 
-export const lists = pgTable("lists", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
-  name: varchar("name").notNull(),
-  projectId: integer("projectId")
-    .references(() => projects.id, { onDelete: "cascade" })
-    .notNull(),
-  position: integer("position").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const lists = pgTable(
+  "lists",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
+    name: varchar("name").notNull(),
+    projectId: integer("projectId")
+      .references(() => projects.id, { onDelete: "cascade" })
+      .notNull(),
+    position: integer("position").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    idxProject: index("idx_lists_project").on(t.projectId), // Joins
+    idxProjectPos: index("idx_lists_project_pos").on(t.projectId, t.position), // Fast lookups for positions.
+    uxProjectPos: uniqueIndex("ux_lists_project_pos").on(t.projectId, t.position), // Prevents same list positions
+  }),
+);
 
-export const tasks = pgTable("tasks", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
-  title: varchar("title").notNull(),
-  description: text("description"),
-  listId: integer("listId")
-    .references(() => lists.id, { onDelete: "cascade" })
-    .notNull(),
-  priority: priorityEnum("priority").notNull(),
-  dueDate: timestamp("dueDate"),
-  position: integer("position").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const tasks = pgTable(
+  "tasks",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
+    title: varchar("title").notNull(),
+    description: text("description"),
+    listId: integer("listId")
+      .references(() => lists.id, { onDelete: "cascade" })
+      .notNull(),
+    priority: priorityEnum("priority").notNull(),
+    dueDate: timestamp("dueDate"),
+    position: integer("position").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    idxList: index("idx_tasks_list").on(t.listId), // Joins
+    idxListPos: index("idx_tasks_list_pos").on(t.listId, t.position), // fast lookups for positions
+    uxListPos: uniqueIndex("ux_tasks_list_pos").on(t.listId, t.position), // Prevents same task positions
+    idxPriority: index("idx_tasks_priority").on(t.priority), // filters
+    idxDue: index("idx_tasks_due").on(t.dueDate), // filters
+  }),
+);
 
 export const comments = pgTable(
   "comments",
@@ -133,23 +174,35 @@ export const comments = pgTable(
       foreignColumns: [table.id],
       name: "comments_self_reference_id",
     }).onDelete("cascade"),
+    index("idx_comments_task").on(table.taskId), // load task by id
+    index("idx_comments_task_created").on(table.taskId, table.createdAt), // filtering and sorting
+    index("idx_comments_author").on(table.authorId), // should we want to query by authorid
+    index("idx_comments_parent").on(table.parentCommentId), // this one is for threaded replies
   ],
 );
 
-export const task_labels = pgTable("task_labels", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
-  taskId: integer("taskId")
-    .references(() => tasks.id, { onDelete: "cascade" })
-    .notNull(),
-  name: varchar("name").notNull(),
-  category: varchar("category").notNull(),
-  color: varchar("color").notNull(),
-  isDefault: boolean("is_default").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const task_labels = pgTable(
+  "task_labels",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity({ startWith: 1 }),
+    taskId: integer("taskId")
+      .references(() => tasks.id, { onDelete: "cascade" })
+      .notNull(),
+    name: varchar("name").notNull(),
+    category: varchar("category").notNull(),
+    color: varchar("color").notNull(),
+    isDefault: boolean("is_default").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    idxTask: index("idx_task_labels_task").on(t.taskId), // fetch per task
+    uxTaskName: uniqueIndex("ux_task_labels_task_name").on(t.taskId, t.name), // Prevent duplicates for same task
+  }),
+);
 
-// Junction Table modeling the many to many relationship between teams and users. Utilize indexing composite primary key indexing strategy.
+// Junction Tables
+
 export const users_to_teams = pgTable(
   "users_to_teams",
   {
@@ -163,10 +216,17 @@ export const users_to_teams = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (table) => [primaryKey({ columns: [table.team_id, table.user_id] })],
+  (table) => [
+    primaryKey({ columns: [table.team_id, table.user_id] }),
+    index("idx_utt_team").on(table.team_id), // Get team roster
+    index("idx_utt_user").on(table.user_id), // Get my teams
+    index("idx_utt_team_isleader").on(table.team_id, table.isLeader), // Get who is leader
+    uniqueIndex("ux_utt_one_leader_per_team") // Database enforcement of one leader per team
+      .on(table.team_id)
+      .where(sql`${table.isLeader} = true`),
+  ],
 );
 
-// Junction Table modeling the many to many relationship between tasks and users. Utilize indexing composite primary key indexing strategy.
 export const users_to_tasks = pgTable(
   "users_to_tasks",
   {
@@ -179,7 +239,11 @@ export const users_to_tasks = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (table) => [primaryKey({ columns: [table.task_id, table.user_id] })],
+  (table) => [
+    primaryKey({ columns: [table.task_id, table.user_id] }),
+    index("idx_uta_task").on(table.task_id), // Who is assigned
+    index("idx_uta_user").on(table.user_id), // Get user tasks
+  ],
 );
 
 export const teams_to_projects = pgTable(
@@ -194,7 +258,11 @@ export const teams_to_projects = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (table) => [primaryKey({ columns: [table.team_id, table.project_id] })],
+  (table) => [
+    primaryKey({ columns: [table.team_id, table.project_id] }),
+    index("idx_ttp_team").on(table.team_id), // Get projects per team
+    index("idx_ttp_project").on(table.project_id), // Get teams per project
+  ],
 );
 
 export const project_members = pgTable(
@@ -218,5 +286,9 @@ export const project_members = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.team_id, table.project_id, table.user_id] }),
+    index("idx_pm_project").on(table.project_id), // Using project id to scan
+    index("idx_pm_user").on(table.user_id), // Get user project memberships
+    index("idx_pm_project_user").on(table.project_id, table.user_id), // Permissions
+    index("idx_pm_project_role").on(table.project_id, table.role), // Roles
   ],
 );
