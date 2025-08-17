@@ -355,3 +355,34 @@ export const usersToTeamsSchema = z
 export const addMembersSchemaForm = z.object({
   user_Ids: z.array(z.int()).min(1, "Select at least one member."),
 });
+
+export const removeUsersFromTeamSchema = usersToTeamsSchema.pick({
+  user_id: true,
+  team_id: true,
+});
+
+export const addUsersToTeamSchema = addMembersSchemaForm.extend({
+  team_id: z.int().min(1, errorTemplates.idMinError),
+});
+
+export const deleteTeamSchema = usersToTeamsSchema.pick({
+  team_id: true,
+});
+
+export const assignTeamLeaderSchema = z.object({
+  old_leader_id: z.int().min(1, errorTemplates.idMinError),
+  new_leader_id: z.int().min(1, errorTemplates.idMinError),
+  team_id: z.int().min(1, errorTemplates.idMinError),
+});
+
+export const updateTeamSchema = teamSchemaForm.extend({
+  team_id: z.int().min(1, errorTemplates.idMinError),
+});
+
+export const deleteTaskSchema = taskSchema.pick({
+  id: true,
+});
+
+export const deleteListSchema = listSchema.pick({
+  id: true,
+});

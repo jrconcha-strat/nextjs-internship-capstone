@@ -8,6 +8,7 @@ import { ServerActionResponse } from "./actions-types";
 import * as types from "@/types";
 import { checkAuthenticationStatus } from "./actions-utils";
 import { getUserId } from "./user-actions";
+import { failResponse } from "@/lib/db/queries/query_utils";
 
 // Utility
 export async function checkProjectNameUnique(ProjectName: string): Promise<ServerActionResponse<boolean>> {
@@ -53,6 +54,9 @@ export async function createProjectAction(
     updatedAt: new Date(),
   };
 
+  const parsed = projectSchemaDB.safeParse(projectDBData);
+  if (!parsed.success) return failResponse(`Zod Validation Error`, parsed.error);
+
   const assignedTeams: number[] = projectFormData.teamIds;
   return await queries.projects.create(projectDBData, assignedTeams);
 }
@@ -71,6 +75,9 @@ export async function updateProjectAction(
     ...projectFormData,
     updatedAt: new Date(),
   };
+
+  const parsed = projectSchemaDB.safeParse(projectDBData);
+  if (!parsed.success) return failResponse(`Zod Validation Error`, parsed.error);
 
   return await queries.projects.update(project_id, projectDBData);
 }

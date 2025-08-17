@@ -2,9 +2,10 @@
 import { ListSelect } from "@/types";
 import { ServerActionResponse } from "./actions-types";
 import { queries } from "@/lib/db/queries/queries";
-import { listSchemaDB, listSchemaForm } from "@/lib/validations/validations";
+import { deleteListSchema, listSchemaDB, listSchemaForm } from "@/lib/validations/validations";
 import z from "zod";
 import { checkAuthenticationStatus } from "./actions-utils";
+import { failResponse } from "@/lib/db/queries/query_utils";
 
 // Fetches
 export async function getAllListsAction(project_id: number): Promise<ServerActionResponse<ListSelect[]>> {
@@ -27,6 +28,9 @@ export async function createListAction(
     updatedAt: new Date(),
   };
 
+  const parsed = listSchemaDB.safeParse(listDBData);
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   return await queries.lists.create(listDBData);
 }
 
@@ -45,10 +49,16 @@ export async function updateListAction(
     name: listFormData.name,
   };
 
+  const parsed = listSchemaDB.safeParse(listDBData);
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   return await queries.lists.update(list_id, listDBData);
 }
 
 export async function deleteListAction(list_id: number): Promise<ServerActionResponse<ListSelect>> {
   await checkAuthenticationStatus();
+
+  const parsed = deleteListSchema.safeParse({ list_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
   return await queries.lists.delete(list_id);
 }
