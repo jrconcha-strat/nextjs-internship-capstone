@@ -17,7 +17,6 @@ const KanbanSection: FC<KanbanSectionProps> = ({ project_id, lists, searchTerm }
   useEffect(() => {
     const positionSortedList = [...lists].sort((a, b) => a.position - b.position);
     setSortedList(positionSortedList);
-    
   }, [lists]);
 
   return (
@@ -25,7 +24,6 @@ const KanbanSection: FC<KanbanSectionProps> = ({ project_id, lists, searchTerm }
       {editTarget && (
         <UpdateKanbanModal
           list_name={editTarget.name}
-          project_id={project_id}
           list_id={editTarget.id}
           isModalOpen={true}
           setIsModalOpen={(open) => !open && setEditTarget(null)}

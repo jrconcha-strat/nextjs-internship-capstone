@@ -90,7 +90,7 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
   const { projectMembers, isProjectMembersLoading, projectMembersError } = useProjectMembers(project_id);
 
   const onSubmit = async (values: z.infer<typeof taskSchemaForm>) => {
-    createTask({ project_id, list_id, position, taskFormData: values });
+    createTask({ list_id, position, taskFormData: values });
 
     setIsModalOpen(false);
   };
