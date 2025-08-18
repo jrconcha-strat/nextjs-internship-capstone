@@ -4,7 +4,7 @@ import * as z from "zod";
 
 export const userSchema = z
   .object({
-    id: z.int().min(1, { error: "ID Cannot be less than zero." }),
+    id: z.int().min(1, errorTemplates.idMinError),
     clerkId: z.string().startsWith("user_"),
     email: z.email(errorTemplates.emailFormatError),
     name: z
@@ -367,12 +367,13 @@ export const removeUsersFromTeamSchema = usersToTeamsSchema.pick({
   team_id: true,
 });
 
-export const addUsersToTeamSchema = addMembersSchemaForm.extend({
-  team_id: z.int().min(1, errorTemplates.idMinError),
+export const checkUserIsLeaderSchema = usersToTeamsSchema.pick({
+  user_id: true,
+  team_id: true,
 });
 
-export const deleteTeamSchema = usersToTeamsSchema.pick({
-  team_id: true,
+export const addUsersToTeamSchema = addMembersSchemaForm.extend({
+  team_id: z.int().min(1, errorTemplates.idMinError),
 });
 
 export const assignTeamLeaderSchema = z.object({
@@ -381,10 +382,10 @@ export const assignTeamLeaderSchema = z.object({
   team_id: z.int().min(1, errorTemplates.idMinError),
 });
 
-export const deleteTaskSchema = taskSchema.pick({
-  id: true,
+export const teamNameSchema = teamSchema.pick({
+  teamName: true,
 });
 
-export const deleteListSchema = listSchema.pick({
+export const idSchema = userSchema.pick({
   id: true,
 });

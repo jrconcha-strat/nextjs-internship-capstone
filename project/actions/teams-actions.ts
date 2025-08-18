@@ -6,8 +6,10 @@ import { ServerActionResponse } from "./actions-types";
 import {
   addUsersToTeamSchema,
   assignTeamLeaderSchema,
-  deleteTeamSchema,
+  checkUserIsLeaderSchema,
+  idSchema,
   removeUsersFromTeamSchema,
+  teamNameSchema,
   teamSchemaDB,
   teamSchemaForm,
 } from "@/lib/validations/validations";
@@ -22,6 +24,10 @@ export async function checkUserIsLeaderAction(
   team_id: number,
 ): Promise<ServerActionResponse<boolean>> {
   await checkAuthenticationStatus();
+
+  const parsed = checkUserIsLeaderSchema.safeParse({ user_id, team_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   const userIsLeaderResponse = await queries.teams.checkUserIsLeader(user_id, team_id);
 
   return userIsLeaderResponse.success ? userIsLeaderResponse : userIsLeaderResponse;
@@ -29,6 +35,10 @@ export async function checkUserIsLeaderAction(
 
 export async function checkTeamNameUnique(teamName: string): Promise<ServerActionResponse<boolean>> {
   await checkAuthenticationStatus();
+
+  const parsed = teamNameSchema.safeParse({ teamName });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   const nameIsUniqueResponse = await queries.teams.checkTeamNameUnique(teamName);
 
   return nameIsUniqueResponse.success ? nameIsUniqueResponse : nameIsUniqueResponse;
@@ -37,26 +47,46 @@ export async function checkTeamNameUnique(teamName: string): Promise<ServerActio
 // Fetches
 export async function getTeamByIdAction(team_id: number): Promise<ServerActionResponse<types.TeamsSelect>> {
   await checkAuthenticationStatus();
+
+  const parsed = idSchema.safeParse({ id: team_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   return await queries.teams.getById(team_id);
 }
 
 export async function getTeamLeaderAction(team_id: number): Promise<ServerActionResponse<types.UserSelect>> {
   await checkAuthenticationStatus();
+
+  const parsed = idSchema.safeParse({ id: team_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   return await queries.teams.getTeamLeader(team_id);
 }
 
 export async function getProjectsForTeamAction(team_id: number): Promise<ServerActionResponse<types.ProjectSelect[]>> {
   await checkAuthenticationStatus();
+
+  const parsed = idSchema.safeParse({ id: team_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   return await queries.teams.getProjectsForTeam(team_id);
 }
 
 export async function getUsersForTeam(team_id: number): Promise<ServerActionResponse<types.UserSelect[]>> {
   await checkAuthenticationStatus();
+
+  const parsed = idSchema.safeParse({ id: team_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   return await queries.teams.getAllTeamMembers(team_id);
 }
 
 export async function getTeamsForUser(user_id: number): Promise<ServerActionResponse<types.TeamsSelect[]>> {
   await checkAuthenticationStatus();
+
+  const parsed = idSchema.safeParse({ id: user_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   return await queries.teams.getTeamsForUser(user_id);
 }
 
@@ -97,7 +127,7 @@ export async function reassignTeamLeaderAction(
 export async function deleteTeamAction(team_id: number): Promise<ServerActionResponse<types.TeamsSelect>> {
   await checkAuthenticationStatus();
 
-  const parsed = deleteTeamSchema.safeParse({ team_id });
+  const parsed = idSchema.safeParse({ id: team_id });
   if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
 
   return await queries.teams.deleteTeam(team_id);

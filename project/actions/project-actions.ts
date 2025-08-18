@@ -1,6 +1,6 @@
 "use server";
 
-import { projectSchemaForm, projectSchemaUpdateForm } from "@/lib/validations/validations";
+import { idSchema, projectSchemaForm, projectSchemaUpdateForm } from "@/lib/validations/validations";
 import z from "zod";
 import { queries } from "@/lib/db/queries/queries";
 import { projectSchemaDB } from "../lib/validations/validations";
@@ -19,11 +19,19 @@ export async function checkProjectNameUnique(ProjectName: string): Promise<Serve
 // Fetches
 export async function getProjectsForUserAction(user_id: number): Promise<ServerActionResponse<types.ProjectSelect[]>> {
   await checkAuthenticationStatus();
+
+  const parsed = idSchema.safeParse({ id: user_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   return await queries.projects.getProjectsForUser(user_id);
 }
 
 export async function getProjectByIdAction(project_id: number): Promise<ServerActionResponse<types.ProjectSelect>> {
   await checkAuthenticationStatus();
+
+  const parsed = idSchema.safeParse({ id: project_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   return await queries.projects.getById(project_id);
 }
 
@@ -34,6 +42,10 @@ export async function getAllProjects(): Promise<ServerActionResponse<types.Proje
 
 export async function getAllMembersForProject(project_id: number): Promise<ServerActionResponse<types.UserSelect[]>> {
   await checkAuthenticationStatus();
+
+  const parsed = idSchema.safeParse({ id: project_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   return await queries.projects.getAllMembersForProject(project_id);
 }
 

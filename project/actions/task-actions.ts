@@ -3,7 +3,7 @@
 import { TaskSelect, UserSelect } from "@/types";
 import { ServerActionResponse } from "./actions-types";
 import { queries } from "@/lib/db/queries/queries";
-import { deleteTaskSchema, taskSchema, taskSchemaDB, taskSchemaForm } from "../lib/validations/validations";
+import { idSchema, taskSchema, taskSchemaDB, taskSchemaForm } from "../lib/validations/validations";
 import z from "zod";
 import { checkAuthenticationStatus } from "./actions-utils";
 import { failResponse } from "@/lib/db/queries/query_utils";
@@ -11,21 +11,37 @@ import { failResponse } from "@/lib/db/queries/query_utils";
 // Fetches
 export async function getTaskMembersAction(task_id: number): Promise<ServerActionResponse<UserSelect[]>> {
   await checkAuthenticationStatus();
+
+  const parsed = idSchema.safeParse({ id: task_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   return await queries.tasks.getTaskMembers(task_id);
 }
 
 export async function getTasksCountForProjectAction(project_id: number): Promise<ServerActionResponse<number>> {
   await checkAuthenticationStatus();
+
+  const parsed = idSchema.safeParse({ id: project_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   return await queries.tasks.getTasksCountForProject(project_id);
 }
 
 export async function getTasksByListIdAction(list_id: number): Promise<ServerActionResponse<TaskSelect[]>> {
   await checkAuthenticationStatus();
+
+  const parsed = idSchema.safeParse({ id: list_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   return await queries.tasks.getByList(list_id);
 }
 
 export async function getTaskByIdAction(task_id: number): Promise<ServerActionResponse<TaskSelect>> {
   await checkAuthenticationStatus();
+
+  const parsed = idSchema.safeParse({ id: task_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   return await queries.tasks.getById(task_id);
 }
 
@@ -33,7 +49,7 @@ export async function getTaskByIdAction(task_id: number): Promise<ServerActionRe
 export async function deleteTaskAction(task_id: number): Promise<ServerActionResponse<TaskSelect>> {
   await checkAuthenticationStatus();
 
-  const parsed = deleteTaskSchema.safeParse({ id: task_id });
+  const parsed = idSchema.safeParse({ id: task_id });
   if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
 
   return await queries.tasks.delete(task_id);

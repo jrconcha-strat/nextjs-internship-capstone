@@ -2,7 +2,7 @@
 import { ListSelect } from "@/types";
 import { ServerActionResponse } from "./actions-types";
 import { queries } from "@/lib/db/queries/queries";
-import { deleteListSchema, listSchemaDB, listSchemaForm } from "@/lib/validations/validations";
+import { idSchema, listSchemaDB, listSchemaForm } from "@/lib/validations/validations";
 import z from "zod";
 import { checkAuthenticationStatus } from "./actions-utils";
 import { failResponse } from "@/lib/db/queries/query_utils";
@@ -10,6 +10,10 @@ import { failResponse } from "@/lib/db/queries/query_utils";
 // Fetches
 export async function getAllListsAction(project_id: number): Promise<ServerActionResponse<ListSelect[]>> {
   await checkAuthenticationStatus();
+
+  const parsed = idSchema.safeParse({ id: project_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
   return await queries.lists.getByProject(project_id);
 }
 
@@ -58,7 +62,7 @@ export async function updateListAction(
 export async function deleteListAction(list_id: number): Promise<ServerActionResponse<ListSelect>> {
   await checkAuthenticationStatus();
 
-  const parsed = deleteListSchema.safeParse({ list_id });
+  const parsed = idSchema.safeParse({ list_id });
   if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
   return await queries.lists.delete(list_id);
 }
