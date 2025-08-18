@@ -2,7 +2,7 @@ import * as types from "../../../types/index";
 import { db } from "../db-index";
 import * as schema from "../schema";
 import { lists } from "./list-queries";
-import { getObjectById, getByParentObject, successResponse, failResponse, getBaseFields } from "./query_utils";
+import { getObjectById, successResponse, failResponse, getBaseFields } from "./query_utils";
 import { inArray, eq, sql, and, gt } from "drizzle-orm";
 
 export const tasks = {
@@ -45,7 +45,21 @@ export const tasks = {
     }
   },
   getByList: async (listId: number): Promise<types.QueryResponse<Array<types.TaskSelect>>> => {
-    return getByParentObject<types.TaskSelect>(listId, "tasks");
+    try {
+      const tasks = await db
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.listId, listId))
+        .orderBy(schema.tasks.position);
+
+      // Check if child objects exist.
+      if (tasks.length >= 1) return successResponse(`All tasks retrieved.`, tasks);
+      // No child objects for this parent object in the database.
+      else if (tasks.length === 0) return successResponse(`No tasks yet.`, tasks);
+      throw new Error(`No tasks retrieved.`);
+    } catch (e) {
+      return failResponse(`Unable to retrieve tasks.`, e);
+    }
   },
   getById: async (id: number): Promise<types.QueryResponse<types.TaskSelect>> => {
     return getObjectById<types.TaskSelect>(id, "tasks");
