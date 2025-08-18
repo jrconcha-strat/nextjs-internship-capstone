@@ -3,7 +3,7 @@
 import { TaskSelect, UserSelect } from "@/types";
 import { ServerActionResponse } from "./actions-types";
 import { queries } from "@/lib/db/queries/queries";
-import { deleteTaskSchema, taskSchemaDB, taskSchemaForm } from "../lib/validations/validations";
+import { deleteTaskSchema, taskSchema, taskSchemaDB, taskSchemaForm } from "../lib/validations/validations";
 import z from "zod";
 import { checkAuthenticationStatus } from "./actions-utils";
 import { failResponse } from "@/lib/db/queries/query_utils";
@@ -22,6 +22,11 @@ export async function getTasksCountForProjectAction(project_id: number): Promise
 export async function getTasksByListIdAction(list_id: number): Promise<ServerActionResponse<TaskSelect[]>> {
   await checkAuthenticationStatus();
   return await queries.tasks.getByList(list_id);
+}
+
+export async function getTaskByIdAction(task_id: number): Promise<ServerActionResponse<TaskSelect>> {
+  await checkAuthenticationStatus();
+  return await queries.tasks.getById(task_id);
 }
 
 // Mutations
@@ -56,4 +61,26 @@ export async function createTaskAction(
   const assignedIds = taskFormData.assigneeIds;
 
   return await queries.tasks.create(taskDBData, assignedIds);
+}
+
+export async function updateTaskAction(
+  task_id: number,
+  taskFormData?: z.infer<typeof taskSchemaForm>,
+): Promise<ServerActionResponse<TaskSelect>> {
+  await checkAuthenticationStatus();
+
+  const res = await queries.tasks.getById(task_id);
+  if (!res.success) return res;
+
+  const taskDBData: z.infer<typeof taskSchema> = {
+    ...res.data,
+    ...taskFormData,
+  };
+
+  const parsed = taskSchema.safeParse(taskDBData);
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
+  const assignedIds = taskFormData ? taskFormData.assigneeIds : null;
+
+  return await queries.tasks.update(task_id, taskDBData, assignedIds);
 }

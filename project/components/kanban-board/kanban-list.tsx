@@ -57,7 +57,7 @@ const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit, searchTerm 
             <div className="p-4 min-h-[400px]">
               <div className="mb-4 space-y-3 max-h-[400px] overflow-y-auto">
                 {filteredTasks.map((task) => (
-                  <TaskCard key={task.id} task={task} list_id={list.id} />
+                  <TaskCard key={task.id} task={task} list_id={list.id} project_id={project_id} />
                 ))}
               </div>
             </div>

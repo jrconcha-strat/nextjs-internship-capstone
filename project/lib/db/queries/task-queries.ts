@@ -2,7 +2,7 @@ import * as types from "../../../types/index";
 import { db } from "../db-index";
 import * as schema from "../schema";
 import { lists } from "./list-queries";
-import { getObjectById, updateObject, getByParentObject, successResponse, failResponse } from "./query_utils";
+import { getObjectById, getByParentObject, successResponse, failResponse, getBaseFields } from "./query_utils";
 import { inArray, eq, sql, and, gt } from "drizzle-orm";
 
 export const tasks = {
@@ -84,27 +84,90 @@ export const tasks = {
       return failResponse(`Unable to create task.`, e);
     }
   },
-  update: async (id: number, data: types.TaskInsert): Promise<types.QueryResponse<types.TaskInsert>> => {
-    return updateObject<types.TaskSelect, types.TaskInsert>(
-      id,
-      data,
-      "tasks",
-      tasks.getById,
-      (existing, incoming) => {
-        const changed: Partial<types.TaskSelect> = {};
-        if (existing.position != incoming.position) changed.position = incoming.position;
-        if (existing.title != incoming.title) changed.title = incoming.title;
-        if (existing.description != incoming.description) changed.description = incoming.description;
-        if (existing.dueDate != incoming.dueDate) changed.dueDate = incoming.dueDate;
-        if (existing.priority != incoming.priority) changed.priority = incoming.priority;
-        return changed;
-      },
-      (existing) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { id, ...base } = existing;
-        return base;
-      },
-    );
+  update: async (
+    task_id: number,
+    incomingTask: types.TaskInsert,
+    assignedIds: number[] | null,
+  ): Promise<types.QueryResponse<types.TaskSelect>> => {
+    try {
+      const response = await tasks.getById(task_id);
+      if (!response.success) throw new Error(response.message);
+
+      const existingTask = response.data;
+
+      const changed: Partial<types.TaskSelect> = {};
+      if (existingTask.position != incomingTask.position) changed.position = incomingTask.position;
+      if (existingTask.title != incomingTask.title) changed.title = incomingTask.title;
+      if (existingTask.description != incomingTask.description) changed.description = incomingTask.description;
+      if (existingTask.dueDate != incomingTask.dueDate) changed.dueDate = incomingTask.dueDate;
+      if (existingTask.priority != incomingTask.priority) changed.priority = incomingTask.priority;
+
+      const finalUpdatedTaskData = {
+        ...getBaseFields(existingTask),
+        ...changed,
+        ...(Object.keys(changed).length > 0 ? { updatedAt: new Date() } : {}),
+      };
+
+      if (Object.keys(changed).length === 0 && assignedIds === null)
+        return successResponse(`No changes detected.`, existingTask);
+
+      const txResult = await db.transaction(async (tx): Promise<types.QueryResponse<types.TaskSelect>> => {
+        // Update the task entry
+        const [result] = await tx
+          .update(schema.tasks)
+          .set(finalUpdatedTaskData)
+          .where(eq(schema.tasks.id, task_id))
+          .returning();
+
+        // Update assigned members, only if assignedIds is present, and different from existingMembers
+        if (assignedIds === null) return successResponse(`Updated task successfully.`, result);
+
+        // Dedupe
+        const nextIds = Array.from(new Set(assignedIds));
+
+        const res = await tasks.getTaskMembers(task_id);
+        if (!res.success) throw new Error(res.message);
+
+        const currentIds = res.data.map((m) => m.id);
+        const currentSet = new Set(currentIds);
+        const nextSet = new Set(nextIds);
+
+        // Identify diffs
+        const toRemove = currentIds.filter((id) => !nextSet.has(id)); // Return ids that currentId has that next doesn't
+        const toAdd = nextIds.filter((id) => !currentSet.has(id)); // Vice versa
+
+        if (toRemove.length === 0 && toAdd.length === 0) {
+          return successResponse(`Updated task successfully.`, result);
+        }
+
+        // Remove members
+        if (toRemove.length > 0) {
+          await tx
+            .delete(schema.users_to_tasks)
+            .where(and(eq(schema.users_to_tasks.task_id, task_id), inArray(schema.users_to_tasks.user_id, toRemove)));
+        }
+
+        // Add member
+        if (toAdd.length > 0) {
+          const now = new Date();
+          const rows: types.UsersToTasksSelect[] = toAdd.map((userId) => ({
+            user_id: userId,
+            task_id,
+            createdAt: now,
+            updatedAt: now,
+          }));
+
+          await tx.insert(schema.users_to_tasks).values(rows);
+        }
+        return successResponse(`Successfully updated task`, result);
+      });
+
+      // Check if update is successful.
+      if (txResult.success) return successResponse(txResult.message, txResult.data);
+      else return failResponse(`Unable to update task.`, `Task updating database transaction failed.`);
+    } catch (e) {
+      return failResponse(`Unable to update task.`, e);
+    }
   },
   delete: async (id: number): Promise<types.QueryResponse<types.TaskSelect>> => {
     try {

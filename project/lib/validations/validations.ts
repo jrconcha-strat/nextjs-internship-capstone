@@ -180,7 +180,13 @@ export const taskSchema = z
     description: z.string().trim().max(200, errorTemplates.descriptionMaxError).nullable(),
     listId: z.int().min(1, errorTemplates.idMinError),
     priority: z.enum(priorityTuple),
-    dueDate: z.date().min(today, errorTemplates.dueDateMinError).nullable(),
+    dueDate: z.union([
+      z
+        .string()
+        .transform((val) => new Date(val))
+        .pipe(z.date().min(today, errorTemplates.dueDateMinError)),
+      z.date().min(today, errorTemplates.dueDateMinError).nullable(),
+    ]), // Allow only Today or Future dates
     position: z.int().min(0, errorTemplates.positionMinError),
     createdAt: z.date(),
     updatedAt: z.date(),
@@ -224,7 +230,7 @@ export const taskSchemaForm = taskSchema
     position: true,
     listId: true,
   })
-  .extend({ assigneeIds: z.array(z.int()).nullable() }); // Because on task creation, we can assign zero, one or more members.
+  .extend({ assigneeIds: z.array(z.int()).nullable() }); // Because on task creation and update, we can assign zero, one or more members.
 
 export const commentSchema = z
   .object({

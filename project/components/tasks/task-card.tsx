@@ -4,10 +4,11 @@ import { TaskSelect } from "@/types";
 import { Badge } from "../ui/badge";
 import { Skeleton } from "../ui/skeleton";
 import MembersAvatars from "../ui/members-avatars";
-import { FC } from "react";
+import { FC, useState } from "react";
 import { capitalize, taskPriorityColor } from "@/lib/utils";
 import { useTasks } from "@/hooks/use-tasks";
 import TaskOptions from "./task-options";
+import UpdateTaskModal from "../modals/update-task-modal";
 
 /*
 TODO: Implementation Notes for Interns:
@@ -49,37 +50,52 @@ Features to implement:
 type TaskCardProps = {
   task: TaskSelect;
   list_id: number;
+  project_id: number;
 };
 
-const TaskCard: FC<TaskCardProps> = ({ task, list_id }) => {
+const TaskCard: FC<TaskCardProps> = ({ task, list_id, project_id }) => {
   const { taskMembers, isTaskMembersLoading, getTaskMembersError } = useTasks({ task_id: task.id });
+  const [isEditModalOpen, setEditModalOpen] = useState(false);
+
   return (
-    <div className="group p-4 bg-white dark:bg-outer_space-300 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 cursor-pointer hover:shadow-md transition-shadow">
-      <div className="flex justify-between">
-        <h4 className="font-medium text-outer_space-500 dark:text-platinum-500 text-sm mb-2">{task.title}</h4>
-        <TaskOptions
+    <>
+      {isEditModalOpen && (
+        <UpdateTaskModal
           task_id={task.id}
           list_id={list_id}
-          className="opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-300"
+          project_id={project_id}
+          isModalOpen={isEditModalOpen}
+          setIsModalOpen={setEditModalOpen}
         />
-      </div>
+      )}
+      <div className="group p-4 bg-white dark:bg-outer_space-300 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 cursor-pointer hover:shadow-md transition-shadow">
+        <div className="flex justify-between">
+          <h4 className="font-medium text-outer_space-500 dark:text-platinum-500 text-sm mb-2">{task.title}</h4>
+          <TaskOptions
+            task_id={task.id}
+            list_id={list_id}
+            setEditModalOpen={() => setEditModalOpen(true)}
+            className="opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-300"
+          />
+        </div>
 
-      <p className="text-xs text-payne's_gray-500 dark:text-french_gray-400 mb-3">{task.description}</p>
-      <div className="flex items-center justify-between">
-        <Badge className={`${taskPriorityColor[task.priority]}`}>{capitalize(task.priority)}</Badge>
-        {isTaskMembersLoading ? (
-          <Skeleton height="5" width="24" />
-        ) : taskMembers && !getTaskMembersError ? (
-          taskMembers.length === 0 ? (
-            <p className="text-xs text-dark-grey-100">None Assigned</p>
+        <p className="text-xs text-payne's_gray-500 dark:text-french_gray-400 mb-3">{task.description}</p>
+        <div className="flex items-center justify-between">
+          <Badge className={`${taskPriorityColor[task.priority]}`}>{capitalize(task.priority)}</Badge>
+          {isTaskMembersLoading ? (
+            <Skeleton height="5" width="24" />
+          ) : taskMembers && !getTaskMembersError ? (
+            taskMembers.length === 0 ? (
+              <p className="text-xs text-dark-grey-100">None Assigned</p>
+            ) : (
+              <MembersAvatars members={taskMembers} max_visible={5} size={5} />
+            )
           ) : (
-            <MembersAvatars members={taskMembers} max_visible={5} size={5} />
-          )
-        ) : (
-          <p className="text-xs text-dark-grey-100">Unable to load members.</p>
-        )}
+            <p className="text-xs text-dark-grey-100">Unable to load members.</p>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

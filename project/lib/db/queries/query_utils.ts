@@ -181,3 +181,19 @@ export const getBaseFields = (existingData: types.ObjectSelect) => {
   const { id, ...base } = existingData;
   return base;
 };
+
+// Shallow, first level equality comparison
+export const objectsEqual = <T extends Record<string, unknown>>(o1: T, o2: T) =>
+  Object.keys(o1).length === Object.keys(o2).length && Object.keys(o1).every((p) => o1[p] === o2[p]);
+
+export function areArraysEqual<T>(arr1: Array<T>, arr2: Array<T>) {
+  if (arr1.length !== arr2.length) {
+    return false; // Different lengths, so not equal
+  }
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return false; // Mismatch found, so not equal
+    }
+  }
+  return true; // All elements match and lengths are equal
+}

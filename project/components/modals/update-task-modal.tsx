@@ -47,19 +47,17 @@ import MultiSelect from "../ui/multi-select";
 import { useProjectMembers } from "@/hooks/use-projects";
 import { TaskFormInput, TaskFormOutput } from "@/types";
 
-type CreateTaskModalProps = {
+type UpdateTaskModalProps = {
   isModalOpen: boolean;
   setIsModalOpen: (val: boolean) => void;
   list_id: number;
   project_id: number;
-  position: number;
+  task_id: number;
 };
 
-const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen, list_id, project_id, position }) => {
-  // Disable scrolling when modal is open.
+const UpdateTaskModal: FC<UpdateTaskModalProps> = ({ isModalOpen, setIsModalOpen, list_id, project_id, task_id }) => {
   useEffect(() => {
     if (isModalOpen) {
-      // Account for layout shift due to hiding the scrollbar. Usually 15px
       const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
       document.body.classList.add("overflow-hidden");
       document.body.style.paddingRight = `${scrollBarWidth}px`;
@@ -67,12 +65,16 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
       document.body.classList.remove("overflow-hidden");
       document.body.style.paddingRight = "";
     }
-    // Cleanup function on unmount
     return () => {
       document.body.classList.remove("overflow-hidden");
       document.body.style.paddingRight = "";
     };
   }, [isModalOpen]);
+
+  const { updateTask, isUpdateTaskLoading, taskMembers, task, isTaskLoading } = useTasks({
+    list_id: list_id,
+    task_id: task_id,
+  });
 
   const {
     register,
@@ -82,15 +84,17 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
   } = useForm<TaskFormInput, undefined, TaskFormOutput>({
     resolver: zodResolver(taskSchemaForm),
     defaultValues: {
-      assigneeIds: [],
+      title: task?.title,
+      description: task?.description,
+      priority: task?.priority,
+      dueDate: task?.dueDate ? task.dueDate.toISOString().slice(0, 10) : "",
+      assigneeIds: taskMembers?.map((m) => m.id),
     },
   });
-
-  const { createTask, isCreateTaskLoading } = useTasks({ list_id: list_id });
   const { projectMembers, isProjectMembersLoading, projectMembersError } = useProjectMembers(project_id);
 
   const onSubmit = async (values: TaskFormOutput) => {
-    createTask({ list_id, position, taskFormData: values });
+    updateTask({ task_id, taskFormData: values });
 
     setIsModalOpen(false);
   };
@@ -107,7 +111,7 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
             onMouseDown={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-outer_space-500 dark:text-platinum-500">Create New Task</h3>
+              <h3 className="text-lg font-semibold text-outer_space-500 dark:text-platinum-500">Update Task</h3>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="p-1 hover:bg-platinum-500 dark:hover:bg-payne's_gray-400 rounded"
@@ -126,7 +130,7 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
                 </label>
                 <input
                   type="text"
-                  disabled={isCreateTaskLoading}
+                  disabled={isUpdateTaskLoading || isTaskLoading}
                   className="w-full px-3 py-2 border border-french_gray-300 dark:border-payne's_gray-400 rounded-lg bg-white dark:bg-outer_space-400 text-outer_space-500 dark:text-platinum-500 focus:outline-hidden focus:ring-2 focus:ring-blue_munsell-500"
                   placeholder="Enter task name"
                   {...register("title")}
@@ -146,7 +150,7 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
                   className="w-full px-3 py-2 border border-french_gray-300 dark:border-payne's_gray-400 rounded-lg bg-white dark:bg-outer_space-400 text-outer_space-500 dark:text-platinum-500 focus:outline-hidden focus:ring-2 focus:ring-blue_munsell-500"
                   placeholder="Task description"
                   {...register("description")}
-                  disabled={isCreateTaskLoading}
+                  disabled={isUpdateTaskLoading || isTaskLoading}
                 />
                 {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
               </div>
@@ -165,10 +169,10 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
                     <Select
                       value={field.value}
                       onValueChange={(value) => field.onChange(value)}
-                      disabled={isCreateTaskLoading}
+                      disabled={isUpdateTaskLoading || isTaskLoading}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder={isCreateTaskLoading ? "Loading..." : "Select"} />
+                        <SelectValue placeholder={isUpdateTaskLoading ? "Loading..." : "Select"} />
                       </SelectTrigger>
                       <SelectContent>
                         {priorityTuple.map((value) => (
@@ -196,7 +200,7 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
                       options={(projectMembers ?? []).map((m) => ({ label: m.name, value: m.id }))}
                       value={field.value ?? []}
                       onChange={field.onChange}
-                      disabled={isProjectMembersLoading || isCreateTaskLoading}
+                      disabled={isProjectMembersLoading || isUpdateTaskLoading || isTaskLoading}
                       placeholder={isProjectMembersLoading ? "Loading project members..." : "Select Members to Assign"}
                       emptyText={
                         projectMembersError ? "Failed to load members" : "This project doesn't have any members yet."
@@ -217,7 +221,7 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
                 </label>
                 <input
                   type="date"
-                  disabled={isCreateTaskLoading}
+                  disabled={isUpdateTaskLoading || isTaskLoading}
                   className="w-full px-3 py-2 border border-french_gray-300 dark:border-payne's_gray-400 rounded-lg bg-white dark:bg-outer_space-400 text-outer_space-500 dark:text-platinum-500 focus:outline-hidden focus:ring-2 focus:ring-blue_munsell-500"
                   {...register("dueDate", {
                     setValueAs: (value: string | null) => {
@@ -238,17 +242,17 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  disabled={isCreateTaskLoading}
+                  disabled={isUpdateTaskLoading || isTaskLoading}
                   className="px-4 py-2 text-payne's_gray-500 dark:text-french_gray-400 hover:bg-platinum-500 dark:hover:bg-payne's_gray-400 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isCreateTaskLoading}
+                  disabled={isUpdateTaskLoading || isTaskLoading}
                   className="px-4 py-2 bg-blue_munsell-500 text-white rounded-lg hover:bg-blue_munsell-600 transition-colors"
                 >
-                  {isCreateTaskLoading ? (
+                  {isUpdateTaskLoading ? (
                     <div className="flex gap-2">
                       <Loader2Icon className="animate-spin " /> Loading
                     </div>
@@ -265,4 +269,4 @@ const CreateTaskModal: FC<CreateTaskModalProps> = ({ isModalOpen, setIsModalOpen
   );
 };
 
-export default CreateTaskModal;
+export default UpdateTaskModal;
