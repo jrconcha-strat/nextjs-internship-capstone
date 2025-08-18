@@ -62,7 +62,7 @@ export async function updateListAction(
 export async function deleteListAction(list_id: number): Promise<ServerActionResponse<ListSelect>> {
   await checkAuthenticationStatus();
 
-  const parsed = idSchema.safeParse({ list_id });
+  const parsed = idSchema.safeParse({id: list_id });
   if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
   return await queries.lists.delete(list_id);
 }
