@@ -68,9 +68,9 @@ const TaskCard: FC<TaskCardProps> = ({ task, list_id, project_id }) => {
           setIsModalOpen={setEditModalOpen}
         />
       )}
-      <div className="group p-4 bg-white dark:bg-outer_space-300 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 cursor-pointer hover:shadow-md transition-shadow">
+      <div className="group mx-4 p-4 bg-white dark:bg-transparent  shadow-md rounded-lg border border-border cursor-pointer hover:shadow-lg transition-shadow">
         <div className="flex justify-between">
-          <h4 className="font-medium text-outer_space-500 dark:text-platinum-500 text-sm mb-2">{task.title}</h4>
+          <h4 className="font-medium text-foreground/85 text-sm mb-2">{task.title}</h4>
           <TaskOptions
             task_id={task.id}
             list_id={list_id}
@@ -79,19 +79,19 @@ const TaskCard: FC<TaskCardProps> = ({ task, list_id, project_id }) => {
           />
         </div>
 
-        <p className="text-xs text-payne's_gray-500 dark:text-french_gray-400 mb-3">{task.description}</p>
+        <p className="text-xs text-foreground/65 mb-3">{task.description}</p>
         <div className="flex items-center justify-between">
           <Badge className={`${taskPriorityColor[task.priority]}`}>{capitalize(task.priority)}</Badge>
           {isTaskMembersLoading ? (
             <Skeleton height="5" width="24" />
           ) : taskMembers && !getTaskMembersError ? (
             taskMembers.length === 0 ? (
-              <p className="text-xs text-dark-grey-100">None Assigned</p>
+              <p className="text-xs text-foreground/65">None Assigned</p>
             ) : (
               <MembersAvatars members={taskMembers} max_visible={5} size={5} />
             )
           ) : (
-            <p className="text-xs text-dark-grey-100">Unable to load members.</p>
+            <p className="text-xs text-foreground/65">Unable to load members.</p>
           )}
         </div>
       </div>

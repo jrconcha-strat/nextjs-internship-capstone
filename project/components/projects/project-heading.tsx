@@ -72,21 +72,16 @@ const ProjectHeading: FC<ProjectHeadingProps> = ({ project }) => {
 
       <div className="flex flex-col gap-4 md:gap-0 md:flex-row items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Link
-            href="/projects"
-            className="p-2 hover:bg-platinum-500 dark:hover:bg-payne's_gray-400 rounded-lg transition-colors"
-          >
+          <Link href="/projects" className="p-2 hover:bg-foreground/10 rounded-lg transition-colors">
             <ArrowLeft size={20} />
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-outer_space-500 dark:text-platinum-500">{project.name}</h1>
-            <p className="text-payne's_gray-500 dark:text-french_gray-500 mt-1">
-              Kanban board view for project management
-            </p>
+            <h1 className="text-3xl font-bold text-foreground">{project.name}</h1>
+            <p className="text-foreground/70 mt-1">Kanban board view for project management</p>
           </div>
         </div>
 
-        <div className="bg-primary/20 rounded-md px-1 md:bg-transparent flex items-center space-x-2">
+        <div className="bg-foreground/5 rounded-md px-1 md:bg-transparent flex items-center space-x-2">
           {navItems.map((itm, idx) => {
             return (
               <Link
@@ -94,10 +89,8 @@ const ProjectHeading: FC<ProjectHeadingProps> = ({ project }) => {
                 href={itm.name === "Default" ? `/projects/${project.id}` : `/projects/${project.id}/${itm.href}`}
               >
                 <button
-                  className={`p-2 hover:bg-platinum-500 dark:hover:bg-payne's_gray-400 rounded-lg transition-colors ${
-                    itm.current
-                      ? "bg-blue_munsell-100 dark:bg-blue_munsell-900 text-blue_munsell-700 dark:text-blue_munsell-300"
-                      : "text-outer_space-500 dark:text-platinum-500 hover:bg-platinum-500 dark:hover:bg-payne's_gray-400"
+                  className={`p-2 rounded-lg transition-colors ${
+                    itm.current ? "bg-primary text-white" : "text-foreground/70 hover:bg-foreground/10 hover:text-foreground"
                   }`}
                 >
                   <itm.icon size={20} />
@@ -105,7 +98,7 @@ const ProjectHeading: FC<ProjectHeadingProps> = ({ project }) => {
               </Link>
             );
           })}
-          <button className={`p-2 hover:bg-platinum-500 dark:hover:bg-payne's_gray-400 rounded-lg transition-colors`}>
+          <button className={`p-2 text-foreground/70 hover:bg-foreground/10 hover:text-foreground rounded-lg transition-colors`}>
             <MoreHorizontal size={20} />
           </button>
         </div>

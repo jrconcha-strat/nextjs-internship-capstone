@@ -1,6 +1,7 @@
 import { Search } from "lucide-react";
 import { FC } from "react";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 type TasksSearchProps = {
   searchTerm: string;
@@ -15,19 +16,18 @@ const TasksSearch: FC<TasksSearchProps> = ({ searchTerm, setSearchTerm }) => {
   return (
     <div className="flex flex-col sm:flex-row gap-4 items-center">
       <div className="relative flex-1">
-        <Search
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-payne's_gray-500 dark:text-french_gray-400"
-          size={16}
-        />
-        <input
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground" size={16} />
+        <Input
           type="text"
           placeholder="Search for a task..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 bg-white dark:bg-outer_space-500 border border-french_gray-300 dark:border-payne's_gray-400 rounded-lg text-outer_space-500 dark:text-platinum-500 placeholder-payne's_gray-500 dark:placeholder-french_gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue_munsell-500"
+          className="w-full pl-10"
         />
       </div>
-      <Button className="w-full md:w-max h-full" onClick={clearSearch}>Clear</Button>
+      <Button variant="default" size="sm" className="w-full md:w-max h-full text-white p-1 px-2 hover:bg-primary"  onClick={clearSearch}>
+        Clear
+      </Button>
     </div>
   );
 };

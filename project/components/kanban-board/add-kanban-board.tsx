@@ -1,6 +1,7 @@
 import { useLists } from "@/hooks/use-lists";
-import { Loader2Icon } from "lucide-react";
+import { Loader2Icon, Plus } from "lucide-react";
 import { FC } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 type AddKanbanBoardProps = {
   project_id: number;
@@ -16,21 +17,28 @@ const AddKanbanBoard: FC<AddKanbanBoardProps> = ({ project_id, position }) => {
   };
 
   return (
-    <div className="min-w-[80px] min-h-[350px] w-80 shrink-0">
-      <button
-        disabled={isListCreateLoading}
-        onClick={onClick}
-        className="w-full h-full p-3 border-2 border-dashed border-french_gray-300 dark:border-payne's_gray-400 rounded-lg text-payne's_gray-500 dark:text-french_gray-400 hover:border-blue_munsell-500 hover:text-blue_munsell-500 transition-colors"
-      >
-        {" "}
-        {isListCreateLoading ? (
-          <div className="flex justify-center gap-2">
-            <Loader2Icon className="animate-spin " /> Loading
-          </div>
-        ) : (
-          "+ Add Column"
-        )}
-      </button>
+    <div>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            disabled={isListCreateLoading}
+            onClick={onClick}
+            className="w-full p-1 px-2 border-1 border-border rounded-lg text-foreground/70 hover:bg-foreground/5 hover:text-foreground"
+          >
+            {" "}
+            {isListCreateLoading ? (
+              <div className="flex justify-center gap-2">
+                <Loader2Icon className="animate-spin " />
+              </div>
+            ) : (
+              <Plus />
+            )}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Add a new column to the board.</p>
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 };

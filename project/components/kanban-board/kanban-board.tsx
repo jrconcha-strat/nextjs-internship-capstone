@@ -47,27 +47,27 @@ export function KanbanBoard({ projectId }: { projectId: string }) {
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   return (
-    <div className="flex flex-col bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400 p-6 space-y-6">
+    <div className="flex flex-col bg-background space-y-6 scrollbar-custom">
       {/* Task Search */}
       <TasksSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
-      <div className="flex gap-x-3 overflow-x-auto">
+      <div className="scrollbar-custom flex gap-x-3 overflow-x-auto">
         {!lists ? (
           isLoadingLists ? (
             <SkeletonKanbanBoard />
           ) : (
             <div className="flex w-full h-full justify-center">
               {" "}
-              <p className="w-full h-full text-center text-sm text-dark-grey-400">
+              <p className="w-full h-full text-center text-sm text-foreground/50">
                 Unable to load lists. Please refresh the page
               </p>
             </div>
           )
         ) : (
-          <>
+          <div className="flex pb-4 gap-x-3">
             <KanbanSection project_id={Number(projectId)} lists={lists} searchTerm={searchTerm} />
             <AddKanbanBoard project_id={Number(projectId)} position={lists.length} />
-          </>
+          </div>
         )}
       </div>
     </div>
