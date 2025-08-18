@@ -19,9 +19,9 @@ export async function getTasksCountForProjectAction(project_id: number): Promise
   return await queries.tasks.getTasksCountForProject(project_id);
 }
 
-export async function getTasksByListIdAction(project_id: number): Promise<ServerActionResponse<TaskSelect[]>> {
+export async function getTasksByListIdAction(list_id: number): Promise<ServerActionResponse<TaskSelect[]>> {
   await checkAuthenticationStatus();
-  return await queries.tasks.getByList(project_id);
+  return await queries.tasks.getByList(list_id);
 }
 
 // Mutations
