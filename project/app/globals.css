@@ -185,10 +185,12 @@
   border-radius: 3px;
 }
 
-
-
 .scrollbar-custom::-webkit-scrollbar {
-  width: 12px;
+  width: 4px;
+}
+
+.scrollbar-custom::-webkit-scrollbar:horizontal {
+  height: 8px;
 }
 
 .scrollbar-custom::-webkit-scrollbar-track {
@@ -198,13 +200,12 @@
 
 .scrollbar-custom::-webkit-scrollbar-thumb {
   background-color: var(--color-white-smoke-400);
-  border-radius: 20px;
-  border: 3px solid transparent;
-  background-clip: content-box; 
+  @apply rounded-xl;
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-white-smoke-200);
+  @apply rounded-xl;
 }
 
 @theme inline {

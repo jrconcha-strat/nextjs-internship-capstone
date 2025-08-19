@@ -10,14 +10,12 @@ import { useTasks } from "@/hooks/use-tasks";
 import TaskOptions from "./task-options";
 import UpdateTaskModal from "../modals/update-task-modal";
 import { Calendar, MessageCircleMore } from "lucide-react";
-import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatDate } from "../../lib/utils";
 import { DragButton } from "../ui/drag-button";
 import { useSortable } from "@dnd-kit/sortable";
-import { cva } from "class-variance-authority";
 
 /*
 TODO: Implementation Notes for Interns:
@@ -87,15 +85,9 @@ const TaskCard: FC<TaskCardProps> = ({ task, list_id, project_id, isOverlay }) =
     transform: CSS.Translate.toString(transform),
   };
 
-  const variants = cva("", {
-    variants: {
-      dragging: {
-        over: "ring-2 opacity-30",
-        overlay: "ring-2 ring-primary",
-      },
-    },
-  });
-
+  if (isDragging) {
+    return <Card ref={setNodeRef} style={style} className={`group p-0 gap-0 min-h-[185px]`}></Card>;
+  }
   return (
     <>
       {isEditModalOpen && (
@@ -107,13 +99,7 @@ const TaskCard: FC<TaskCardProps> = ({ task, list_id, project_id, isOverlay }) =
           setIsModalOpen={setEditModalOpen}
         />
       )}
-      <Card
-        ref={setNodeRef}
-        style={style}
-        className={`group mx-4 p-0 gap-0 ${variants({
-          dragging: isOverlay ? "overlay" : isDragging ? "over" : undefined,
-        })}`}
-      >
+      <Card ref={setNodeRef} style={style} className={`group p-0 gap-0 `}>
         <CardHeader className="px-1 py-2 justify-between items-center flex flex-row border-b-2 border-secondary relative">
           {/* Drag Button, Options Button */}
           <DragButton listeners={listeners} attributes={attributes} />

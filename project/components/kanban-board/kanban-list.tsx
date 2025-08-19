@@ -81,17 +81,15 @@ const KanbanList: FC<KanbanListProps> = ({ tasks, list, project_id, onEdit, sear
           </div>
 
           {/* Scrollable Task Content */}
-          <DndContext>
-            <SortableContext items={task_ids}>
-              <div className="min-h-[400px]">
-                <div className="scrollbar-custom flex flex-col py-4 mb-4 space-y-3 min-h-[400px] max-h-[400px] overflow-y-auto">
-                  {filteredTasks.map((task) => (
-                    <TaskCard key={task.id} task={task} list_id={list.id} project_id={project_id} />
-                  ))}
-                </div>
+          <SortableContext items={task_ids}>
+            <div className="min-h-[400px]">
+              <div className="scrollbar-custom flex flex-col p-4 mb-4 space-y-3 min-h-[400px] max-h-[400px] overflow-y-auto">
+                {filteredTasks.map((task) => (
+                  <TaskCard key={task.id} task={task} list_id={list.id} project_id={project_id} />
+                ))}
               </div>
-            </SortableContext>
-          </DndContext>
+            </div>
+          </SortableContext>
 
           <button
             type="button"

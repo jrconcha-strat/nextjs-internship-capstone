@@ -52,7 +52,7 @@ export const tasks = {
         .innerJoin(schema.lists, eq(schema.tasks.listId, schema.lists.id))
         .where(eq(schema.lists.projectId, projectId))
         .orderBy(schema.tasks.position);
-      
+
       const tasks = result.map((r) => r.tasks);
 
       if (tasks.length >= 1) return successResponse(`All tasks retrieved.`, tasks);
