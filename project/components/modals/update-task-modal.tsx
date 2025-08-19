@@ -94,7 +94,7 @@ const UpdateTaskModal: FC<UpdateTaskModalProps> = ({ isModalOpen, setIsModalOpen
   const { projectMembers, isProjectMembersLoading, projectMembersError } = useProjectMembers(project_id);
 
   const onSubmit = async (values: TaskFormOutput) => {
-    updateTask({ task_id, taskFormData: values });
+    updateTask({ task_id, project_id, taskFormData: values });
 
     setIsModalOpen(false);
   };

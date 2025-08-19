@@ -1,36 +1,36 @@
 "use client";
 import { FC, useMemo, useState } from "react";
 import KanbanListOptions from "./kanban-list-options";
-import { ListSelect } from "@/types";
-import { useTasks } from "@/hooks/use-tasks";
+import { ListSelect, TaskSelect } from "@/types";
 import CreateTaskModal from "../modals/create-task-modal";
-import { Loader2Icon } from "lucide-react";
 import TaskCard from "../tasks/task-card";
-import { DndContext } from "@dnd-kit/core";
-import { useSortable } from "@dnd-kit/sortable";
+import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { DragButton } from "../ui/drag-button";
+import { DndContext } from "@dnd-kit/core";
 
 type KanbanListProps = {
+  tasks: TaskSelect[];
   list: ListSelect;
   project_id: number;
   onEdit: () => void;
   searchTerm: string;
 };
 
-const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit, searchTerm }) => {
-  const { listTasks, isListTasksLoading, getListTasksError } = useTasks({ list_id: list.id });
+const KanbanList: FC<KanbanListProps> = ({ tasks, list, project_id, onEdit, searchTerm }) => {
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
 
   const filteredTasks = useMemo(() => {
-    const filtered = listTasks?.filter((task) => task.title.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filtered = tasks.filter((task) => task.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return filtered;
-  }, [searchTerm, listTasks]);
+  }, [searchTerm, tasks]);
 
   function openModal() {
     setCreateModalOpen(true);
   }
+
+  const task_ids = useMemo(() => tasks.map((l) => l.id), [tasks]);
 
   const { setNodeRef, listeners, attributes, transform, transition } = useSortable({
     id: list.id,
@@ -47,13 +47,13 @@ const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit, searchTerm 
 
   return (
     <>
-      {isCreateModalOpen && listTasks && (
+      {isCreateModalOpen && tasks && (
         <CreateTaskModal
           isModalOpen={isCreateModalOpen}
           setIsModalOpen={setCreateModalOpen}
           list_id={list.id}
           project_id={project_id}
-          position={listTasks.length}
+          position={tasks.length}
         />
       )}
       <div ref={setNodeRef} style={style} className="min-w-[80px] min-h-[350px] w-80 overflow-y shrink-0">
@@ -73,8 +73,8 @@ const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit, searchTerm 
           </div>
 
           {/* Scrollable Task Content */}
-          {filteredTasks ? (
-            <DndContext>
+          <DndContext>
+            <SortableContext items={task_ids}>
               <div className="min-h-[400px]">
                 <div className="scrollbar-custom flex flex-col py-4 mb-4 space-y-3 min-h-[400px] max-h-[400px] overflow-y-auto">
                   {filteredTasks.map((task) => (
@@ -82,20 +82,8 @@ const KanbanList: FC<KanbanListProps> = ({ list, project_id, onEdit, searchTerm 
                   ))}
                 </div>
               </div>
-            </DndContext>
-          ) : isListTasksLoading && !getListTasksError ? (
-            <div className="p-4 text-center w-full h-full flex justify-center items-center gap-x-2">
-              {" "}
-              <Loader2Icon size={24} className="animate-spin" /> <p className="text-sm"> Loading Task </p>
-            </div>
-          ) : (
-            getListTasksError && (
-              <div className="p-4 text-center w-full h-full flex justify-center items-center gap-x-2">
-                {" "}
-                <p className="text-sm"> Unable to load task. Please refresh the page. </p>
-              </div>
-            )
-          )}
+            </SortableContext>
+          </DndContext>
 
           <button
             type="button"

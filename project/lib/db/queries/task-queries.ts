@@ -44,6 +44,24 @@ export const tasks = {
       return failResponse(`Unable to get task count for project.`, e);
     }
   },
+  getByProject: async (projectId: number): Promise<types.QueryResponse<types.TaskSelect[]>> => {
+    try {
+      const result = await db
+        .select()
+        .from(schema.tasks)
+        .innerJoin(schema.lists, eq(schema.tasks.listId, schema.lists.id))
+        .where(eq(schema.lists.projectId, projectId))
+        .orderBy(schema.tasks.position);
+      
+      const tasks = result.map((r) => r.tasks);
+
+      if (tasks.length >= 1) return successResponse(`All tasks retrieved.`, tasks);
+      else if (tasks.length === 0) return successResponse(`No tasks yet.`, tasks);
+      throw new Error(`No tasks retrieved.`);
+    } catch (e) {
+      return failResponse(`Unable to retrieve tasks.`, e);
+    }
+  },
   getByList: async (listId: number): Promise<types.QueryResponse<Array<types.TaskSelect>>> => {
     try {
       const tasks = await db

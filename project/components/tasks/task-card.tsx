@@ -16,6 +16,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatDate } from "../../lib/utils";
 import { DragButton } from "../ui/drag-button";
+import { useSortable } from "@dnd-kit/sortable";
+import { cva } from "class-variance-authority";
 
 /*
 TODO: Implementation Notes for Interns:
@@ -58,19 +60,41 @@ type TaskCardProps = {
   task: TaskSelect;
   list_id: number;
   project_id: number;
+  isOverlay?: boolean;
 };
 
-const TaskCard: FC<TaskCardProps> = ({ task, list_id, project_id }) => {
+export type TaskType = "task";
+
+export interface TaskDragData {
+  type: TaskType;
+  task: TaskSelect;
+}
+
+const TaskCard: FC<TaskCardProps> = ({ task, list_id, project_id, isOverlay }) => {
   const { taskMembers, isTaskMembersLoading, getTaskMembersError } = useTasks({ task_id: task.id });
   const [isEditModalOpen, setEditModalOpen] = useState(false);
 
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+  const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id: task.id,
+    data: {
+      type: "task",
+      task,
+    },
   });
 
   const style = {
+    transition,
     transform: CSS.Translate.toString(transform),
   };
+
+  const variants = cva("", {
+    variants: {
+      dragging: {
+        over: "ring-2 opacity-30",
+        overlay: "ring-2 ring-primary",
+      },
+    },
+  });
 
   return (
     <>
@@ -83,12 +107,19 @@ const TaskCard: FC<TaskCardProps> = ({ task, list_id, project_id }) => {
           setIsModalOpen={setEditModalOpen}
         />
       )}
-      <Card ref={setNodeRef} style={style} className="group mx-4 p-0 gap-0 ">
+      <Card
+        ref={setNodeRef}
+        style={style}
+        className={`group mx-4 p-0 gap-0 ${variants({
+          dragging: isOverlay ? "overlay" : isDragging ? "over" : undefined,
+        })}`}
+      >
         <CardHeader className="px-1 py-2 justify-between items-center flex flex-row border-b-2 border-secondary relative">
           {/* Drag Button, Options Button */}
           <DragButton listeners={listeners} attributes={attributes} />
           <TaskOptions
             task_id={task.id}
+            project_id={project_id}
             list_id={list_id}
             setEditModalOpen={() => setEditModalOpen(true)}
             className="opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-300"

@@ -27,6 +27,15 @@ export async function getTasksCountForProjectAction(project_id: number): Promise
   return await queries.tasks.getTasksCountForProject(project_id);
 }
 
+export async function getTasksByProjectAction(project_id: number): Promise<ServerActionResponse<TaskSelect[]>> {
+  await checkAuthenticationStatus();
+
+  const parsed = idSchema.safeParse({ id: project_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
+  return await queries.tasks.getByProject(project_id);
+}
+
 export async function getTasksByListIdAction(list_id: number): Promise<ServerActionResponse<TaskSelect[]>> {
   await checkAuthenticationStatus();
 

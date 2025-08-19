@@ -8,15 +8,16 @@ import { useTasks } from "@/hooks/use-tasks";
 type TaskOptionsProps = {
   task_id: number;
   list_id: number;
+  project_id: number;
   className: string;
   setEditModalOpen: () => void;
 };
 
-const TaskOptions: FC<TaskOptionsProps> = ({ task_id, list_id, className, setEditModalOpen }) => {
+const TaskOptions: FC<TaskOptionsProps> = ({ task_id, list_id, project_id, className, setEditModalOpen }) => {
   const { deleteTask, isDeleteTaskLoading } = useTasks({ task_id, list_id });
 
   function onClick() {
-    deleteTask({ task_id });
+    deleteTask({ task_id, project_id });
   }
 
   return (
@@ -27,10 +28,7 @@ const TaskOptions: FC<TaskOptionsProps> = ({ task_id, list_id, className, setEdi
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem
-          variant="default"
-          onClick={setEditModalOpen}
-        >
+        <DropdownMenuItem variant="default" onClick={setEditModalOpen}>
           Edit
         </DropdownMenuItem>
         <DropdownMenuItem disabled={isDeleteTaskLoading} variant="destructive" onClick={onClick}>

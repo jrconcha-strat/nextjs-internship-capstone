@@ -7,6 +7,9 @@ import TasksSearch from "../tasks/tasks-search";
 import UpdateKanbanModal from "../modals/update-kanban-list-modal";
 import KanbanList from "./kanban-list";
 import { useState } from "react";
+import { useTasks } from "@/hooks/use-tasks";
+import { DndContext } from "@dnd-kit/core";
+import { SortableContext } from "@dnd-kit/sortable";
 
 // TODO: Task 5.1 - Design responsive Kanban board layout
 // TODO: Task 5.2 - Implement drag-and-drop functionality with dnd-kit
@@ -45,9 +48,11 @@ State management:
 
 export function KanbanBoard({ projectId }: { projectId: number }) {
   const { lists, isLoadingLists } = useLists(projectId);
+  const { projectTasks, isProjectTasksLoading } = useTasks({ project_id: projectId });
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [editTarget, setEditTarget] = useState<{ id: number; name: string } | null>(null);
+
 
   if (!lists) {
     return (
@@ -60,7 +65,18 @@ export function KanbanBoard({ projectId }: { projectId: number }) {
     );
   }
 
-  if (isLoadingLists) {
+  if (!projectTasks) {
+    return (
+      <div className="flex w-full h-full justify-center">
+        {" "}
+        <p className="w-full h-full text-center text-sm text-foreground/50">
+          Unable to load tasks. Please refresh the page
+        </p>
+      </div>
+    );
+  }
+
+  if (isLoadingLists || isProjectTasksLoading) {
     <div className="flex flex-col bg-background space-y-6 scrollbar-custom">
       <TasksSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       <div className="scrollbar-custom flex gap-x-3 overflow-x-auto">
@@ -82,21 +98,25 @@ export function KanbanBoard({ projectId }: { projectId: number }) {
       <div className="flex flex-col bg-background space-y-6 scrollbar-custom">
         {/* Task Search */}
         <TasksSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        <DndContext>
+          <div className="scrollbar-custom flex gap-x-3 overflow-x-auto">
+            <div className="flex pb-4 gap-x-3">
 
-        <div className="scrollbar-custom flex gap-x-3 overflow-x-auto">
-          <div className="flex pb-4 gap-x-3">
-            {lists.map((list) => (
-              <KanbanList
-                key={list.id}
-                list={list}
-                project_id={projectId}
-                onEdit={() => setEditTarget({ id: list.id, name: list.name })}
-                searchTerm={searchTerm}
-              />
-            ))}
-            <AddKanbanBoard project_id={projectId} position={lists.length} />
+                {lists.map((list) => (
+                  <KanbanList
+                    tasks={projectTasks.filter((t) => t.listId === list.id).sort((a, b) => a.position - b.position)}
+                    key={list.id}
+                    list={list}
+                    project_id={projectId}
+                    onEdit={() => setEditTarget({ id: list.id, name: list.name })}
+                    searchTerm={searchTerm}
+                  />
+                ))}
+   
+              <AddKanbanBoard project_id={projectId} position={lists.length} />
+            </div>
           </div>
-        </div>
+        </DndContext>
       </div>
     </>
   );
