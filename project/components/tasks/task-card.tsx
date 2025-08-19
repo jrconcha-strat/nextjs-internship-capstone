@@ -9,11 +9,13 @@ import { capitalize, taskPriorityColor } from "@/lib/utils";
 import { useTasks } from "@/hooks/use-tasks";
 import TaskOptions from "./task-options";
 import UpdateTaskModal from "../modals/update-task-modal";
-import { Calendar, GripVertical, MessageCircleMore } from "lucide-react";
-
+import { Calendar, MessageCircleMore } from "lucide-react";
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatDate } from "../../lib/utils";
+import { DragButton } from "../ui/drag-button";
 
 /*
 TODO: Implementation Notes for Interns:
@@ -62,6 +64,14 @@ const TaskCard: FC<TaskCardProps> = ({ task, list_id, project_id }) => {
   const { taskMembers, isTaskMembersLoading, getTaskMembersError } = useTasks({ task_id: task.id });
   const [isEditModalOpen, setEditModalOpen] = useState(false);
 
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+    id: task.id,
+  });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+  };
+
   return (
     <>
       {isEditModalOpen && (
@@ -73,12 +83,10 @@ const TaskCard: FC<TaskCardProps> = ({ task, list_id, project_id }) => {
           setIsModalOpen={setEditModalOpen}
         />
       )}
-      <Card className="group mx-4 p-0 gap-0 ">
+      <Card ref={setNodeRef} style={style} className="group mx-4 p-0 gap-0 ">
         <CardHeader className="px-1 py-2 justify-between items-center flex flex-row border-b-2 border-secondary relative">
           {/* Drag Button, Options Button */}
-          <button className="p-1 text-secondary-foreground/50 hover:bg-foreground/10 hover:text-foreground active:bg-foreground/10 active:text-foreground rounded-md cursor-grab transition-all">
-            <GripVertical />
-          </button>
+          <DragButton listeners={listeners} attributes={attributes} />
           <TaskOptions
             task_id={task.id}
             list_id={list_id}
