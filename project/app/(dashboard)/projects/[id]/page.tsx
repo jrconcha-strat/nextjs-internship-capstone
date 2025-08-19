@@ -7,7 +7,8 @@ import ProjectHeading from "@/components/projects/project-heading";
 
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params); // Unwrap the promise as per Nextjs 15 recommendation
-  const { project, isProjectLoading, projectError } = useProjects(Number(id));
+  const project_id = Number(id);
+  const { project, isProjectLoading, projectError } = useProjects(project_id);
 
   if (!project) {
     if (!project && isProjectLoading) {
@@ -22,7 +23,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       <ProjectHeading project={project} />
 
       {/* Kanban Board */}
-      <KanbanBoard projectId={id} />
+      <KanbanBoard projectId={project_id} />
     </div>
   );
 }

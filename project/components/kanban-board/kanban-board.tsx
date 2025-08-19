@@ -43,8 +43,8 @@ State management:
 - Handle conflicts with server state
 */
 
-export function KanbanBoard({ projectId }: { projectId: string }) {
-  const { lists, isLoadingLists } = useLists(Number(projectId));
+export function KanbanBoard({ projectId }: { projectId: number }) {
+  const { lists, isLoadingLists } = useLists(projectId);
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [editTarget, setEditTarget] = useState<{ id: number; name: string } | null>(null);
@@ -81,12 +81,12 @@ export function KanbanBoard({ projectId }: { projectId: string }) {
                 <KanbanList
                   key={list.id}
                   list={list}
-                  project_id={Number(projectId)}
+                  project_id={projectId}
                   onEdit={() => setEditTarget({ id: list.id, name: list.name })}
                   searchTerm={searchTerm}
                 />
               ))}
-              <AddKanbanBoard project_id={Number(projectId)} position={lists.length} />
+              <AddKanbanBoard project_id={projectId} position={lists.length} />
             </div>
           )}
         </div>
