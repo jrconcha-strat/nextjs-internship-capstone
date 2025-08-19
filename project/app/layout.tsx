@@ -5,6 +5,7 @@ import "./globals.css"
 import { ClerkProvider } from "@clerk/nextjs"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "sonner"
+import Providers from "@/components/providers"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -24,7 +25,7 @@ export default function RootLayout({
     <html lang="en" /*className="dark"*/ suppressHydrationWarning>
       <body className={inter.className}>
         <Toaster position="top-center"/>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider><Providers>{children}</Providers></ThemeProvider>
       </body>
     </html>
     </ClerkProvider>

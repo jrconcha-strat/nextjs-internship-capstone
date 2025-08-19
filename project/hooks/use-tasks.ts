@@ -62,16 +62,211 @@ export function useTasks(projectId: string) {
 */
 
 // Placeholder to prevent import errors
-export function useTasks(projectId: string) {
-  console.log(`TODO: Implement useTasks hook for project ${projectId}`)
+
+"use client";
+import {
+  createTaskAction,
+  deleteTaskAction,
+  getTaskByIdAction,
+  getTaskMembersAction,
+  getTasksByListIdAction,
+  updateTaskAction,
+} from "@/actions/task-actions";
+import { getTempId } from "@/lib/utils";
+import { taskSchemaForm } from "@/lib/validations/validations";
+import { TaskSelect } from "@/types";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import z from "zod";
+
+export function useTasks({ list_id, task_id }: { list_id?: number; task_id?: number }) {
+  const queryClient = useQueryClient();
+
+  const getTaskByListId = useQuery({
+    queryKey: ["tasks", list_id],
+    enabled: typeof list_id === "number",
+    queryFn: async ({ queryKey }) => {
+      const [, list_id] = queryKey as ["tasks", number];
+      const res = await getTasksByListIdAction(list_id);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+  });
+
+  const getTaskById = useQuery({
+    queryKey: ["task", task_id],
+    enabled: typeof task_id === "number",
+    queryFn: async ({ queryKey }) => {
+      const [, project_id] = queryKey as ["task", number];
+      const res = await getTaskByIdAction(project_id);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+  });
+
+  const getTaskMembers = useQuery({
+    queryKey: ["task_members", task_id],
+    enabled: typeof task_id === "number",
+    queryFn: async ({ queryKey }) => {
+      const [, task_id] = queryKey as ["tasks_members", number];
+      const res = await getTaskMembersAction(task_id);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+  });
+
+  const createTask = useMutation({
+    mutationFn: async ({
+      list_id,
+      position,
+      taskFormData,
+    }: {
+      list_id: number;
+      position: number;
+      taskFormData: z.infer<typeof taskSchemaForm>;
+    }) => {
+      const res = await createTaskAction(list_id, position, taskFormData);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+    onMutate: async ({ list_id, position, taskFormData }) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks", list_id] });
+
+      const previousTasks = queryClient.getQueryData<TaskSelect[]>(["tasks", list_id]);
+
+      const tempId = getTempId();
+
+      // Build an optimistic task
+      const now = new Date();
+
+      // Same as server action createTask
+      const optimisticTask: TaskSelect = {
+        id: tempId,
+        title: taskFormData.title,
+        description: taskFormData.description,
+        listId: list_id,
+        priority: taskFormData.priority,
+        dueDate: taskFormData.dueDate,
+        position: position,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      queryClient.setQueryData<TaskSelect[]>(["tasks", list_id], (old) => (old ? [...old, optimisticTask] : old));
+
+      return { previousTasks, tempId };
+    },
+    onSuccess: (createdTask, variables, context) => {
+      toast.success("Success", { description: "Successfully created the task." });
+
+      // We replace optimistic task with the tempId with the server-sourced task with actual id
+      queryClient.setQueryData<TaskSelect[]>(
+        ["tasks", list_id],
+        (old) => old?.map((t) => (t.id === context.tempId ? createdTask : t)) ?? old,
+      );
+    },
+    onError: (error, variables, context) => {
+      toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["tasks", list_id], context?.previousTasks);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", list_id] });
+    },
+  });
+
+  const deleteTask = useMutation({
+    mutationFn: async ({ task_id }: { task_id: number }) => {
+      const res = await deleteTaskAction(task_id);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+    onMutate: async ({ task_id }) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks", list_id] });
+
+      const previousTasks = queryClient.getQueryData<TaskSelect[]>(["tasks", list_id]);
+
+      queryClient.setQueryData<TaskSelect[]>(["tasks", list_id], (old) => (old ? old.filter((t) => t.id != task_id) : old));
+
+      return { previousTasks };
+    },
+    onSuccess: () => {
+      toast.success("Success", { description: "Successfully deleted the task." });
+    },
+    onError: (error, variables, context) => {
+      toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["tasks", list_id], context?.previousTasks);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", list_id] });
+    },
+  });
+
+  const updateTask = useMutation({
+    mutationFn: async ({
+      task_id,
+      taskFormData,
+    }: {
+      task_id: number;
+      taskFormData?: z.infer<typeof taskSchemaForm>;
+    }) => {
+      const res = await updateTaskAction(task_id, taskFormData);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+    onMutate: async ({ task_id, taskFormData }) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks", list_id] });
+
+      const previousTasks = queryClient.getQueryData<TaskSelect[]>(["tasks", list_id]);
+
+      // Optimistically update the task with the inputted taskFormData
+      queryClient.setQueryData<TaskSelect[]>(["tasks", list_id], (old) =>
+        old ? old.map((p) => (p.id === task_id ? (p = { ...p, ...taskFormData }) : p)) : old,
+      );
+
+      return { previousTasks };
+    },
+    onSuccess: () => {
+      toast.success("Success", { description: "Successfully updated the task." });
+    },
+    onError: (error, variables, context) => {
+      toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["tasks", list_id], context?.previousTasks);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", list_id] });
+      queryClient.invalidateQueries({ queryKey: ["task_members", task_id] });
+    },
+  });
+
   return {
-    tasks: [],
-    isLoading: false,
-    error: null,
-    createTask: (data: any) => console.log("TODO: Create task", data),
-    updateTask: (id: string, data: any) => console.log(`TODO: Update task ${id}`, data),
-    deleteTask: (id: string) => console.log(`TODO: Delete task ${id}`),
-    moveTask: (taskId: string, newListId: string, position: number) =>
-      console.log(`TODO: Move task ${taskId} to list ${newListId} at position ${position}`),
-  }
+    // Get list's tasks
+    listTasks: getTaskByListId.data,
+    isListTasksLoading: getTaskByListId.isPending,
+    getListTasksError: getTaskByListId.error,
+
+    // Get members assigned to task
+    taskMembers: getTaskMembers.data,
+    isTaskMembersLoading: getTaskMembers.isLoading,
+    getTaskMembersError: getTaskMembers.isError,
+
+    // Task by Id
+    task: getTaskById.data,
+    isTaskLoading: getTaskById.isLoading,
+    taskError: getTaskById.error,
+
+    // Create task
+    createTask: createTask.mutate,
+    isCreateTaskLoading: createTask.isPending,
+    createTaskError: createTask.error,
+
+    // Delete Task
+    deleteTask: deleteTask.mutate,
+    isDeleteTaskLoading: deleteTask.isPending,
+    deleteTaskError: deleteTask.error,
+
+    // Update Task
+    updateTask: updateTask.mutate,
+    isUpdateTaskLoading: updateTask.isPending,
+    updateTaskError: updateTask.error,
+  };
 }

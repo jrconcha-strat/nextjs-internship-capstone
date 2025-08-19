@@ -21,14 +21,15 @@ import {
 import { UserButton, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import LoadingUI from "@/components/ui/loading-ui";
+import { usePathname } from "next/navigation";
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: Home, current: true },
+  { name: "Dashboard", href: "/dashboard", icon: Home, current: false },
   { name: "Projects", href: "/projects", icon: FolderOpen, current: false },
-  { name: "Team", href: "/team", icon: Users, current: false },
-  { name: "Analytics", href: "/analytics", icon: BarChart3, current: false },
-  { name: "Calendar", href: "/calendar", icon: Calendar, current: false },
-  { name: "Settings", href: "/settings", icon: Settings, current: false },
+  { name: "Teams", href: "/teams", icon: Users, current: false },
+  // { name: "Analytics", href: "/analytics", icon: BarChart3, current: false },
+  // { name: "Calendar", href: "/calendar", icon: Calendar, current: false },
+  // { name: "Settings", href: "/settings", icon: Settings, current: false },
 ];
 
 export default function DashboardLayout({
@@ -41,6 +42,7 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [navItems, setNavItems] = useState(navigation);
   const router = useRouter();
+  const pathname = usePathname();
 
   const updateActiveNavigation = (navName: string) => {
     const updated = navItems.map((item) => ({
@@ -66,13 +68,19 @@ export default function DashboardLayout({
         clearTimeout(timeout);
       };
     }
-  }, [isLoaded, isSignedIn, router]);
+    // Determine which navItem is currently active.
+    if (isLoaded && isSignedIn && pathname) {
+      const updated = navItems.map((item) => ({
+        ...item,
+        current: pathname.startsWith(item.href),
+      }));
+      setNavItems(updated);
+    }
+  }, [isLoaded, isSignedIn, router, pathname]);
 
   // Just display loading screen while waiting for clerk.
   if (!isLoaded) {
-    return (
-      <LoadingUI/>
-    );
+    return <LoadingUI />;
   }
 
   if (isLoaded && isSignedIn == false) {

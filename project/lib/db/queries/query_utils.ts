@@ -4,7 +4,24 @@ import { eq } from "drizzle-orm";
 import * as types from "../../../types/index";
 import { queries } from "./queries";
 
-type QueryKeys = keyof typeof queries;
+// Response templates
+export function successResponse<T>(message: string, data: T): types.QueryResponse<T> {
+  return {
+    success: true,
+    message,
+    data,
+  };
+}
+
+export function failResponse<T>(message: string, error: unknown): types.QueryResponse<T> {
+  return {
+    success: false,
+    message,
+    error,
+  };
+}
+
+type QueryKeys = Exclude<keyof typeof queries, "teams">;
 
 // Used to map the query key to their tables
 const tableMap = {
@@ -40,38 +57,16 @@ export const getByParentObject = async <T>(
     // The table of the child object. e.g task.
     const childTable = tableMap[query_key];
     // Here we get the necessary information linking the child to its parent table, e.g info that links task to list.
-    const { child_foreign_key, parent_table } =
-      childToParentTableMetadata[query_key];
-    const childObjects = await db
-      .select()
-      .from(childTable)
-      .where(eq(child_foreign_key, parentId));
+    const { child_foreign_key } = childToParentTableMetadata[query_key];
+    const childObjects = await db.select().from(childTable).where(eq(child_foreign_key, parentId));
 
     // Check if child objects exist.
-    if (childObjects.length > 1) {
-      return {
-        success: true,
-        message: `All ${query_key} retrieved using parent ${parent_table} id: ${parentId}.`,
-        data: childObjects as Array<T>,
-      };
-    }
+    if (childObjects.length >= 1) return successResponse(`All ${query_key} retrieved.`, childObjects as T[]);
     // No child objects for this parent object in the database.
-    else if (childObjects.length === 0) {
-      return {
-        success: true,
-        message: `There are currently no ${query_key} for this parent ${parent_table}.`,
-        data: childObjects as Array<T>,
-      };
-    }
-    throw new Error(
-      `No ${query_key} for this parent ${parent_table} retrieved.`,
-    );
+    else if (childObjects.length === 0) return successResponse(`No ${query_key} yet.`, childObjects as T[]);
+    throw new Error(`No ${query_key} retrieved.`);
   } catch (e) {
-    return {
-      success: false,
-      message: `Unable to retrieve ${query_key} using parent id: ${parentId}.`,
-      error: e,
-    };
+    return failResponse(`Unable to retrieve ${query_key}.`, e);
   }
 };
 
@@ -82,130 +77,61 @@ export const createObject = async <T>(
   try {
     const table = tableMap[query_key];
     const newObject = data;
-    const result = await db.insert(table).values(newObject);
+    const result = await db.insert(table).values(newObject).returning();
     // Check if operation is successful
-    if (result.rowCount === 1) {
-      return {
-        success: true,
-        message: `New ${query_key} object successfully created.`,
-        data: newObject as T,
-      };
-    }
-    throw new Error(
-      `Error: response.rowCount returned 0 rows modified. Check database connection.`,
-    );
+    if (result) return successResponse(`Successfully created a ${query_key.slice(0, -1)}.`, result as T);
+    throw new Error(`Database returned no result.`);
   } catch (e) {
-    return {
-      success: false,
-      message: `Unable to create the ${query_key} object.`,
-      error: e,
-    };
+    return failResponse(`Unable to create a ${query_key.slice(0, -1)}.`, e);
   }
 };
 
-export const getAllObject = async <T>(
-  query_key: QueryKeys,
-): Promise<types.QueryResponse<Array<T>>> => {
+export const getAllObject = async <T>(query_key: QueryKeys): Promise<types.QueryResponse<Array<T>>> => {
   try {
     const table = tableMap[query_key];
 
     const objects = await db.select().from(table);
     // Check if objects exist
-    if (objects.length > 1) {
-      return {
-        success: true,
-        message: `All ${query_key} retrieved.`,
-        data: objects as Array<T>,
-      };
-    }
+    if (objects.length >= 1) return successResponse(`All ${query_key} retrieved.`, objects as T[]);
     // No objects in database.
-    else if (objects.length === 0) {
-      return {
-        success: true,
-        message: `There are currently no ${query_key}.`,
-        data: objects as Array<T>,
-      };
-    }
+    else if (objects.length === 0) return successResponse(`No ${query_key} yet.`, objects as T[]);
     throw new Error(`No ${query_key} retrieved.`);
   } catch (e) {
-    return {
-      success: false,
-      message: `Unable to retrieve all ${query_key}.`,
-      error: e,
-    };
+    return failResponse(`Unable to retrieve all ${query_key}.`, e);
   }
 };
 
-export const getObjectById = async <T>(
-  id: number,
-  query_key: QueryKeys,
-): Promise<types.QueryResponse<T>> => {
+export const getObjectById = async <T>(id: number, query_key: QueryKeys): Promise<types.QueryResponse<T>> => {
   try {
     const table = tableMap[query_key];
-    const [object] = await db
-      .select()
-      .from(table)
-      .limit(1)
-      .where(eq(table.id, id));
+    const [object] = await db.select().from(table).limit(1).where(eq(table.id, id));
     // Check if object exists.
-    if (object) {
-      return {
-        success: true,
-        message: `${query_key} retrieved using id: ${id}.`,
-        data: object as T,
-      };
-    }
-    throw new Error(`${query_key} does not exist.`);
+    if (object) return successResponse(`${query_key.slice(0, -1)} retrieved.`, object as T);
+    throw new Error(`${query_key.slice(0, -1)} does not exist.`);
   } catch (e) {
-    return {
-      success: false,
-      message: `Unable to retrieve ${query_key} using id: ${id}.`,
-      error: e,
-    };
+    return failResponse(`Unable to retrieve ${query_key.slice(0, -1)}.`, e);
   }
 };
 
-export const deleteObject = async <T>(
-  id: number,
-  query_key: QueryKeys,
-): Promise<types.QueryResponse<T>> => {
+export const deleteObject = async <T>(id: number, query_key: QueryKeys): Promise<types.QueryResponse<T>> => {
   try {
     // Check if object exists
     const table = tableMap[query_key];
     const response = await queries[query_key].getById(id);
 
-    if (response.success === false) {
-      // Failed to retrieve, throw error.
-      throw new Error(response.message);
-    }
+    if (response.success === false) throw new Error(response.message);
 
     // Retrieve the data of the object to be deleted
     const existingObjectData = response.data as T;
 
-    const result = await db
-      .update(table)
-      .set({ archivedAt: new Date() })
-      .where(eq(table.id, id));
+    const result = await db.delete(table).where(eq(table.id, id));
+
     // Check if deletion is successful.
-    if (result.rowCount === 1) {
-      return {
-        success: true,
-        message: `Archived object of type ${query_key} successfully.`,
-        data: existingObjectData,
-      };
-    } else {
-      return {
-        success: false,
-        message: `Unable to Archive object of type ${query_key}`,
-        error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
-      };
-    }
+    if (result.rowCount === 1)
+      return successResponse(`Successfully deleted ${query_key.slice(0, -1)}`, existingObjectData);
+    else return failResponse(`Unable to delete ${query_key.slice(0, -1)}.`, `Database returned no result`);
   } catch (e) {
-    return {
-      success: false,
-      message: `Unable to Archive object of type ${query_key}.`,
-      error: e,
-    };
+    return failResponse(`Unable to delete ${query_key.slice(0, -1)}.`, e);
   }
 };
 
@@ -223,10 +149,7 @@ export const updateObject = async <TSelect, TInsert>(
 
     // Retrieve existing object data. Check if object exists.
     const response = await getById(id);
-    if (response.success === false) {
-      // Failed to retrieve, throw error.
-      throw new Error(response.message);
-    }
+    if (response.success === false) throw new Error(response.message);
 
     // Determine which fields have changed.
     const existingObjectData = response.data;
@@ -239,38 +162,38 @@ export const updateObject = async <TSelect, TInsert>(
       ...(Object.keys(changed).length > 0 ? { updatedAt: new Date() } : {}),
     };
 
-    if (Object.keys(changed).length === 0) {
-      return {
-        success: true,
-        message: `No changes detected for object of type ${query_key}.`,
-        data: getBaseFields(existingObjectData),
-      };
-    }
+    if (Object.keys(changed).length === 0)
+      return successResponse(`No changes detected.`, getBaseFields(existingObjectData));
 
-    const result = await db
-      .update(table)
-      .set(finalUpdatedObjectData)
-      .where(eq(table.id, id));
+    const result = await db.update(table).set(finalUpdatedObjectData).where(eq(table.id, id));
 
     // Check if update is successful.
-    if (result.rowCount === 1) {
-      return {
-        success: true,
-        message: `Updated object of type ${query_key} successfully.`,
-        data: finalUpdatedObjectData,
-      };
-    } else {
-      return {
-        success: false,
-        message: `Unable to update object of type ${query_key}.`,
-        error: `Error: response.rowCount returned 0 rows modified. Check database connection.`,
-      };
-    }
+    if (result.rowCount === 1)
+      return successResponse(`Updated ${query_key.slice(0, -1)} successfully.`, finalUpdatedObjectData);
+    else return failResponse(`Unable to update ${query_key.slice(0, -1)}.`, `Database returned no result.`);
   } catch (e) {
-    return {
-      success: false,
-      message: `Unable to update the object of type ${query_key}.`,
-      error: e,
-    };
+    return failResponse(`Unable to update ${query_key.slice(0, -1)}.`, e);
   }
 };
+
+export const getBaseFields = (existingData: types.ObjectSelect) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id, ...base } = existingData;
+  return base;
+};
+
+// Shallow, first level equality comparison
+export const objectsEqual = <T extends Record<string, unknown>>(o1: T, o2: T) =>
+  Object.keys(o1).length === Object.keys(o2).length && Object.keys(o1).every((p) => o1[p] === o2[p]);
+
+export function areArraysEqual<T>(arr1: Array<T>, arr2: Array<T>) {
+  if (arr1.length !== arr2.length) {
+    return false; // Different lengths, so not equal
+  }
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return false; // Mismatch found, so not equal
+    }
+  }
+  return true; // All elements match and lengths are equal
+}

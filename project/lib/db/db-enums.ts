@@ -1,6 +1,5 @@
 import { pgEnum } from "drizzle-orm/pg-core";
 export const priorityTuple = [
-  "unselected", // Default
   "low",
   "medium",
   "high",
@@ -14,13 +13,14 @@ export const statusTuple = [
   "Review",
 ] as const;
 
-export const rolesEnum = pgEnum("role_name", [
+export const rolesTuple = [
   "No Role Yet", // Default
   "Project Manager",
   "Developer",
   "QA Engineer",
   "Designer",
-]);
+] as const;
 
 export const priorityEnum = pgEnum("priority", priorityTuple);
 export const statusEnum = pgEnum("status", statusTuple);
+export const rolesEnum = pgEnum("role_name", rolesTuple);
