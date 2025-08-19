@@ -4,17 +4,32 @@ import { use } from "react";
 import LoadingUI from "@/components/ui/loading-ui";
 import { KanbanBoard } from "@/components/kanban-board/kanban-board";
 import ProjectHeading from "@/components/projects/project-heading";
+import { useLists } from "@/hooks/use-lists";
+import { useTasks } from "@/hooks/use-tasks";
+import { Loader2Icon } from "lucide-react";
 
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params); // Unwrap the promise as per Nextjs 15 recommendation
+  const { id } = use(params);
   const project_id = Number(id);
-  const { project, isProjectLoading, projectError } = useProjects(project_id);
+  const { project, isProjectLoading } = useProjects(project_id);
+  const { lists, isLoadingLists } = useLists(project_id);
+  const { projectTasks, isProjectTasksLoading } = useTasks({ project_id: project_id });
 
-  if (!project) {
-    if (!project && isProjectLoading) {
-      return <LoadingUI />;
-    }
-    throw new Error(projectError?.message);
+  if (isProjectLoading || isLoadingLists || isProjectTasksLoading) {
+    <div className="flex w-full h-full justify-center items-center gap-2">
+      <Loader2Icon />
+      <p className="w-full h-full text-center text-sm text-foreground/50">Loading</p>
+    </div>;
+  }
+
+  if (!project || !lists || !projectTasks) {
+    return (
+      <div className="flex w-full h-full justify-center items-center">
+        <p className="w-full h-full text-center text-sm text-foreground/50">
+          Unable to load projects data. Please refresh the page
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -23,7 +38,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       <ProjectHeading project={project} />
 
       {/* Kanban Board */}
-      <KanbanBoard projectId={project_id} />
+      <KanbanBoard tasks={projectTasks} lists={lists} projectId={project_id} />
     </div>
   );
 }

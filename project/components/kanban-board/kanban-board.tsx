@@ -1,15 +1,13 @@
 "use client";
 
 import AddKanbanBoard from "./add-kanban-board";
-import { useLists } from "@/hooks/use-lists";
-import SkeletonKanbanBoard from "./skeleton-kanban-board";
 import TasksSearch from "../tasks/tasks-search";
 import UpdateKanbanModal from "../modals/update-kanban-list-modal";
 import KanbanList from "./kanban-list";
-import { useState } from "react";
-import { useTasks } from "@/hooks/use-tasks";
+import { useMemo, useState } from "react";
 import { DndContext } from "@dnd-kit/core";
-import { SortableContext } from "@dnd-kit/sortable";
+import { SortableContext, useSortable } from "@dnd-kit/sortable";
+import { ListSelect, TaskSelect } from "@/types";
 
 // TODO: Task 5.1 - Design responsive Kanban board layout
 // TODO: Task 5.2 - Implement drag-and-drop functionality with dnd-kit
@@ -46,44 +44,17 @@ State management:
 - Handle conflicts with server state
 */
 
-export function KanbanBoard({ projectId }: { projectId: number }) {
-  const { lists, isLoadingLists } = useLists(projectId);
-  const { projectTasks, isProjectTasksLoading } = useTasks({ project_id: projectId });
+type KanbanBoardProps = {
+  lists: ListSelect[];
+  tasks: TaskSelect[];
+  projectId: number;
+};
 
+export function KanbanBoard({ lists, tasks, projectId }: KanbanBoardProps) {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [editTarget, setEditTarget] = useState<{ id: number; name: string } | null>(null);
 
-
-  if (!lists) {
-    return (
-      <div className="flex w-full h-full justify-center">
-        {" "}
-        <p className="w-full h-full text-center text-sm text-foreground/50">
-          Unable to load lists. Please refresh the page
-        </p>
-      </div>
-    );
-  }
-
-  if (!projectTasks) {
-    return (
-      <div className="flex w-full h-full justify-center">
-        {" "}
-        <p className="w-full h-full text-center text-sm text-foreground/50">
-          Unable to load tasks. Please refresh the page
-        </p>
-      </div>
-    );
-  }
-
-  if (isLoadingLists || isProjectTasksLoading) {
-    <div className="flex flex-col bg-background space-y-6 scrollbar-custom">
-      <TasksSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      <div className="scrollbar-custom flex gap-x-3 overflow-x-auto">
-        <SkeletonKanbanBoard />;
-      </div>
-    </div>;
-  }
+  const listIds = useMemo(() => (lists ? lists.map((l) => l.id) : []), [lists]);
 
   return (
     <>
@@ -101,10 +72,10 @@ export function KanbanBoard({ projectId }: { projectId: number }) {
         <DndContext>
           <div className="scrollbar-custom flex gap-x-3 overflow-x-auto">
             <div className="flex pb-4 gap-x-3">
-
+              <SortableContext items={listIds}>
                 {lists.map((list) => (
                   <KanbanList
-                    tasks={projectTasks.filter((t) => t.listId === list.id).sort((a, b) => a.position - b.position)}
+                    tasks={tasks.filter((t) => t.listId === list.id).sort((a, b) => a.position - b.position)}
                     key={list.id}
                     list={list}
                     project_id={projectId}
@@ -112,7 +83,8 @@ export function KanbanBoard({ projectId }: { projectId: number }) {
                     searchTerm={searchTerm}
                   />
                 ))}
-   
+              </SortableContext>
+
               <AddKanbanBoard project_id={projectId} position={lists.length} />
             </div>
           </div>
