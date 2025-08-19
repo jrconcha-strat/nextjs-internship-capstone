@@ -3,8 +3,9 @@
 import AddKanbanBoard from "./add-kanban-board";
 import { useLists } from "@/hooks/use-lists";
 import SkeletonKanbanBoard from "./skeleton-kanban-board";
-import KanbanSection from "./kanban-section";
 import TasksSearch from "../tasks/tasks-search";
+import UpdateKanbanModal from "../modals/update-kanban-list-modal";
+import KanbanList from "./kanban-list";
 import { useState } from "react";
 
 // TODO: Task 5.1 - Design responsive Kanban board layout
@@ -44,32 +45,52 @@ State management:
 
 export function KanbanBoard({ projectId }: { projectId: string }) {
   const { lists, isLoadingLists } = useLists(Number(projectId));
+
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [editTarget, setEditTarget] = useState<{ id: number; name: string } | null>(null);
 
   return (
-    <div className="flex flex-col bg-background space-y-6 scrollbar-custom">
-      {/* Task Search */}
-      <TasksSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+    <>
+      {editTarget && (
+        <UpdateKanbanModal
+          list_name={editTarget.name}
+          list_id={editTarget.id}
+          isModalOpen={true}
+          setIsModalOpen={(open) => !open && setEditTarget(null)}
+        />
+      )}
+      <div className="flex flex-col bg-background space-y-6 scrollbar-custom">
+        {/* Task Search */}
+        <TasksSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
-      <div className="scrollbar-custom flex gap-x-3 overflow-x-auto">
-        {!lists ? (
-          isLoadingLists ? (
-            <SkeletonKanbanBoard />
+        <div className="scrollbar-custom flex gap-x-3 overflow-x-auto">
+          {!lists ? (
+            isLoadingLists ? (
+              <SkeletonKanbanBoard />
+            ) : (
+              <div className="flex w-full h-full justify-center">
+                {" "}
+                <p className="w-full h-full text-center text-sm text-foreground/50">
+                  Unable to load lists. Please refresh the page
+                </p>
+              </div>
+            )
           ) : (
-            <div className="flex w-full h-full justify-center">
-              {" "}
-              <p className="w-full h-full text-center text-sm text-foreground/50">
-                Unable to load lists. Please refresh the page
-              </p>
+            <div className="flex pb-4 gap-x-3">
+              {lists.map((list) => (
+                <KanbanList
+                  key={list.id}
+                  list={list}
+                  project_id={Number(projectId)}
+                  onEdit={() => setEditTarget({ id: list.id, name: list.name })}
+                  searchTerm={searchTerm}
+                />
+              ))}
+              <AddKanbanBoard project_id={Number(projectId)} position={lists.length} />
             </div>
-          )
-        ) : (
-          <div className="flex pb-4 gap-x-3">
-            <KanbanSection project_id={Number(projectId)} lists={lists} searchTerm={searchTerm} />
-            <AddKanbanBoard project_id={Number(projectId)} position={lists.length} />
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
