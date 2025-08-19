@@ -257,7 +257,7 @@ const UpdateTaskModal: FC<UpdateTaskModalProps> = ({ isModalOpen, setIsModalOpen
                       <Loader2Icon className="animate-spin " /> Loading
                     </div>
                   ) : (
-                    "Create Task"
+                    "Update Task"
                   )}
                 </button>
               </div>
