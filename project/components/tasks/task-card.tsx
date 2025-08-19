@@ -58,7 +58,6 @@ type TaskCardProps = {
   task: TaskSelect;
   list_id: number;
   project_id: number;
-  isOverlay?: boolean;
 };
 
 export type TaskType = "task";
@@ -68,7 +67,7 @@ export interface TaskDragData {
   task: TaskSelect;
 }
 
-const TaskCard: FC<TaskCardProps> = ({ task, list_id, project_id, isOverlay }) => {
+const TaskCard: FC<TaskCardProps> = ({ task, list_id, project_id }) => {
   const { taskMembers, isTaskMembersLoading, getTaskMembersError } = useTasks({ task_id: task.id });
   const [isEditModalOpen, setEditModalOpen] = useState(false);
 

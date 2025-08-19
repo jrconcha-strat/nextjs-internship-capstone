@@ -1,7 +1,6 @@
 "use client";
 import { useProjects } from "@/hooks/use-projects";
 import { use } from "react";
-import LoadingUI from "@/components/ui/loading-ui";
 import { KanbanBoard } from "@/components/kanban-board/kanban-board";
 import ProjectHeading from "@/components/projects/project-heading";
 import { useLists } from "@/hooks/use-lists";

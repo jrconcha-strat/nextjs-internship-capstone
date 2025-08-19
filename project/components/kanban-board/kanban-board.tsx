@@ -185,6 +185,7 @@ export function KanbanBoard({ lists, tasks, projectId }: KanbanBoardProps) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const fakeLists: ListSelect[] = [
   {
     id: 1,
@@ -228,6 +229,7 @@ const fakeLists: ListSelect[] = [
   },
 ];
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const fakeTasks: TaskSelect[] = [
   { id: 1, title: "Task 1-1", description: "Description for Task 1-1", listId: 1, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 1, priority: "low" },
   { id: 2, title: "Task 1-2", description: "Description for Task 1-2", listId: 1, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 2, priority: "medium" },
