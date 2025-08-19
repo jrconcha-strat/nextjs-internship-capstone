@@ -1,16 +1,18 @@
 "use client";
 import { ListSelect } from "@/types";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import UpdateKanbanModal from "../modals/update-kanban-list-modal";
 import KanbanList from "./kanban-list";
+import { DragStartEvent } from "@dnd-kit/core";
+import { SortableContext } from "@dnd-kit/sortable";
 
-type KanbanSectionProps = {
+type KanbanContainerProps = {
   lists: ListSelect[];
   project_id: number;
   searchTerm: string;
 };
 
-const KanbanSection: FC<KanbanSectionProps> = ({ project_id, lists, searchTerm }) => {
+const KanbanContainer: FC<KanbanContainerProps> = ({ project_id, lists, searchTerm }) => {
   const [sortedLists, setSortedList] = useState<ListSelect[]>([]);
   const [editTarget, setEditTarget] = useState<{ id: number; name: string } | null>(null);
 
@@ -18,6 +20,8 @@ const KanbanSection: FC<KanbanSectionProps> = ({ project_id, lists, searchTerm }
     const positionSortedList = [...lists].sort((a, b) => a.position - b.position);
     setSortedList(positionSortedList);
   }, [lists]);
+
+  const listsId = useMemo(() => lists.map((l) => l.id), [lists]);
 
   return (
     <>
@@ -29,17 +33,19 @@ const KanbanSection: FC<KanbanSectionProps> = ({ project_id, lists, searchTerm }
           setIsModalOpen={(open) => !open && setEditTarget(null)}
         />
       )}
-      {sortedLists.map((list) => (
-        <KanbanList
-          key={list.id}
-          list={list}
-          project_id={project_id}
-          onEdit={() => setEditTarget({ id: list.id, name: list.name })}
-          searchTerm={searchTerm}
-        />
-      ))}
+      <SortableContext items={listsId}>
+        {sortedLists.map((list) => (
+          <KanbanList
+            key={list.id}
+            list={list}
+            project_id={project_id}
+            onEdit={() => setEditTarget({ id: list.id, name: list.name })}
+            searchTerm={searchTerm}
+          />
+        ))}
+      </SortableContext>
     </>
   );
 };
 
-export default KanbanSection;
+export default KanbanContainer;
