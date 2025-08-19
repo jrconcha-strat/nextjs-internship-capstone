@@ -34,6 +34,8 @@
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
 
+  --color-list-bg: hsl(var(--list-bg));
+
   --color-platinum-50: #f8f8f8;
   --color-platinum-100: #f1f1f1;
   --color-platinum-200: #e9e9ea;
@@ -213,6 +215,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-list-bg: var(--list-bg);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -268,6 +271,7 @@
   --input-bg: var(--color-white);
   --input-text: var(--color-dark-grey-500);
 
+  --list-bg: oklch(97.79% 0.02247 169.035);
   --radius: 0.65rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
@@ -325,6 +329,7 @@
   --input-bg: var(--color-dark-grey-500);
   --input-text: var(--color-white-smoke-100);
 
+  --list-bg: oklch(18.22% 0.00002 271.152);
   --background: oklch(26.383% 0.0024 248.205);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);

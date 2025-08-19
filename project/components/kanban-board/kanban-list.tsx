@@ -46,8 +46,8 @@ const KanbanList: FC<KanbanListProps> = ({ tasks, list, project_id, onEdit, sear
 
   if (isDragging) {
     return (
-      <div ref={setNodeRef} style={style} className="min-w-[80px] min-h-[350px] w-80 overflow-y shrink-0 opacity-45">
-        <div className="bg-primary/7 dark:bg-dark-grey-900 min-h-[350px] h-full rounded-lg border border-border "></div>
+      <div ref={setNodeRef} style={style} className="min-w-[80px] min-h-[350px] w-80 overflow-y shrink-0 opacity-70 dark:opacity-45">
+        <div className="bg-list-bg min-h-[350px] h-full rounded-lg border border-border "></div>
       </div>
     );
   }
@@ -64,7 +64,7 @@ const KanbanList: FC<KanbanListProps> = ({ tasks, list, project_id, onEdit, sear
         />
       )}
       <div ref={setNodeRef} style={style} className="min-w-[80px] min-h-[350px] w-80 overflow-y shrink-0">
-        <div className="bg-primary/7 dark:bg-dark-grey-900 min-h-[350px] h-full rounded-lg border border-border ">
+        <div className="bg-list-bg min-h-[350px] h-full rounded-lg border border-border ">
           <div className="p-4 border-b border-border">
             <div className="flex items-center justify-between">
               <div className="flex gap-3 items-center">
