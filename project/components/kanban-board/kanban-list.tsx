@@ -20,6 +20,8 @@ type KanbanListProps = {
 const KanbanList: FC<KanbanListProps> = ({ tasks, list, project_id, onEdit, searchTerm }) => {
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
 
+  const task_ids = useMemo(() => tasks.map((l) => l.id), [tasks]);
+
   const filteredTasks = useMemo(() => {
     const filtered = tasks.filter((task) => task.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -30,9 +32,7 @@ const KanbanList: FC<KanbanListProps> = ({ tasks, list, project_id, onEdit, sear
     setCreateModalOpen(true);
   }
 
-  const task_ids = useMemo(() => tasks.map((l) => l.id), [tasks]);
-
-  const { setNodeRef, listeners, attributes, transform, transition } = useSortable({
+  const { setNodeRef, listeners, attributes, transform, transition, isDragging } = useSortable({
     id: list.id,
     data: {
       type: "list",
@@ -44,6 +44,14 @@ const KanbanList: FC<KanbanListProps> = ({ tasks, list, project_id, onEdit, sear
     transition,
     transform: CSS.Transform.toString(transform),
   };
+
+  if (isDragging) {
+    return (
+      <div ref={setNodeRef} style={style} className="min-w-[80px] min-h-[350px] w-80 overflow-y shrink-0 opacity-45">
+        <div className="bg-primary/7 dark:bg-dark-grey-900 min-h-[350px] h-full rounded-lg border border-border "></div>
+      </div>
+    );
+  }
 
   return (
     <>

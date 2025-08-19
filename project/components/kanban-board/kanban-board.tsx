@@ -4,10 +4,11 @@ import AddKanbanBoard from "./add-kanban-board";
 import TasksSearch from "../tasks/tasks-search";
 import UpdateKanbanModal from "../modals/update-kanban-list-modal";
 import KanbanList from "./kanban-list";
-import { useMemo, useState } from "react";
-import { DndContext } from "@dnd-kit/core";
-import { SortableContext, useSortable } from "@dnd-kit/sortable";
+import { useEffect, useMemo, useState } from "react";
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from "@dnd-kit/core";
+import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { ListSelect, TaskSelect } from "@/types";
+import { createPortal } from "react-dom";
 
 // TODO: Task 5.1 - Design responsive Kanban board layout
 // TODO: Task 5.2 - Implement drag-and-drop functionality with dnd-kit
@@ -51,10 +52,41 @@ type KanbanBoardProps = {
 };
 
 export function KanbanBoard({ lists, tasks, projectId }: KanbanBoardProps) {
+  const [kanbanLists, setKanbanLists] = useState<ListSelect[]>(lists);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [editTarget, setEditTarget] = useState<{ id: number; name: string } | null>(null);
 
   const listIds = useMemo(() => (lists ? lists.map((l) => l.id) : []), [lists]);
+
+  const [activeList, setActiveList] = useState<ListSelect | null>(null);
+
+  useEffect(() => setKanbanLists(lists), [lists]);
+
+  function onDragStart(event: DragStartEvent) {
+    if (event.active.data.current?.type === "list") {
+      setActiveList(event.active.data.current.list);
+    }
+  }
+
+  function onDragEnd(event: DragEndEvent) {
+    setActiveList(null);
+    const { active, over } = event;
+
+    if (!over) return;
+
+    const activeListId = active.id;
+    const overListId = over.id;
+
+    if (activeListId === overListId) return;
+
+    setKanbanLists((kanbanLists) => {
+      // Find the indexes of the respective lists to move
+      const activeListIndex = kanbanLists.findIndex((list) => list.id === activeListId);
+      const overListIndex = kanbanLists.findIndex((list) => list.id === overListId);
+      // Move the activeList to the new position
+      return arrayMove(kanbanLists, activeListIndex, overListIndex);
+    });
+  }
 
   return (
     <>
@@ -69,11 +101,11 @@ export function KanbanBoard({ lists, tasks, projectId }: KanbanBoardProps) {
       <div className="flex flex-col bg-background space-y-6 scrollbar-custom">
         {/* Task Search */}
         <TasksSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        <DndContext>
+        <DndContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
           <div className="scrollbar-custom flex gap-x-3 overflow-x-auto">
             <div className="flex pb-4 gap-x-3">
               <SortableContext items={listIds}>
-                {lists.map((list) => (
+                {kanbanLists.map((list) => (
                   <KanbanList
                     tasks={tasks.filter((t) => t.listId === list.id).sort((a, b) => a.position - b.position)}
                     key={list.id}
@@ -85,9 +117,24 @@ export function KanbanBoard({ lists, tasks, projectId }: KanbanBoardProps) {
                 ))}
               </SortableContext>
 
-              <AddKanbanBoard project_id={projectId} position={lists.length} />
+              <AddKanbanBoard project_id={projectId} position={kanbanLists.length} />
             </div>
           </div>
+          {createPortal(
+            <DragOverlay>
+              {activeList && (
+                <KanbanList
+                  tasks={tasks.filter((t) => t.listId === activeList.id).sort((a, b) => a.position - b.position)}
+                  key={activeList.id}
+                  list={activeList}
+                  project_id={projectId}
+                  onEdit={() => setEditTarget({ id: activeList.id, name: activeList.name })}
+                  searchTerm={searchTerm}
+                />
+              )}
+            </DragOverlay>,
+            document.body,
+          )}
         </DndContext>
       </div>
     </>
