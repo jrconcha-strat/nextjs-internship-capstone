@@ -49,6 +49,26 @@ export function KanbanBoard({ projectId }: { projectId: number }) {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [editTarget, setEditTarget] = useState<{ id: number; name: string } | null>(null);
 
+  if (!lists) {
+    return (
+      <div className="flex w-full h-full justify-center">
+        {" "}
+        <p className="w-full h-full text-center text-sm text-foreground/50">
+          Unable to load lists. Please refresh the page
+        </p>
+      </div>
+    );
+  }
+
+  if (isLoadingLists) {
+    <div className="flex flex-col bg-background space-y-6 scrollbar-custom">
+      <TasksSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      <div className="scrollbar-custom flex gap-x-3 overflow-x-auto">
+        <SkeletonKanbanBoard />;
+      </div>
+    </div>;
+  }
+
   return (
     <>
       {editTarget && (
@@ -64,31 +84,18 @@ export function KanbanBoard({ projectId }: { projectId: number }) {
         <TasksSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
         <div className="scrollbar-custom flex gap-x-3 overflow-x-auto">
-          {!lists ? (
-            isLoadingLists ? (
-              <SkeletonKanbanBoard />
-            ) : (
-              <div className="flex w-full h-full justify-center">
-                {" "}
-                <p className="w-full h-full text-center text-sm text-foreground/50">
-                  Unable to load lists. Please refresh the page
-                </p>
-              </div>
-            )
-          ) : (
-            <div className="flex pb-4 gap-x-3">
-              {lists.map((list) => (
-                <KanbanList
-                  key={list.id}
-                  list={list}
-                  project_id={projectId}
-                  onEdit={() => setEditTarget({ id: list.id, name: list.name })}
-                  searchTerm={searchTerm}
-                />
-              ))}
-              <AddKanbanBoard project_id={projectId} position={lists.length} />
-            </div>
-          )}
+          <div className="flex pb-4 gap-x-3">
+            {lists.map((list) => (
+              <KanbanList
+                key={list.id}
+                list={list}
+                project_id={projectId}
+                onEdit={() => setEditTarget({ id: list.id, name: list.name })}
+                searchTerm={searchTerm}
+              />
+            ))}
+            <AddKanbanBoard project_id={projectId} position={lists.length} />
+          </div>
         </div>
       </div>
     </>
