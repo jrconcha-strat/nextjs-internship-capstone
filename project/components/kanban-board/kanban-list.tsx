@@ -7,7 +7,6 @@ import TaskCard from "../tasks/task-card";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { DragButton } from "../ui/drag-button";
-import { DndContext } from "@dnd-kit/core";
 
 type KanbanListProps = {
   tasks: TaskSelect[];

@@ -4,7 +4,7 @@ import AddKanbanBoard from "./add-kanban-board";
 import TasksSearch from "../tasks/tasks-search";
 import UpdateKanbanModal from "../modals/update-kanban-list-modal";
 import KanbanList from "./kanban-list";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { ListSelect, TaskSelect } from "@/types";
@@ -58,14 +58,10 @@ export function KanbanBoard({ lists, tasks, projectId }: KanbanBoardProps) {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [editTarget, setEditTarget] = useState<{ id: number; name: string } | null>(null);
 
-  const listIds = useMemo(() => (lists ? lists.map((l) => l.id) : []), [lists]);
+  const listIds = useMemo(() => kanbanLists.map((l) => l.id), [kanbanLists]);
 
   const [activeList, setActiveList] = useState<ListSelect | null>(null);
   const [activeTask, setActiveTask] = useState<TaskSelect | null>(null);
-
-  useEffect(() => setKanbanLists(lists), [lists]);
-
-  useEffect(() => setKanbanTasks(tasks), [tasks]);
 
   function onDragStart(event: DragStartEvent) {
     if (event.active.data.current?.type === "list") {
@@ -128,7 +124,7 @@ export function KanbanBoard({ lists, tasks, projectId }: KanbanBoardProps) {
       setKanbanTasks((kanbanTasks) => {
         const activeTaskIndex = kanbanTasks.findIndex((t) => t.id === activeId);
         kanbanTasks[activeTaskIndex].listId = overId as number; // Change the list id
-        return arrayMove(tasks, activeTaskIndex, activeTaskIndex);
+        return arrayMove(kanbanTasks, activeTaskIndex, activeTaskIndex);
       });
     }
   }
@@ -188,3 +184,83 @@ export function KanbanBoard({ lists, tasks, projectId }: KanbanBoardProps) {
     </>
   );
 }
+
+const fakeLists: ListSelect[] = [
+  {
+    id: 1,
+    name: "List 1",
+    projectId: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    position: 1,
+  },
+  {
+    id: 2,
+    name: "List 2",
+    projectId: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    position: 2,
+  },
+  {
+    id: 3,
+    name: "List 3",
+    projectId: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    position: 3,
+  },
+  {
+    id: 4,
+    name: "List 4",
+    projectId: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    position: 4,
+  },
+  {
+    id: 5,
+    name: "List 5",
+    projectId: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    position: 5,
+  },
+];
+
+const fakeTasks: TaskSelect[] = [
+  { id: 1, title: "Task 1-1", description: "Description for Task 1-1", listId: 1, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 1, priority: "low" },
+  { id: 2, title: "Task 1-2", description: "Description for Task 1-2", listId: 1, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 2, priority: "medium" },
+  { id: 3, title: "Task 1-3", description: "Description for Task 1-3", listId: 1, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 3, priority: "high" },
+  { id: 4, title: "Task 1-4", description: "Description for Task 1-4", listId: 1, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 4, priority: "low" },
+  { id: 5, title: "Task 1-5", description: "Description for Task 1-5", listId: 1, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 5, priority: "medium" },
+  { id: 6, title: "Task 1-6", description: "Description for Task 1-6", listId: 1, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 6, priority: "high" },
+  { id: 7, title: "Task 1-7", description: "Description for Task 1-7", listId: 1, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 7, priority: "low" },
+  { id: 8, title: "Task 1-8", description: "Description for Task 1-8", listId: 1, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 8, priority: "medium" },
+  { id: 9, title: "Task 1-9", description: "Description for Task 1-9", listId: 1, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 9, priority: "high" },
+  { id: 10, title: "Task 1-10", description: "Description for Task 1-10", listId: 1, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 10, priority: "low" },
+
+  { id: 11, title: "Task 2-1", description: "Description for Task 2-1", listId: 2, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 1, priority: "medium" },
+  { id: 12, title: "Task 2-2", description: "Description for Task 2-2", listId: 2, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 2, priority: "high" },
+  { id: 13, title: "Task 2-3", description: "Description for Task 2-3", listId: 2, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 3, priority: "low" },
+  { id: 14, title: "Task 2-4", description: "Description for Task 2-4", listId: 2, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 4, priority: "medium" },
+  { id: 15, title: "Task 2-5", description: "Description for Task 2-5", listId: 2, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 5, priority: "high" },
+
+  { id: 16, title: "Task 3-1", description: "Description for Task 3-1", listId: 3, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 1, priority: "low" },
+  { id: 17, title: "Task 3-2", description: "Description for Task 3-2", listId: 3, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 2, priority: "medium" },
+  { id: 18, title: "Task 3-3", description: "Description for Task 3-3", listId: 3, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 3, priority: "high" },
+  { id: 19, title: "Task 3-4", description: "Description for Task 3-4", listId: 3, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 4, priority: "low" },
+  { id: 20, title: "Task 3-5", description: "Description for Task 3-5", listId: 3, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 5, priority: "medium" },
+
+  { id: 21, title: "Task 4-1", description: "Description for Task 4-1", listId: 4, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 1, priority: "high" },
+  { id: 22, title: "Task 4-2", description: "Description for Task 4-2", listId: 4, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 2, priority: "low" },
+  { id: 23, title: "Task 4-3", description: "Description for Task 4-3", listId: 4, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 3, priority: "medium" },
+  { id: 24, title: "Task 4-4", description: "Description for Task 4-4", listId: 4, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 4, priority: "high" },
+  { id: 25, title: "Task 4-5", description: "Description for Task 4-5", listId: 4, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 5, priority: "low" },
+
+  { id: 26, title: "Task 5-1", description: "Description for Task 5-1", listId: 5, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 1, priority: "medium" },
+  { id: 27, title: "Task 5-2", description: "Description for Task 5-2", listId: 5, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 2, priority: "high" },
+  { id: 28, title: "Task 5-3", description: "Description for Task 5-3", listId: 5, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 3, priority: "low" },
+  { id: 29, title: "Task 5-4", description: "Description for Task 5-4", listId: 5, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 4, priority: "medium" },
+  { id: 30, title: "Task 5-5", description: "Description for Task 5-5", listId: 5, createdAt: new Date(), updatedAt: new Date(), dueDate: null, position: 5, priority: "high" },
+]
