@@ -5,7 +5,6 @@ import * as schema from "../schema";
 import {
   createObject,
   getObjectById,
-  getByParentObject,
   getBaseFields,
   successResponse,
   failResponse,
@@ -13,7 +12,19 @@ import {
 
 export const lists = {
   getByProject: async (projectId: number): Promise<types.QueryResponse<Array<types.ListSelect>>> => {
-    return getByParentObject<types.ListSelect>(projectId, "lists");
+    try {
+      const lists = await db
+        .select()
+        .from(schema.lists)
+        .where(eq(schema.lists.projectId, projectId))
+        .orderBy(schema.lists.position);
+
+      if (lists.length >= 1) return successResponse(`All lists retrieved.`, lists);
+      else if (lists.length === 0) return successResponse(`No lists yet.`, lists);
+      throw new Error(`No lists retrieved.`);
+    } catch (e) {
+      return failResponse(`Unable to retrieve lists.`, e);
+    }
   },
   getById: async (id: number): Promise<types.QueryResponse<types.ListSelect>> => {
     return getObjectById<types.ListSelect>(id, "lists");
