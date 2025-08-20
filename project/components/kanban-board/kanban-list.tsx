@@ -46,8 +46,8 @@ const KanbanList: FC<KanbanListProps> = ({ tasks, list, project_id, onEdit, sear
 
   if (isDragging) {
     return (
-      <div ref={setNodeRef} style={style} className="min-w-[80px] min-h-[350px] w-80 overflow-y shrink-0 opacity-70 dark:opacity-45">
-        <div className="bg-list-bg min-h-[350px] h-full rounded-lg border border-border "></div>
+      <div ref={setNodeRef} style={style} className="min-w-[80px] min-h-[350px] w-80 overflow-y shrink-0 opacity-80 dark:opacity-45 ">
+        <div className={` bg-list-bg min-h-[350px] h-full rounded-lg border border-border ${isDragging ? "ring-2 ring-emerald-50" : ""}`}></div>
       </div>
     );
   }

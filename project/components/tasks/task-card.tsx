@@ -85,7 +85,13 @@ const TaskCard: FC<TaskCardProps> = ({ task, list_id, project_id }) => {
   };
 
   if (isDragging) {
-    return <Card ref={setNodeRef} style={style} className={`group p-0 gap-0 min-h-[185px]`}></Card>;
+    return (
+      <Card
+        ref={setNodeRef}
+        style={style}
+        className={`group p-0 gap-0 min-h-[185px]  ${isDragging ? "ring-2 ring-emerald-50" : ""} `}
+      ></Card>
+    );
   }
   return (
     <>
@@ -98,7 +104,7 @@ const TaskCard: FC<TaskCardProps> = ({ task, list_id, project_id }) => {
           setIsModalOpen={setEditModalOpen}
         />
       )}
-      <Card ref={setNodeRef} style={style} className={`group p-0 gap-0 `}>
+      <Card ref={setNodeRef} style={style} className={`group p-0 gap-0  `}>
         <CardHeader className="px-1 py-2 justify-between items-center flex flex-row border-b-2 border-secondary relative">
           {/* Drag Button, Options Button */}
           <DragButton listeners={listeners} attributes={attributes} />

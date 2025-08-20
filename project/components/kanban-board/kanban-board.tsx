@@ -277,7 +277,7 @@ export function KanbanBoard({ lists, tasks, projectId, updateListsPositions, upd
         <TasksSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         <DndContext onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver}>
           <div className="scrollbar-custom flex gap-x-3 overflow-x-auto">
-            <div className="flex pb-4 gap-x-3">
+            <div className="flex pb-4 gap-x-3 py-2">
               <SortableContext items={listIds} strategy={horizontalListSortingStrategy}>
                 {kanbanLists.map((list) => (
                   <KanbanList
