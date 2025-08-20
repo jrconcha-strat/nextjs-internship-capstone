@@ -6,7 +6,7 @@ import UpdateKanbanModal from "../modals/update-kanban-list-modal";
 import KanbanList from "./kanban-list";
 import { useMemo, useState } from "react";
 import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent } from "@dnd-kit/core";
-import { arrayMove, SortableContext } from "@dnd-kit/sortable";
+import { arrayMove, horizontalListSortingStrategy, SortableContext } from "@dnd-kit/sortable";
 import { ListPositionPayload, ListSelect, TaskPositionPayload, TaskSelect } from "@/types";
 import { createPortal } from "react-dom";
 import TaskCard from "../tasks/task-card";
@@ -278,7 +278,7 @@ export function KanbanBoard({ lists, tasks, projectId, updateListsPositions, upd
         <DndContext onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver}>
           <div className="scrollbar-custom flex gap-x-3 overflow-x-auto">
             <div className="flex pb-4 gap-x-3">
-              <SortableContext items={listIds}>
+              <SortableContext items={listIds} strategy={horizontalListSortingStrategy}>
                 {kanbanLists.map((list) => (
                   <KanbanList
                     tasks={kanbanTasks.filter((t) => t.listId === list.id)} // Not sure if we'll need a .sort for positions for this in the future.

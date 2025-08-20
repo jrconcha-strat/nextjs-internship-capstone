@@ -4,7 +4,7 @@ import KanbanListOptions from "./kanban-list-options";
 import { ListSelect, TaskSelect } from "@/types";
 import CreateTaskModal from "../modals/create-task-modal";
 import TaskCard from "../tasks/task-card";
-import { SortableContext, useSortable } from "@dnd-kit/sortable";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { DragButton } from "../ui/drag-button";
 
@@ -80,7 +80,7 @@ const KanbanList: FC<KanbanListProps> = ({ tasks, list, project_id, onEdit, sear
           </div>
 
           {/* Scrollable Task Content */}
-          <SortableContext items={task_ids}>
+          <SortableContext items={task_ids} strategy={verticalListSortingStrategy}>
             <div className="min-h-[400px]">
               <div className="scrollbar-custom flex flex-col p-4 mb-4 space-y-3 min-h-[400px] max-h-[400px] overflow-y-auto">
                 {filteredTasks.map((task) => (
