@@ -12,6 +12,7 @@ import { createPortal } from "react-dom";
 import TaskCard from "../tasks/task-card";
 import { UseMutateFunction } from "@tanstack/react-query";
 import { debounce } from "lodash";
+// https://github.com/Georgegriff/react-dnd-kit-tailwind-shadcn-ui/blob/main/
 
 // TODO: Task 5.1 - Design responsive Kanban board layout
 // TODO: Task 5.2 - Implement drag-and-drop functionality with dnd-kit
@@ -114,6 +115,9 @@ export function KanbanBoard({ lists, tasks, projectId, updateListsPositions, upd
     const overListId = over.id;
 
     if (activeListId === overListId) return;
+
+    const isActiveAColumn = active.data.current?.type === "list"; // This prevents our lists from moving when our active is a task.
+    if (!isActiveAColumn) return;
 
     setKanbanLists((kanbanLists) => {
       // Find the indexes of the respective lists to move
