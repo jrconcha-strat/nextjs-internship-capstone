@@ -11,6 +11,7 @@ import { Button } from "../ui/button";
 type UpdateKanbanModalProps = {
   list_name: string;
   list_id: number;
+  project_id: number;
   isModalOpen: boolean;
   setIsModalOpen: (value: boolean) => void;
 };
@@ -18,6 +19,7 @@ type UpdateKanbanModalProps = {
 const UpdateKanbanModal: FC<UpdateKanbanModalProps> = ({
   list_name,
   list_id,
+  project_id,
   isModalOpen,
   setIsModalOpen,
 }) => {
@@ -51,7 +53,7 @@ const UpdateKanbanModal: FC<UpdateKanbanModalProps> = ({
     },
   });
 
-  const { updateList, isListUpdateLoading } = useLists();
+  const { updateList, isListUpdateLoading } = useLists(project_id);
 
   // Will only run if there is no zod validation errors.
   const onSubmit = async (values: z.infer<typeof listSchemaForm>) => {

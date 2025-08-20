@@ -1,6 +1,6 @@
 "use client";
 import { useProjects } from "@/hooks/use-projects";
-import { use } from "react";
+import { use } from "react";  
 import { KanbanBoard } from "@/components/kanban-board/kanban-board";
 import ProjectHeading from "@/components/projects/project-heading";
 import { useLists } from "@/hooks/use-lists";
@@ -11,7 +11,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const { id } = use(params);
   const project_id = Number(id);
   const { project, isProjectLoading } = useProjects(project_id);
-  const { lists, isLoadingLists } = useLists(project_id);
+  const { lists, isLoadingLists, updateListsPositions} = useLists(project_id);
   const { projectTasks, isProjectTasksLoading } = useTasks({ project_id: project_id });
 
   if (isProjectLoading || isLoadingLists || isProjectTasksLoading) {
@@ -37,7 +37,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       <ProjectHeading project={project} />
 
       {/* Kanban Board */}
-      <KanbanBoard tasks={projectTasks} lists={lists} projectId={project_id} />
+      <KanbanBoard tasks={projectTasks} lists={lists} projectId={project_id} updateListsPositions={updateListsPositions}/>
     </div>
   );
 }

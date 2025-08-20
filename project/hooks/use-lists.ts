@@ -1,13 +1,19 @@
 "use client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { createListAction, deleteListAction, getAllListsAction, updateListAction } from "@/actions/list-actions";
+import {
+  createListAction,
+  deleteListAction,
+  getAllListsAction,
+  updateListAction,
+  updateListsPositionsAction,
+} from "@/actions/list-actions";
 import { listSchemaForm } from "@/lib/validations/validations";
 import z from "zod";
-import { ListSelect } from "@/types";
+import { ListPositionPayload, ListSelect } from "@/types";
 import { getTempId } from "@/lib/utils";
 
-export function useLists(project_id?: number) {
+export function useLists(project_id: number) {
   const queryClient = useQueryClient();
 
   const list = useQuery({
@@ -30,7 +36,7 @@ export function useLists(project_id?: number) {
     onMutate: async ({ project_id, position }) => {
       await queryClient.cancelQueries({ queryKey: ["lists"] });
 
-      const previousLists = queryClient.getQueryData<ListSelect[]>(["lists"]);
+      const previousLists = queryClient.getQueryData<ListSelect[]>(["lists", project_id]);
 
       const tempId = getTempId();
 
@@ -45,7 +51,7 @@ export function useLists(project_id?: number) {
         position: position + 1,
       };
 
-      queryClient.setQueryData<ListSelect[]>(["lists"], (old) => (old ? [...old, optimisticList] : old));
+      queryClient.setQueryData<ListSelect[]>(["lists", project_id], (old) => (old ? [...old, optimisticList] : old));
 
       return { previousLists, tempId };
     },
@@ -54,31 +60,33 @@ export function useLists(project_id?: number) {
 
       // We replace optimistic list with the tempId with the server-sourced list with actual id
       queryClient.setQueryData<ListSelect[]>(
-        ["lists"],
+        ["lists", project_id],
         (old) => old?.map((l) => (l.id === context.tempId ? createdList : l)) ?? old,
       );
     },
     onError: (error, variables, context) => {
       toast.error("Error", { description: error.message });
-      queryClient.setQueryData(["lists"], context?.previousLists);
+      queryClient.setQueryData(["lists", project_id], context?.previousLists);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["lists"] });
+      queryClient.invalidateQueries({ queryKey: ["lists", project_id] });
     },
   });
 
   const deleteList = useMutation({
-    mutationFn: async ({ list_id }: { list_id: number }) => {
+    mutationFn: async ({ project_id, list_id }: { project_id: number; list_id: number }) => {
       const res = await deleteListAction(list_id);
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
-    onMutate: async ({ list_id }) => {
-      await queryClient.cancelQueries({ queryKey: ["lists"] });
+    onMutate: async ({ project_id, list_id }) => {
+      await queryClient.cancelQueries({ queryKey: ["lists", project_id] });
 
-      const previousLists = queryClient.getQueryData<ListSelect[]>(["lists"]);
+      const previousLists = queryClient.getQueryData<ListSelect[]>(["lists", project_id]);
 
-      queryClient.setQueryData<ListSelect[]>(["lists"], (old) => (old ? old.filter((l) => l.id != list_id) : old));
+      queryClient.setQueryData<ListSelect[]>(["lists", project_id], (old) =>
+        old ? old.filter((l) => l.id != list_id) : old,
+      );
 
       return { previousLists };
     },
@@ -87,19 +95,21 @@ export function useLists(project_id?: number) {
     },
     onError: (error, variables, context) => {
       toast.error("Error", { description: error.message });
-      queryClient.setQueryData(["lists"], context?.previousLists);
+      queryClient.setQueryData(["lists", project_id], context?.previousLists);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["lists"] });
+      queryClient.invalidateQueries({ queryKey: ["lists", project_id] });
     },
   });
 
   const updateList = useMutation({
     mutationFn: async ({
       list_id,
+      project_id,
       listFormData,
     }: {
       list_id: number;
+      project_id: number;
       listFormData: z.infer<typeof listSchemaForm>;
     }) => {
       const res = await updateListAction(list_id, listFormData);
@@ -107,12 +117,12 @@ export function useLists(project_id?: number) {
       return res.data;
     },
     onMutate: async ({ list_id, listFormData }) => {
-      await queryClient.cancelQueries({ queryKey: ["lists"] });
+      await queryClient.cancelQueries({ queryKey: ["lists", project_id] });
 
-      const previousLists = queryClient.getQueryData<ListSelect[]>(["lists"]);
+      const previousLists = queryClient.getQueryData<ListSelect[]>(["lists", project_id]);
 
       // Optimistically update the team with the inputted listFormData
-      queryClient.setQueryData<ListSelect[]>(["lists"], (old) =>
+      queryClient.setQueryData<ListSelect[]>(["lists", project_id], (old) =>
         old
           ? old.map((l) =>
               l.id === list_id
@@ -132,10 +142,50 @@ export function useLists(project_id?: number) {
     },
     onError: (error, variables, context) => {
       toast.error("Error", { description: error.message });
-      queryClient.setQueryData(["projects"], context?.previousLists);
+      queryClient.setQueryData(["lists", project_id], context?.previousLists);
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["lists"] });
+    onSettled: (data, error, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["lists", variables.project_id] });
+    },
+  });
+
+  const updateListsPositions = useMutation({
+    mutationFn: async ({ listsPayload, project_id }: { listsPayload: ListPositionPayload[]; project_id: number }) => {
+      const res = await updateListsPositionsAction(listsPayload, project_id);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+    onMutate: async ({ listsPayload, project_id }) => {
+      await queryClient.cancelQueries({ queryKey: ["lists", project_id] });
+
+      const previousLists = queryClient.getQueryData<ListSelect[]>(["lists", project_id]);
+
+      // Optimistically update the team with the new positions
+      queryClient.setQueryData<ListSelect[]>(["lists", project_id], (old) =>
+        old
+          ? old.map((l) => {
+              const payload = listsPayload.find((p) => p.id === l.id);
+              return payload
+                ? {
+                    ...l,
+                    position: payload.position,
+                  }
+                : l;
+            })
+          : old,
+      );
+
+      return { previousLists };
+    },
+    onSuccess: () => {
+      // toast.success("Success", { description: "Successfully updated the list positions." });
+    },
+    onError: (error, variables, context) => {
+      toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["lists", variables.project_id], context?.previousLists);
+    },
+    onSettled: (data, error, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["lists", variables.project_id] });
     },
   });
 
@@ -157,5 +207,9 @@ export function useLists(project_id?: number) {
     updateList: updateList.mutate,
     isListUpdateLoading: updateList.isPending,
     updateListError: updateList.error,
+
+    updateListsPositions: updateListsPositions.mutate,
+    isUpdateListsPositionsLoading: updateListsPositions.isPending,
+    updateListsPositionsError: updateListsPositions.error,
   };
 }

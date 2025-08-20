@@ -389,3 +389,10 @@ export const teamNameSchema = teamSchema.pick({
 export const idSchema = userSchema.pick({
   id: true,
 });
+
+export const listPositionPayloadSchema = listSchema.pick({
+  id: true,
+  position: true,
+});
+
+export const listsPositionsPayloadSchema = z.array(listPositionPayloadSchema); // https://stackoverflow.com/questions/74967542/zod-validation-for-an-array-of-objects

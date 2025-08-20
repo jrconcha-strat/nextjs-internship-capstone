@@ -12,10 +12,10 @@ type KanbanListOptionsProps = {
 };
 
 const KanbanListOptions: FC<KanbanListOptionsProps> = ({ project_id, list_id, onEdit }) => {
-  const { deleteList, isListDeleteLoading } = useLists();
+  const { deleteList, isListDeleteLoading } = useLists(project_id);
 
   function onClick() {
-    deleteList({ project_id, list_id });
+    deleteList({project_id, list_id });
   }
 
   return (

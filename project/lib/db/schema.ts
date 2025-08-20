@@ -123,7 +123,9 @@ export const lists = pgTable(
   (t) => ({
     idxProject: index("idx_lists_project").on(t.projectId), // Joins
     idxProjectPos: index("idx_lists_project_pos").on(t.projectId, t.position), // Fast lookups for positions.
-    uxProjectPos: uniqueIndex("ux_lists_project_pos").on(t.projectId, t.position), // Prevents same list positions
+    // uxProjectPos: uniqueIndex("ux_lists_project_pos").on(t.projectId, t.position), // Prevents same list positions, 
+    // Commented out as during position updates, there are cases that lists can have same position before being updated to their new position.
+    // E.g List 1 pos 1 list 2 pos 2, during update if list 1 and list 2 switch pos, list 1 is temporarily pos 2 while list 2 is pos 2.
   }),
 );
 

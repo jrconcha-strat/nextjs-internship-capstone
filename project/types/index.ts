@@ -63,3 +63,8 @@ export type RecentProjects = {
   memberCount: number;
   memberImages: string[];
 };
+
+export type ListPositionPayload = {
+  id: number;
+  position: number
+}

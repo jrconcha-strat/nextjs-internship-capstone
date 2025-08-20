@@ -2,13 +2,7 @@ import { and, eq, gt, sql } from "drizzle-orm";
 import * as types from "../../../types/index";
 import { db } from "../db-index";
 import * as schema from "../schema";
-import {
-  createObject,
-  getObjectById,
-  getBaseFields,
-  successResponse,
-  failResponse,
-} from "./query_utils";
+import { createObject, getObjectById, getBaseFields, successResponse, failResponse } from "./query_utils";
 
 export const lists = {
   getByProject: async (projectId: number): Promise<types.QueryResponse<Array<types.ListSelect>>> => {
@@ -94,6 +88,42 @@ export const lists = {
       return result;
     } catch (e) {
       return failResponse(`Unable to delete list.`, e);
+    }
+  },
+  updateListsPositions: async (
+    listsPayload: types.ListPositionPayload[],
+    project_id: number,
+  ): Promise<types.QueryResponse<types.ListSelect[]>> => {
+    try {
+      const oldLists = await lists.getByProject(project_id);
+      if (!oldLists.success) return failResponse(oldLists.message, oldLists.error);
+
+      const txResult = await db.transaction<types.QueryResponse<types.ListSelect[]>>(async (tx) => {
+        const now = new Date();
+        for (const list of listsPayload) {
+          const res = await tx
+            .update(schema.lists)
+            .set({ position: list.position, updatedAt: now })
+            .where(eq(schema.lists.id, list.id))
+            .returning();
+
+          if (!res) throw new Error("Unable to update a list position.");
+        }
+
+        // Return the new list order after updates
+        const newLists = await tx
+          .select()
+          .from(schema.lists)
+          .where(eq(schema.lists.projectId, project_id))
+          .orderBy(schema.lists.position);
+
+        return successResponse(`Updated list positions successfully.`, newLists);
+      });
+
+      if (txResult.success) return successResponse(txResult.message, txResult.data);
+      else return failResponse(`Unable to update list positions.`, `Database returned no result.`);
+    } catch (e) {
+      return failResponse(`Unable to update list positions.`, e);
     }
   },
 };
