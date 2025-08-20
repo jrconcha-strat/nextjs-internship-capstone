@@ -152,14 +152,16 @@ export function KanbanBoard({ lists, tasks, projectId, updateListsPositions, upd
     // What is the array position of our active task?
     const activeTaskIndex = kanbanTasks.findIndex((task) => task.id === activeId);
 
+    // Retrieve the list id of active task.
+    const activeListId = kanbanTasks[activeTaskIndex].listId;
+
     // Case: Task Drops over a Task
     if (isActiveATask && isOverATask) {
       setKanbanTasks((kanbanTasks) => {
         // What is the array position of our over task?
         const overTaskIndex = kanbanTasks.findIndex((task) => task.id === overId);
 
-        // Retrieveing the list ids of active task and over task.
-        const activeListId = kanbanTasks[activeTaskIndex].listId;
+        // Retrieve the list id of over task.
         const overListId = kanbanTasks[overTaskIndex].listId;
 
         // Over Task in another list? Make Active Task the same list id as over.
@@ -168,7 +170,7 @@ export function KanbanBoard({ lists, tasks, projectId, updateListsPositions, upd
         // Adjust positions locally
         const newKanbanTasks = arrayMove(kanbanTasks, activeTaskIndex, overTaskIndex);
 
-        // We are dropping in the same list. So we only need to the positions of task inside the list.
+        // We are dropping in the same list. So we only need to adjust the positions of task inside the list.
         if (activeListId === overListId) {
           // Retrieve list of tasks of the same list.
           const activeListTasks = newKanbanTasks.filter((t) => t.listId === activeListId);
@@ -188,14 +190,29 @@ export function KanbanBoard({ lists, tasks, projectId, updateListsPositions, upd
         // Retrieve list of tasks of the over list.
         const overListTasks = newKanbanTasks.filter((t) => t.listId === overListId);
 
-        // Update the database with debounce
-        const tasksPositionsPayload: TaskPositionPayload[] = overListTasks.map((t) => ({
+        // Add it to the payload.
+        let tasksPositionsPayload: TaskPositionPayload[] = overListTasks.map((t) => ({
           id: t.id,
           list_id: overListId, // The new list the task now belongs to.
           position: overListTasks.indexOf(t), // The task's position in the new list.
         }));
-        debouncedTaskUpdate(tasksPositionsPayload, projectId);
 
+        // We also need to reassign the tasks positions of the list we left.
+        // Retrieve list of tasks of the list we left.
+        const formerListTasks = newKanbanTasks.filter((t) => t.listId === activeListId);
+
+        // Add it to the payload.
+        tasksPositionsPayload = [
+          ...tasksPositionsPayload,
+          ...formerListTasks.map((t) => ({
+            id: t.id,
+            list_id: t.listId,
+            position: formerListTasks.indexOf(t), // The task's position in the list.
+          })),
+        ];
+
+        // Update the database with debounce
+        debouncedTaskUpdate(tasksPositionsPayload, projectId);
         return newKanbanTasks;
       });
     }
@@ -218,13 +235,31 @@ export function KanbanBoard({ lists, tasks, projectId, updateListsPositions, upd
         const overListTasks = newKanbanTasks.filter((t) => t.listId === overListId);
 
         // Update the database with debounce
-        const tasksPositionsPayload: TaskPositionPayload[] = overListTasks.map((t) => ({
+        let tasksPositionsPayload: TaskPositionPayload[] = overListTasks.map((t) => ({
           id: t.id,
           list_id: overListId, // The new list the task now belongs to.
           position: overListTasks.indexOf(t), // The task's position in the new list.
         }));
-        debouncedTaskUpdate(tasksPositionsPayload, projectId);
 
+        console.log("New", tasksPositionsPayload)
+        // We also need to reassign the tasks positions of the list we left.
+        // Retrieve list of tasks of the list we left.
+        const formerListTasks = newKanbanTasks.filter((t) => t.listId === activeListId);
+
+        // Add it to the payload.
+        tasksPositionsPayload = [
+          ...tasksPositionsPayload,
+          ...formerListTasks.map((t) => ({
+            id: t.id,
+            list_id: t.listId,
+            position: formerListTasks.indexOf(t), // The task's position in the list.
+          })),
+        ];
+
+        console.log("Combined", tasksPositionsPayload)
+
+        // Update the database with debounce
+        debouncedTaskUpdate(tasksPositionsPayload, projectId);
         return newKanbanTasks;
       });
     }
