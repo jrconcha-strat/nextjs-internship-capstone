@@ -7,7 +7,7 @@ import KanbanList from "./kanban-list";
 import { useMemo, useState } from "react";
 import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext } from "@dnd-kit/sortable";
-import { ListPositionPayload, ListSelect, TaskSelect } from "@/types";
+import { ListPositionPayload, ListSelect, TaskPositionPayload, TaskSelect } from "@/types";
 import { createPortal } from "react-dom";
 import TaskCard from "../tasks/task-card";
 import { UseMutateFunction } from "@tanstack/react-query";
@@ -58,9 +58,15 @@ type KanbanBoardProps = {
     { listsPayload: ListPositionPayload[]; project_id: number },
     unknown
   >;
+  updateTasksPositions: UseMutateFunction<
+    TaskSelect[],
+    Error,
+    { tasksPayload: TaskPositionPayload[]; project_id: number },
+    unknown
+  >;
 };
 
-export function KanbanBoard({ lists, tasks, projectId, updateListsPositions }: KanbanBoardProps) {
+export function KanbanBoard({ lists, tasks, projectId, updateListsPositions, updateTasksPositions }: KanbanBoardProps) {
   // the problem is that when optimistiacally updating, the lists and task are udpated but not the kanbanLists and kanbanTasks, therefore they are stale.
   const [kanbanLists, setKanbanLists] = useState<ListSelect[]>(lists);
   const [kanbanTasks, setKanbanTasks] = useState<TaskSelect[]>(tasks);
@@ -76,6 +82,14 @@ export function KanbanBoard({ lists, tasks, projectId, updateListsPositions }: K
     () =>
       debounce((listsPayload: ListPositionPayload[], project_id: number) => {
         updateListsPositions({ listsPayload, project_id });
+      }, 800),
+    [],
+  );
+
+  const debouncedTaskUpdate = useMemo(
+    () =>
+      debounce((tasksPayload: TaskPositionPayload[], project_id: number) => {
+        updateTasksPositions({ tasksPayload, project_id });
       }, 800),
     [],
   );
@@ -123,36 +137,95 @@ export function KanbanBoard({ lists, tasks, projectId, updateListsPositions }: K
 
   function onDragOver(event: DragOverEvent) {
     const { active, over } = event;
-    if (!over) return;
+    if (!over) return; // Return as no change.
 
     const activeId = active.id;
     const overId = over.id;
 
-    if (activeId === overId) return;
+    if (activeId === overId) return; // Return as no change.
     const isActiveATask = active.data.current?.type === "task";
     const isOverATask = over.data.current?.type === "task";
     const isOverAList = over.data.current?.type === "list";
 
-    if (!isActiveATask) return;
+    if (!isActiveATask) return; // Return as this function doesn't handle active lists.
+
+    // What is the array position of our active task?
+    const activeTaskIndex = kanbanTasks.findIndex((task) => task.id === activeId);
 
     // Case: Task Drops over a Task
     if (isActiveATask && isOverATask) {
       setKanbanTasks((kanbanTasks) => {
-        const activeTaskIndex = kanbanTasks.findIndex((task) => task.id === activeId);
+        // What is the array position of our over task?
         const overTaskIndex = kanbanTasks.findIndex((task) => task.id === overId);
 
-        // If over task is in another list, make active task the same list as over
+        // Retrieveing the list ids of active task and over task.
+        const activeListId = kanbanTasks[activeTaskIndex].listId;
+        const overListId = kanbanTasks[overTaskIndex].listId;
+
+        // Over Task in another list? Make Active Task the same list id as over.
         kanbanTasks[activeTaskIndex].listId = kanbanTasks[overTaskIndex].listId;
-        return arrayMove(kanbanTasks, activeTaskIndex, overTaskIndex);
+
+        // Adjust positions locally
+        const newKanbanTasks = arrayMove(kanbanTasks, activeTaskIndex, overTaskIndex);
+
+        // We are dropping in the same list. So we only need to the positions of task inside the list.
+        if (activeListId === overListId) {
+          // Retrieve list of tasks of the same list.
+          const activeListTasks = newKanbanTasks.filter((t) => t.listId === activeListId);
+
+          // Update the database with debounce
+          const tasksPositionsPayload: TaskPositionPayload[] = activeListTasks.map((t) => ({
+            id: t.id,
+            position: activeListTasks.indexOf(t), // The task's position in the same list.
+          }));
+          debouncedTaskUpdate(tasksPositionsPayload, projectId);
+        }
+
+        // We are dropping in a list that does have tasks.
+        // We need to reassign the overListId as the activeTask's list id in the database.
+        // We need to assign activeTask's position in this new list.
+
+        // Retrieve list of tasks of the over list.
+        const overListTasks = newKanbanTasks.filter((t) => t.listId === overListId);
+
+        // Update the database with debounce
+        const tasksPositionsPayload: TaskPositionPayload[] = overListTasks.map((t) => ({
+          id: t.id,
+          list_id: overListId, // The new list the task now belongs to.
+          position: overListTasks.indexOf(t), // The task's position in the new list.
+        }));
+        debouncedTaskUpdate(tasksPositionsPayload, projectId);
+
+        return newKanbanTasks;
       });
     }
 
     // Case: Task Drops over A List
     if (isActiveATask && isOverAList) {
       setKanbanTasks((kanbanTasks) => {
-        const activeTaskIndex = kanbanTasks.findIndex((t) => t.id === activeId);
-        kanbanTasks[activeTaskIndex].listId = overId as number; // Change the list id
-        return arrayMove(kanbanTasks, activeTaskIndex, activeTaskIndex);
+        // We know that over is a list.
+        const overListId = overId as number;
+        kanbanTasks[activeTaskIndex].listId = overListId; // Our activeTask now belongs to the over list.
+
+        // Adjust positions locally, trigger a rerender
+        const newKanbanTasks = arrayMove(kanbanTasks, activeTaskIndex, activeTaskIndex);
+
+        // We are dropping in a list that does not have tasks yet.
+        // We need to reassign the overListId as the activeTask's list id in the database.
+        // We need to assign activeTask's position in this new list.
+
+        // Retrieve list of tasks of the over list.
+        const overListTasks = newKanbanTasks.filter((t) => t.listId === overListId);
+
+        // Update the database with debounce
+        const tasksPositionsPayload: TaskPositionPayload[] = overListTasks.map((t) => ({
+          id: t.id,
+          list_id: overListId, // The new list the task now belongs to.
+          position: overListTasks.indexOf(t), // The task's position in the new list.
+        }));
+        debouncedTaskUpdate(tasksPositionsPayload, projectId);
+
+        return newKanbanTasks;
       });
     }
   }

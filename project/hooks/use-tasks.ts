@@ -72,10 +72,11 @@ import {
   getTasksByListIdAction,
   getTasksByProjectAction,
   updateTaskAction,
+  updateTasksPositionsAction,
 } from "@/actions/task-actions";
 import { getTempId } from "@/lib/utils";
 import { taskSchemaForm } from "@/lib/validations/validations";
-import { TaskSelect } from "@/types";
+import { TaskPositionPayload, TaskSelect } from "@/types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import z from "zod";
@@ -285,6 +286,64 @@ export function useTasks({
     },
   });
 
+  const updateTasksPositions = useMutation({
+    mutationFn: async ({ tasksPayload, project_id }: { tasksPayload: TaskPositionPayload[]; project_id: number }) => {
+      const res = await updateTasksPositionsAction(tasksPayload, project_id);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+    onMutate: async ({ tasksPayload, project_id }) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks", list_id] });
+      await queryClient.cancelQueries({ queryKey: ["tasks", project_id] });
+
+      const previousListTasks = queryClient.getQueryData<TaskSelect[]>(["tasks", list_id]);
+      const previousProjectTasks = queryClient.getQueryData<TaskSelect[]>(["tasks", project_id]);
+
+      // Optimistically update the task with the new positions
+      queryClient.setQueryData<TaskSelect[]>(["tasks", list_id], (old) =>
+        old
+          ? old.map((t) => {
+              const payload = tasksPayload.find((p) => p.id === t.id);
+              return payload
+                ? {
+                    ...t,
+                    position: payload.position,
+                  }
+                : t;
+            })
+          : old,
+      );
+
+      queryClient.setQueryData<TaskSelect[]>(["tasks", project_id], (old) =>
+        old
+          ? old.map((t) => {
+              const payload = tasksPayload.find((p) => p.id === t.id);
+              return payload
+                ? {
+                    ...t,
+                    position: payload.position,
+                  }
+                : t;
+            })
+          : old,
+      );
+
+      return { previousListTasks, previousProjectTasks };
+    },
+    onSuccess: () => {
+      // toast.success("Success", { description: "Successfully updated the task positions." });
+    },
+    onError: (error, variables, context) => {
+      toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["tasks", list_id], context?.previousListTasks);
+      queryClient.setQueryData(["tasks", project_id], context?.previousProjectTasks);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", list_id] });
+      queryClient.invalidateQueries({ queryKey: ["tasks", project_id] });
+    },
+  });
+
   return {
     // Get Project's tasks
     projectTasks: getTaskByProject.data,
@@ -320,5 +379,10 @@ export function useTasks({
     updateTask: updateTask.mutate,
     isUpdateTaskLoading: updateTask.isPending,
     updateTaskError: updateTask.error,
+
+    // Update Task Positions
+    updateTasksPositions: updateTasksPositions.mutate,
+    isUpdateTasksPositionsLoading: updateTasksPositions.isPending,
+    updateTasksPositionsError: updateTasksPositions.error,
   };
 }

@@ -396,3 +396,13 @@ export const listPositionPayloadSchema = listSchema.pick({
 });
 
 export const listsPositionsPayloadSchema = z.array(listPositionPayloadSchema); // https://stackoverflow.com/questions/74967542/zod-validation-for-an-array-of-objects
+
+
+export const taskPositionPayloadSchema = taskSchema.pick({
+  id: true,
+  position: true,
+}).extend({
+  listId: z.int().min(1, errorTemplates.idMinError).optional(),
+});
+
+export const tasksPositionsPayloadSchema = z.array(taskPositionPayloadSchema);

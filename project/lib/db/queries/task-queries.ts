@@ -235,4 +235,48 @@ export const tasks = {
       return failResponse(`Unable to delete task.`, e);
     }
   },
+  updateTasksPositions: async (
+    tasksPayload: types.TaskPositionPayload[],
+    project_id: number,
+  ): Promise<types.QueryResponse<types.TaskSelect[]>> => {
+    try {
+      const txResult = await db.transaction<types.QueryResponse<types.TaskSelect[]>>(async (tx) => {
+        const now = new Date();
+        for (const task of tasksPayload) {
+          const [existingTask] = await tx.select().from(schema.tasks).where(eq(schema.tasks.id, task.id));
+
+          const changed: Partial<types.TaskInsert> = {};
+          if (existingTask.listId !== task.list_id && task.list_id !== undefined) changed.listId = task.list_id;
+
+          const updatedData = {
+            ...getBaseFields(existingTask),
+            ...changed,
+            position: task.position,
+            updatedAt: now,
+          };
+
+          const res = await tx.update(schema.tasks).set(updatedData).where(eq(schema.tasks.id, task.id)).returning();
+
+          if (!res) throw new Error("Unable to update a task position.");
+        }
+
+        // Return the new task order after updates
+        const result = await tx
+          .select()
+          .from(schema.tasks)
+          .innerJoin(schema.lists, eq(schema.lists.projectId, project_id))
+          .where(eq(schema.lists.projectId, project_id))
+          .orderBy(schema.tasks.position);
+
+        const newTasks = result.map((r) => r.tasks);
+
+        return successResponse(`Updated task positions successfully.`, newTasks);
+      });
+
+      if (txResult.success) return successResponse(txResult.message, txResult.data);
+      else return failResponse(`Unable to update task positions.`, `Database returned no result.`);
+    } catch (e) {
+      return failResponse(`Unable to update task positions.`, e);
+    }
+  },
 };

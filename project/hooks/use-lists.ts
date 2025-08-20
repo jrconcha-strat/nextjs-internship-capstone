@@ -160,7 +160,7 @@ export function useLists(project_id: number) {
 
       const previousLists = queryClient.getQueryData<ListSelect[]>(["lists", project_id]);
 
-      // Optimistically update the team with the new positions
+      // Optimistically update the list with the new positions
       queryClient.setQueryData<ListSelect[]>(["lists", project_id], (old) =>
         old
           ? old.map((l) => {

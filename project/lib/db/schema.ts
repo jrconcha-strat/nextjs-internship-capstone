@@ -147,7 +147,7 @@ export const tasks = pgTable(
   (t) => ({
     idxList: index("idx_tasks_list").on(t.listId), // Joins
     idxListPos: index("idx_tasks_list_pos").on(t.listId, t.position), // fast lookups for positions
-    uxListPos: uniqueIndex("ux_tasks_list_pos").on(t.listId, t.position), // Prevents same task positions
+    // uxListPos: uniqueIndex("ux_tasks_list_pos").on(t.listId, t.position), // Prevents same task positions
     idxPriority: index("idx_tasks_priority").on(t.priority), // filters
     idxDue: index("idx_tasks_due").on(t.dueDate), // filters
   }),

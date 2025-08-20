@@ -68,3 +68,9 @@ export type ListPositionPayload = {
   id: number;
   position: number
 }
+
+export type TaskPositionPayload = {
+  id: number;
+  list_id?: number;
+  position: number
+}

@@ -1,9 +1,15 @@
 "use server";
 
-import { TaskSelect, UserSelect } from "@/types";
+import { TaskPositionPayload, TaskSelect, UserSelect } from "@/types";
 import { ServerActionResponse } from "./actions-types";
 import { queries } from "@/lib/db/queries/queries";
-import { idSchema, taskSchema, taskSchemaDB, taskSchemaForm } from "../lib/validations/validations";
+import {
+  idSchema,
+  taskSchema,
+  taskSchemaDB,
+  taskSchemaForm,
+  tasksPositionsPayloadSchema,
+} from "../lib/validations/validations";
 import z from "zod";
 import { checkAuthenticationStatus } from "./actions-utils";
 import { failResponse } from "@/lib/db/queries/query_utils";
@@ -108,4 +114,20 @@ export async function updateTaskAction(
   const assignedIds = taskFormData ? taskFormData.assigneeIds : null;
 
   return await queries.tasks.update(task_id, taskDBData, assignedIds);
+}
+
+export async function updateTasksPositionsAction(
+  tasksPayload: TaskPositionPayload[],
+  project_id: number,
+): Promise<ServerActionResponse<TaskSelect[]>> {
+  await checkAuthenticationStatus();
+
+  const parsed = tasksPositionsPayloadSchema.safeParse(tasksPayload);
+
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
+  const parsedId = idSchema.safeParse({ id: project_id });
+  if (!parsedId.success) return failResponse(`Zod Validation Error`, z.flattenError(parsedId.error));
+
+  return await queries.tasks.updateTasksPositions(tasksPayload, project_id);
 }

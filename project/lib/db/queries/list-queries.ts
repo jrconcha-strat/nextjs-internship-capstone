@@ -98,7 +98,6 @@ export const lists = {
       const oldLists = await lists.getByProject(project_id);
       if (!oldLists.success) return failResponse(oldLists.message, oldLists.error);
       
-      console.log(listsPayload)
       const txResult = await db.transaction<types.QueryResponse<types.ListSelect[]>>(async (tx) => {
         const now = new Date();
         for (const list of listsPayload) {

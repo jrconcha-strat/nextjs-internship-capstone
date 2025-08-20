@@ -1,0 +1,1 @@
+DROP INDEX "ux_tasks_list_pos";
