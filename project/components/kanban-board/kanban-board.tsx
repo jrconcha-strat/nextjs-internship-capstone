@@ -4,7 +4,7 @@ import AddKanbanBoard from "./add-kanban-board";
 import TasksSearch from "../tasks/tasks-search";
 import UpdateKanbanModal from "../modals/update-kanban-list-modal";
 import KanbanList from "./kanban-list";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { ListPositionPayload, ListSelect, TaskSelect } from "@/types";
@@ -61,6 +61,7 @@ type KanbanBoardProps = {
 };
 
 export function KanbanBoard({ lists, tasks, projectId, updateListsPositions }: KanbanBoardProps) {
+  // the problem is that when optimistiacally updating, the lists and task are udpated but not the kanbanLists and kanbanTasks, therefore they are stale.
   const [kanbanLists, setKanbanLists] = useState<ListSelect[]>(lists);
   const [kanbanTasks, setKanbanTasks] = useState<TaskSelect[]>(tasks);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -71,27 +72,13 @@ export function KanbanBoard({ lists, tasks, projectId, updateListsPositions }: K
   const [activeList, setActiveList] = useState<ListSelect | null>(null);
   const [activeTask, setActiveTask] = useState<TaskSelect | null>(null);
 
-  const debouncedUpdate = useMemo(
+  const debouncedListUpdate = useMemo(
     () =>
       debounce((listsPayload: ListPositionPayload[], project_id: number) => {
         updateListsPositions({ listsPayload, project_id });
       }, 800),
     [],
   );
-
-  useEffect(() => {
-    const listsPositionsPayload: ListPositionPayload[] = kanbanLists.map((l) => ({
-      id: l.id,
-      position: kanbanLists.indexOf(l) + 1, // Get its position from its position in the array+1
-    }));
-    debouncedUpdate(listsPositionsPayload, projectId);
-  }, [kanbanLists, projectId, debouncedUpdate]);
-
-  useEffect(() => {
-    return () => {
-      debouncedUpdate.cancel();
-    };
-  }, [debouncedUpdate]);
 
   function onDragStart(event: DragStartEvent) {
     if (event.active.data.current?.type === "list") {
@@ -119,8 +106,18 @@ export function KanbanBoard({ lists, tasks, projectId, updateListsPositions }: K
       // Find the indexes of the respective lists to move
       const activeListIndex = kanbanLists.findIndex((list) => list.id === activeListId);
       const overListIndex = kanbanLists.findIndex((list) => list.id === overListId);
+
       // Move the activeList to the new position
-      return arrayMove(kanbanLists, activeListIndex, overListIndex);
+      const newKanbanLists = arrayMove(kanbanLists, activeListIndex, overListIndex);
+
+      // Update the database with debounce
+      const listsPositionsPayload: ListPositionPayload[] = newKanbanLists.map((l) => ({
+        id: l.id,
+        position: newKanbanLists.indexOf(l) + 1, // Kanban List's New Position In Array + 1
+      }));
+      debouncedListUpdate(listsPositionsPayload, projectId);
+
+      return newKanbanLists;
     });
   }
 
