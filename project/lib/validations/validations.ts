@@ -131,6 +131,7 @@ export const listSchema = z
     name: z.string().trim().min(1, errorTemplates.nameMinError).max(100, errorTemplates.nameMaxError),
     projectId: z.int().min(1, errorTemplates.idMinError),
     position: z.int().min(0, errorTemplates.positionMinError),
+    isDone: z.boolean(),
     createdAt: z.date(),
     updatedAt: z.date(),
   })
@@ -171,6 +172,7 @@ export const listSchemaForm = listSchema.omit({
   updatedAt: true,
   projectId: true,
   position: true,
+  isDone: true,
 });
 
 export const taskSchema = z

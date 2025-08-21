@@ -63,6 +63,7 @@ export const projects = {
           name: name,
           projectId: insertedProject.id,
           position: idx + 1,
+          isDone: name === "Done" ? true : false,
           createdAt: now,
           updatedAt: now,
         }));

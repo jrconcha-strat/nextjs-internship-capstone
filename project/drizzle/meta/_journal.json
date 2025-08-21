@@ -92,6 +92,20 @@
       "when": 1755669307495,
       "tag": "0012_rich_captain_marvel",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1755764468210,
+      "tag": "0013_chief_ezekiel",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1755765057401,
+      "tag": "0014_hard_songbird",
+      "breakpoints": true
     }
   ]
 }

@@ -57,7 +57,7 @@ const UpdateKanbanModal: FC<UpdateKanbanModalProps> = ({
 
   // Will only run if there is no zod validation errors.
   const onSubmit = async (values: z.infer<typeof listSchemaForm>) => {
-    updateList({ list_id, listFormData: values });
+    updateList({ list_id, project_id, listFormData: values });
     setIsModalOpen(false);
   };
 

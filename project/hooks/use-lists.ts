@@ -46,6 +46,7 @@ export function useLists(project_id: number) {
         id: tempId,
         name: "New Board", // Same as createListAction
         projectId: project_id,
+        isDone: false,
         createdAt: now,
         updatedAt: now,
         position: position + 1,
