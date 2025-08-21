@@ -75,11 +75,21 @@ export async function updateListsPositionsAction(
   await checkAuthenticationStatus();
 
   const parsed = listsPositionsPayloadSchema.safeParse(listsPayload);
-
   if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
 
   const parsedId = idSchema.safeParse({ id: project_id });
   if (!parsedId.success) return failResponse(`Zod Validation Error`, z.flattenError(parsedId.error));
 
   return await queries.lists.updateListsPositions(listsPayload, project_id);
+}
+
+export async function updateListsStatusAction(
+  new_done_list_id: number,
+): Promise<ServerActionResponse<ListSelect>> {
+  await checkAuthenticationStatus();
+
+  const parsed = idSchema.safeParse({ id: new_done_list_id });
+  if (!parsed.success) return failResponse(`Zod Validation Error`, z.flattenError(parsed.error));
+
+  return await queries.lists.updateListsDoneStatus(new_done_list_id);
 }

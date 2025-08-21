@@ -7,6 +7,7 @@ import {
   getAllListsAction,
   updateListAction,
   updateListsPositionsAction,
+  updateListsStatusAction,
 } from "@/actions/list-actions";
 import { listSchemaForm } from "@/lib/validations/validations";
 import z from "zod";
@@ -190,6 +191,50 @@ export function useLists(project_id: number) {
     },
   });
 
+  const updateListsStatus = useMutation({
+    mutationFn: async ({
+      new_done_list_id,
+    }: {
+      new_done_list_id: number;
+    }) => {
+      const res = await updateListsStatusAction(new_done_list_id);
+      if (!res.success) throw new Error(res.message);
+      return res.data;
+    },
+    onMutate: async ({ new_done_list_id }) => {
+      await queryClient.cancelQueries({ queryKey: ["lists", project_id] });
+
+      const previousLists = queryClient.getQueryData<ListSelect[]>(["lists", project_id]);
+      const [oldIsDoneList] = previousLists?.filter((l) => l.isDone) ?? [];
+
+      // Optimistically update the old and new list with their new status
+      queryClient.setQueryData<ListSelect[]>(["lists", project_id], (old) =>
+        old
+          ? old.map((l) =>
+              l.id === oldIsDoneList.id || l.id === new_done_list_id
+                ? {
+                    ...l,
+                    isDone: l.id === new_done_list_id ? true : false,
+                  }
+                : l,
+            )
+          : old,
+      );
+
+      return { previousLists };
+    },
+    onSuccess: () => {
+      toast.success("Success", { description: "Successfully updated the list status." });
+    },
+    onError: (error, variables, context) => {
+      toast.error("Error", { description: error.message });
+      queryClient.setQueryData(["lists", project_id], context?.previousLists);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["lists", project_id] });
+    },
+  });
+
   return {
     // Get Lists for a project
     lists: list.data,
@@ -212,5 +257,9 @@ export function useLists(project_id: number) {
     updateListsPositions: updateListsPositions.mutate,
     isUpdateListsPositionsLoading: updateListsPositions.isPending,
     updateListsPositionsError: updateListsPositions.error,
+
+    updateListsStatus: updateListsStatus.mutate,
+    isUpdateListsStatusLoading: updateListsStatus.isPending,
+    updateListsStatusError: updateListsStatus.error,
   };
 }

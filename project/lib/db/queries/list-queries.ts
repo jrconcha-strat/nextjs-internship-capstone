@@ -97,7 +97,7 @@ export const lists = {
     try {
       const oldLists = await lists.getByProject(project_id);
       if (!oldLists.success) return failResponse(oldLists.message, oldLists.error);
-      
+
       const txResult = await db.transaction<types.QueryResponse<types.ListSelect[]>>(async (tx) => {
         const now = new Date();
         for (const list of listsPayload) {
@@ -124,6 +124,42 @@ export const lists = {
       else return failResponse(`Unable to update list positions.`, `Database returned no result.`);
     } catch (e) {
       return failResponse(`Unable to update list positions.`, e);
+    }
+  },
+  updateListsDoneStatus: async (new_done_list_id: number): Promise<types.QueryResponse<types.ListSelect>> => {
+    try {
+      const txResult = await db.transaction<types.QueryResponse<types.ListSelect>>(async (tx) => {
+        const now = new Date();
+
+        const [newDoneList] = await tx.select().from(schema.lists).where(eq(schema.lists.id, new_done_list_id));
+        if (!newDoneList) throw new Error("Target list not found.");
+
+        const [oldDoneList] = await tx
+          .select()
+          .from(schema.lists)
+          .where(and(eq(schema.lists.projectId, newDoneList.projectId), eq(schema.lists.isDone, true)));
+
+        let [res] = await tx
+          .update(schema.lists)
+          .set({ isDone: false, updatedAt: now })
+          .where(eq(schema.lists.id, oldDoneList.id))
+          .returning();
+        if (!res) throw new Error("Unable to set old list isDone status to false.");
+
+        [res] = await tx
+          .update(schema.lists)
+          .set({ isDone: true, updatedAt: now })
+          .where(eq(schema.lists.id, new_done_list_id))
+          .returning();
+        if (!res) throw new Error("Unable to set new list isDone status to true.");
+
+        return successResponse(`Updated list status successfully.`, res);
+      });
+
+      if (txResult.success) return successResponse(txResult.message, txResult.data);
+      else return failResponse(`Unable to update list status.`, `Database returned no result.`);
+    } catch (e) {
+      return failResponse(`Unable to update list status.`, e);
     }
   },
 };

@@ -7,6 +7,8 @@ import TaskCard from "../tasks/task-card";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { DragButton } from "../ui/drag-button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { CircleCheck } from "lucide-react";
 
 type KanbanListProps = {
   tasks: TaskSelect[];
@@ -20,6 +22,7 @@ const KanbanList: FC<KanbanListProps> = ({ tasks, list, project_id, onEdit, sear
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
 
   const task_ids = useMemo(() => tasks.map((l) => l.id), [tasks]);
+  const isDoneColumn = list.isDone;
 
   const filteredTasks = useMemo(() => {
     const filtered = tasks.filter((task) => task.title.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -46,8 +49,14 @@ const KanbanList: FC<KanbanListProps> = ({ tasks, list, project_id, onEdit, sear
 
   if (isDragging) {
     return (
-      <div ref={setNodeRef} style={style} className="min-w-[80px] min-h-[350px] w-80 overflow-y shrink-0 opacity-80 dark:opacity-45 ">
-        <div className={` bg-list-bg min-h-[350px] h-full rounded-lg border border-border ${isDragging ? "ring-2 ring-emerald-50" : ""}`}></div>
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="min-w-[80px] min-h-[350px] w-80 overflow-y shrink-0 opacity-80 dark:opacity-45 "
+      >
+        <div
+          className={` bg-list-bg min-h-[350px] h-full rounded-lg border border-border ${isDragging ? "ring-2 ring-emerald-50" : ""}`}
+        ></div>
       </div>
     );
   }
@@ -69,13 +78,25 @@ const KanbanList: FC<KanbanListProps> = ({ tasks, list, project_id, onEdit, sear
             <div className="flex items-center justify-between">
               <div className="flex gap-3 items-center">
                 <DragButton listeners={listeners} attributes={attributes} />
-                <p className="font-semibold text-foreground text-sm">
-                  {list.name}
-                  <span className="ml-2 px-2 py-1 text-xs bg-foreground/10 rounded-full">{list.position}</span>
-                </p>
-              </div>
+                <div className="flex items-center gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      {isDoneColumn && <CircleCheck size={14} className="text-green-600 dark:text-green-300" />}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Any tasks dragged to this column will be marked as done.</p>
+                    </TooltipContent>
+                  </Tooltip>
 
-              <KanbanListOptions project_id={project_id} list_id={list.id} onEdit={onEdit} />
+                  <p className="font-semibold text-foreground text-sm">
+                    {list.name}
+                    <span className="ml-2 px-2 py-1 text-xs bg-foreground/10 rounded-full">{list.position}</span>
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2 items-center">
+                <KanbanListOptions project_id={project_id} list_id={list.id} onEdit={onEdit} isDone={isDoneColumn} />
+              </div>
             </div>
           </div>
 

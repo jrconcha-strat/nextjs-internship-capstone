@@ -9,13 +9,18 @@ type KanbanListOptionsProps = {
   project_id: number;
   list_id: number;
   onEdit: () => void;
+  isDone: boolean;
 };
 
-const KanbanListOptions: FC<KanbanListOptionsProps> = ({ project_id, list_id, onEdit }) => {
-  const { deleteList, isListDeleteLoading } = useLists(project_id);
+const KanbanListOptions: FC<KanbanListOptionsProps> = ({ project_id, list_id, onEdit, isDone }) => {
+  const { deleteList, isListDeleteLoading, updateListsStatus } = useLists(project_id);
 
   function onClick() {
-    deleteList({project_id, list_id });
+    deleteList({ project_id, list_id });
+  }
+
+  function setAsDone() {
+    updateListsStatus({ new_done_list_id: list_id });
   }
 
   return (
@@ -27,6 +32,10 @@ const KanbanListOptions: FC<KanbanListOptionsProps> = ({ project_id, list_id, on
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
+        <DropdownMenuItem onClick={setAsDone} disabled={isDone}>
+          {" "}
+          {isDone ? "Already the Done Column" : "Set as Done Column"}
+        </DropdownMenuItem>
         <DropdownMenuItem disabled={isListDeleteLoading} variant="destructive" onClick={onClick}>
           Delete List
         </DropdownMenuItem>
