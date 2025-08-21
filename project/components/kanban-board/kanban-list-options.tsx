@@ -26,7 +26,11 @@ const KanbanListOptions: FC<KanbanListOptionsProps> = ({ project_id, list_id, on
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-secondary-foreground/75 hover:bg-foreground/10 hover:text-foreground active:bg-foreground/10 active:text-foreground rounded-md "
+        >
           <EllipsisVertical />
         </Button>
       </DropdownMenuTrigger>

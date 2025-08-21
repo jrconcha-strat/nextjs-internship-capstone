@@ -23,7 +23,11 @@ const TaskOptions: FC<TaskOptionsProps> = ({ task_id, list_id, project_id, class
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild className={className}>
-        <Button variant="ghost" className="h-5 w-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-secondary-foreground/75 hover:bg-foreground/10 hover:text-foreground active:bg-foreground/10 active:text-foreground rounded-md "
+        >
           <EllipsisVertical />
         </Button>
       </DropdownMenuTrigger>
