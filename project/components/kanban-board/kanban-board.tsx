@@ -4,7 +4,7 @@ import AddKanbanBoard from "./add-kanban-board";
 import TasksSearch from "../tasks/tasks-search";
 import UpdateKanbanModal from "../modals/update-kanban-list-modal";
 import KanbanList from "./kanban-list";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent } from "@dnd-kit/core";
 import { arrayMove, horizontalListSortingStrategy, SortableContext } from "@dnd-kit/sortable";
 import { ListPositionPayload, ListSelect, TaskPositionPayload, TaskSelect } from "@/types";
@@ -75,6 +75,22 @@ export function KanbanBoard({ lists, tasks, projectId, updateListsPositions, upd
 
   const listIds = useMemo(() => kanbanLists.map((l) => l.id), [kanbanLists]);
 
+  useEffect(() => {
+    const updateLists = setTimeout(() => setKanbanLists(lists), 600);
+
+    return () => {
+      clearTimeout(updateLists);
+    };
+  }, [lists]);
+
+  useEffect(() => {
+    const updateTasks = setTimeout(() => setKanbanTasks(tasks), 600);
+
+    return () => {
+      clearTimeout(updateTasks);
+    };
+  }, [tasks]);
+
   const [activeList, setActiveList] = useState<ListSelect | null>(null);
   const [activeTask, setActiveTask] = useState<TaskSelect | null>(null);
 
@@ -82,7 +98,7 @@ export function KanbanBoard({ lists, tasks, projectId, updateListsPositions, upd
     () =>
       debounce((listsPayload: ListPositionPayload[], project_id: number) => {
         updateListsPositions({ listsPayload, project_id });
-      }, 800),
+      }, 100),
     [],
   );
 
@@ -90,7 +106,7 @@ export function KanbanBoard({ lists, tasks, projectId, updateListsPositions, upd
     () =>
       debounce((tasksPayload: TaskPositionPayload[], project_id: number) => {
         updateTasksPositions({ tasksPayload, project_id });
-      }, 800),
+      }, 100),
     [],
   );
 
